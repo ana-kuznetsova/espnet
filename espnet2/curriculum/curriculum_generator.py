@@ -93,6 +93,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             self.reward_history = np.delete(self.reward_history, 0)
         
         self.reward_history = np.append(self.reward_history, reward)
+        print("Reward:", reward)
         return reward
 
     def update_weights(self, iiter, k, reward):
