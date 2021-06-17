@@ -525,7 +525,7 @@ class Trainer:
             #Tune stopping criterion later
             iiter+=1
             
-            k = curriculum_generator.get_next_task_ind()
+            k = curriculum_generator.get_next_task_ind(iiter, iepoch)
 
             #for iiter, (_, batch) in enumerate(
             #reporter.measure_iter_time(iterator, "iter_time"), 1):
