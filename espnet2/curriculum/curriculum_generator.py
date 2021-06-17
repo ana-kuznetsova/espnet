@@ -32,24 +32,27 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.action_hist = []
 
         if init=='ones':
-            self.weights = np.ones((1, K))
+            self.weights = np.ones(K)
         elif init=='zeros':
-            self.weights = np.zeros((1, K))
+            self.weights = np.zeros(K)
         elif init=='random':
-            self.weights = np.random.rand(1, K)
+            self.weights = np.random.rand(K)
         else:
             raise ValueError(
                 f"Initialization type is not supported: {init}"
             )
-        self.policy = np.zeros((1, K))
+
+        self.policy = np.zeros(K)
 
     def get_next_task_ind(self):
-        return np.argmax(self.policy)
+        arr = np.arange(self.K)
+        task_ind = np.random.choice(arr, size=1, p=self.policy)
+        return int(task_ind)
 
-    def update_policy(self, k, epsilon=0.05):
-        tmp1 = np.exp(self.weights[k])/np.sum(np.exp(self.weights))
-        pi_k = (1 - epsilon)*tmp1 + epsilon/self.K
-        self.policy[k-1] = pi_k
+    def update_policy(self, epsilon=0.05):
+        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
+        pi = (1 - epsilon)*tmp1 + epsilon/self.K
+        self.policy = pi
 
     def get_reward(self, progress_gain, batch_lens):
         '''
@@ -78,14 +81,15 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_history = np.append(self.reward_history, reward)
         return reward
 
-    def update_weights(self, k, reward, iepoch, iiter, eta=0.01, beta=0, epsilon=0.05):
-        t = iepoch*iiter
+    def update_weights(self, k, reward, iiter, eta=0.01, beta=0, epsilon=0.05):
+        if iiter==1:
+            t = 0.99
+        else:
+            t = iiter
         alpha_t = t**-1
         r = (reward + beta)/self.policy[k]
-
-        tmp1 = (1-alpha_t)*np.exp(self.weights[k] + eta*r)
-        
-        tmp_sum = []
+        r_vec = np.zeros(self.K)
+        r_vec[k] = r
 
         for i, w in enumerate(self.weights):
             if i!=k:
@@ -100,7 +104,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, gamma=0.4, lmbda=12.0, mode=None):
+    def __init__(self, K, hist_size, gamma=0.4, lmbda=12.0, slow_k=None, mode=None):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -121,8 +125,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.mode = 1
         else:
             self.mode = mode
+        try:
+            self.set_params(lmbda, gamma, slow_k)
+        except AssertionError as e:
+            raise ValueError("Pass the required parameters. {}".format(e))
 
-    def set_params(self, gamma, lmbda, slow_k):
+    def set_params(self, lmbda, gamma=None, slow_k=None):
+        """
+        Overwrites the hyperparameter values for the changing environment.
+        """
         assert lmbda != None, "Parameter lambda is None"
         self.lmbda = lmbda
         if self.mode:
@@ -208,9 +219,12 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, k, progress_gain):
+    def update_policy(self, iiter, k, progress_gain, batch_lens):
+        """
+        Updates policy based on the received progress gain.
+        """
         win_size = self.calc_sliding_window(iiter)
-        reward = self.get_reward(progress_gain)
+        reward = self.get_reward(progress_gain, batch_lens)
         self.update_arm_reward(k, reward)
         mean_rewards = self.get_mean_reward(win_size)
         arm_cost = self.get_arm_cost(iiter, win_size)
