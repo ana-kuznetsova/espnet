@@ -58,7 +58,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         '''
         Calculates and scales reward based on previous reward history.
         '''
+        print("Progress gain:", progress_gain)
         progress_gain = progress_gain/np.sum(batch_lens)
+        print("Scaled progress gain:", progress_gain)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
