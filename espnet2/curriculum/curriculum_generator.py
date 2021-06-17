@@ -46,7 +46,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
 
-    def get_next_task_ind(self):
+    def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
         task_ind = np.random.choice(arr, size=1, p=self.policy)
         return int(task_ind)
