@@ -97,3 +97,42 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         w_t = np.log(tmp1+tmp2)
         self.weights[k] = w_t
             
+
+class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
+    """
+    Class that uses sliding window UCB to generate curriculum.
+    """
+    def __init__(self, K, alpha, lmbda):
+        assert check_argument_types()
+        self.K = K 
+        self.alpha = 1-alpha/2
+        self.lambda = lmbda
+        self.action_hist = []
+        self.rewards = {i:[] for i in range(self.K)}
+        self.policy = {i:0 for i in range(self.K)}
+
+    def calc_sliding_window(self, t):
+        """
+        Calculates the sliding window size at time t. Window size cannot be
+        greater than the total time(iterations) elasped.
+        Params: t -> time/iteration
+        Returns: window size
+        """
+        val = int(np.ceil(self.lmbda * (t**self.alpha)))
+        win_size = min(t, val)
+        return win_size
+
+    def update_policy(self, window_size, t):
+        """
+        The policy contains the information about rewards as sociated with each arm.
+        Updates self.policy. 
+        Return: None
+        """
+        for arm in self.rewards:
+            self.policy[arm] = sum(self.rewards[arm][t-window_size:])
+
+    def get_reward(self, progress_gain):
+        pass
+
+    def get_next_task_ind(self):
+        pass 
