@@ -511,10 +511,10 @@ class Trainer:
         start_time = time.perf_counter()
 
         if iepoch==1:
-            iterator = train_iter_factory.build_iter(iepoch)
+            tasks = iterator.build_iter(iepoch)
 
         #### Initialise Curriculum Learning Environment #######
-        tasks = [iter(it) for it in iterator]
+        tasks = [iter(it) for it in tasks]
         if options.curriculum_algo=='exp3s':
             curriculum_generator = EXP3SCurriculumGenerator(
                                         K=len(tasks),
