@@ -41,6 +41,7 @@ from espnet2.train.reporter import SubReporter
 from espnet2.utils.build_dataclass import build_dataclass
 from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
 from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator
+from espnet2.curriculum.curriculum_iter_factory import CurriculumIterFactory
 
 if LooseVersion(torch.__version__) >= LooseVersion("1.1.0"):
     from torch.utils.tensorboard import SummaryWriter
@@ -290,15 +291,13 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
-                    if iepoch==1:
-                        curriculum_iterator = train_iter_factory.build_iter(iepoch)
-
+            
                     all_steps_are_invalid, curriculum_iterator = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
-                            iterator=curriculum_iterator,
-                            reporter=sub_reporter,
+                            iterator=train_iter_factory,
+                            reporter=sub_reporter,   
                             scaler=scaler,
                             summary_writer=summary_writer,
                             options=trainer_options,
@@ -475,7 +474,8 @@ class Trainer:
     def train_one_epoch_curriculum(
         cls,
         model: torch.nn.Module,
-        iterator: Iterable[Tuple[List[str], Dict[str, torch.Tensor]]],
+        #iterator: Iterable[Tuple[List[str], Dict[str, torch.Tensor]]],
+        iterator: CurriculumIterFactory,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
@@ -510,6 +510,9 @@ class Trainer:
 
         start_time = time.perf_counter()
 
+        if iepoch==1:
+            iterator = train_iter_factory.build_iter(iepoch)
+
         #### Initialise Curriculum Learning Environment #######
         tasks = [iter(it) for it in iterator]
         if options.curriculum_algo=='exp3s':
@@ -527,8 +530,6 @@ class Trainer:
             
             k = curriculum_generator.get_next_task_ind(iiter, iepoch)
 
-            #for iiter, (_, batch) in enumerate(
-            #reporter.measure_iter_time(iterator, "iter_time"), 1):
             _, batch = tasks[k].next()
             
             assert isinstance(batch, dict), type(batch)

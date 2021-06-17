@@ -38,6 +38,7 @@ class CurriculumIterFactory(AbsIterFactory):
         self.collate_fn = collate_fn
         # https://discuss.pytorch.org/t/what-is-the-disadvantage-of-using-pin-memory/1702
         self.pin_memory = pin_memory
+        self.loaders = None
 
     
     def build_iter(self, epoch=1):
@@ -59,5 +60,8 @@ class CurriculumIterFactory(AbsIterFactory):
                     **kwargs,
                 )
             )
-
+        self.loaders = loaders
         return loaders
+
+        def refill_task(self, k):
+            return self.loaders[k]
