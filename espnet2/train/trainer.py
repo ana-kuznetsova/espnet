@@ -605,6 +605,7 @@ class Trainer:
                     loss_after /= accum_grad
                     #logging.info(f"Loss after: {loss_after}")
 
+                    print("Losses:", loss_before, loss_after)
                     progress_gain = loss_before - loss_after
                     progress_gain = progress_gain.detach().cpu().numpy()
                     reward = curriculum_generator.get_reward(progress_gain=progress_gain, 
