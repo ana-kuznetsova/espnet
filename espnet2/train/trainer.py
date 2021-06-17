@@ -521,14 +521,10 @@ class Trainer:
         delta = 9999
         iiter = 0
 
-        #Initial sampling of task index
-        k = int(np.random.randint(low=0, high=len(tasks)-1, size=1))
-        print("initial k:", k)
-
         while delta > 0.05:
             #Tune stopping criterion later
             iiter+=1
-            curriculum_generator.update_policy()
+            
             k = curriculum_generator.get_next_task_ind()
 
             #for iiter, (_, batch) in enumerate(
@@ -606,24 +602,16 @@ class Trainer:
                     loss_after /= accum_grad
                     #logging.info(f"Loss after: {loss_after}")
 
+                    print("Losses:", loss_before, loss_after)
                     progress_gain = loss_before - loss_after
                     progress_gain = progress_gain.detach().cpu().numpy()
-                    reward = curriculum_generator.get_reward(progress_gain=progress_gain, 
-                                                    batch_lens=batch['speech_lengths'].detach().cpu().numpy())
-
-                    print("Policy:", curriculum_generator.policy, sum(curriculum_generator.policy))
-                    print("--------------------------------")
-                    print("task:", k)
-                    print("loss:", loss_after)
-                    print("reward:", reward)
-                    print("Weights:", curriculum_generator.weights)
-                    curriculum_generator.update_weights(k=k, 
-                                                        reward=reward,
-                                                        iiter=iiter
-                                                        )
-                    print("Updated weights:", curriculum_generator.weights, sum(curriculum_generator.weights))
-                    print("---------------------------------")
                     
+                    curriculum_generator.update_policy(
+                                        iiter=iiter, 
+                                        k=k, 
+                                        progress_gain=progress_gain, 
+                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                        )
 
                     loss = loss_after
                 

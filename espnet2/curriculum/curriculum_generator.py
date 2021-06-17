@@ -5,11 +5,7 @@ from abc import abstractmethod
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
-    def update_policy(self, k, epsilon=0.05):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_reward(self, progress_gain):
+    def update_policy(self, iiter, k, progress_gain, batch_lens):
         raise NotImplementedError
         
     @abstractmethod
@@ -21,7 +17,10 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
                 init: str ="zeros",
-                hist_size=10000
+                hist_size=10000,
+                epsilon=0.05,
+                eta=0.01, 
+                beta=0,
                 ):
 
         assert check_argument_types()
@@ -30,6 +29,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_history = np.array([])
         self.hist_size = hist_size
         self.action_hist = []
+        self.eta = eta
+        self.beta = beta
+        self.epsilon = epsilon
 
         if init=='ones':
             self.weights = np.ones(K)
@@ -41,15 +43,24 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             raise ValueError(
                 f"Initialization type is not supported: {init}"
             )
-
-        self.policy = np.zeros(K)
+        #Initialize policy with uniform probs
+        self.policy = np.array([1/self.K for i in range(self.K)])
 
     def get_next_task_ind(self):
         arr = np.arange(self.K)
         task_ind = np.random.choice(arr, size=1, p=self.policy)
         return int(task_ind)
 
-    def update_policy(self, epsilon=0.05):
+    def update_policy(self, iiter, k, progress_gain, batch_lens):
+        '''
+        Executes steps:
+            1. Get and scale reward
+            2. Update weigths 
+            3. Update policy
+        '''
+        reward = self.get_reward(progress_gain, batch_lens)
+        self.update_weights(iiter, k, reward)
+
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - epsilon)*tmp1 + epsilon/self.K
         self.policy = pi
@@ -58,7 +69,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         '''
         Calculates and scales reward based on previous reward history.
         '''
+        print("Progress gain:", progress_gain)
         progress_gain = progress_gain/np.sum(batch_lens)
+        print("Scaled progress gain:", progress_gain)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
@@ -81,7 +94,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_history = np.append(self.reward_history, reward)
         return reward
 
-    def update_weights(self, k, reward, iiter, eta=0.01, beta=0, epsilon=0.05):
+    def update_weights(self, iiter, k, reward):
         if iiter==1:
             t = 0.99
         else:
@@ -158,29 +171,16 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         win_size = min(t, val)
         return win_size
 
-    def get_reward(self, progress_gain):
+    def get_reward(self, progress_gain, batch_lens):
         """
         Calculates reward for chosen arm and updates reward list. We store rewards
         only uptil hist_size. 
         """
-        if len(self.reward_history)==0:
-            q_lo = 0.000000000098
-            q_hi = 0.000000000099
-        else:
-            q_lo = np.ceil(np.quantile(self.reward_history, 0.2))
-            q_hi = np.ceil(np.quantile(self.reward_history, 0.8))
-
-        if progress_gain < q_lo:
-            reward = -1
-        elif progress_gain > q_hi:
-            reward = 1
-        else:
-            reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
-
+        reward = progress_gain/np.sum(batch_lens)
+        self.reward_history.append(reward)
         if len(self.reward_history) > self.hist_size:
             self.reward_history = np.delete(self.reward_history, 0)
-        
-        self.reward_history = np.append(self.reward_history, reward)
+        return reward
 
     def update_arm_reward(self, arm, reward):
         """
@@ -222,6 +222,12 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     def update_policy(self, iiter, k, progress_gain, batch_lens):
         """
         Updates policy based on the received progress gain.
+        Executes steps:
+            1. Calculate sliding window length.
+            2. Calculate reward for progress gain.
+            3. Calculate arm count.
+            4. Calculate mean reward per arm.
+            5. Calculate arm cost and update policy.
         """
         win_size = self.calc_sliding_window(iiter)
         reward = self.get_reward(progress_gain, batch_lens)
@@ -239,7 +245,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         if iiter < self.K and iepoch == 1:
             return iiter
-        return np.argmax(self.policy)
+        return max(self.policy, key = lambda x:x[1])
         
         
         
