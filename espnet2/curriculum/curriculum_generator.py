@@ -62,7 +62,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
-        pi = (1 - epsilon)*tmp1 + epsilon/self.K
+        pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
 
     def get_reward(self, progress_gain, batch_lens):
@@ -101,12 +101,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             t = iiter
         alpha_t = t**-1
-        r = (reward + beta)/self.policy[k]
+        r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
         r_vec[k] = r
 
         for i, w in enumerate(self.weights):
-            tmp1 = (1-alpha_t)*np.exp(w + eta*r_vec[i])
+            tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
             sum_ind = [j for j in range(len(self.weights)) if j!=i]
             tmp2 = (alpha_t/(self.K-1))*np.exp(self.weights[sum_ind]).sum()
             w_i = np.log(tmp1+tmp2)
