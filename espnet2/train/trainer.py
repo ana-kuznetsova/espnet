@@ -504,6 +504,11 @@ class Trainer:
             #Tune stopping criterion later
             iiter+=1
 
+            """
+            Maybe put the below if condition statement in the update_policy method itself.
+            This way we don't need to handle any policy conditions in the train
+            function.
+            """
             if (iepoch==1) and (iiter==1):
                 k = int(np.random.randint(low=0, high=len(tasks)-1, size=1))
             curriculum_generator.update_policy(k)
