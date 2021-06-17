@@ -528,7 +528,7 @@ class Trainer:
             #Tune stopping criterion later
             iiter+=1
             
-            k = curriculum_generator.get_next_task_ind(iiter, iepoch)
+            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             _, batch = tasks[k].next()
             
