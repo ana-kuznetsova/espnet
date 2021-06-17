@@ -9,7 +9,7 @@ class AbsCurriculumGenerator(ABC):
         raise NotImplementedError
         
     @abstractmethod
-    def get_next_task_ind(self):
+    def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
 
