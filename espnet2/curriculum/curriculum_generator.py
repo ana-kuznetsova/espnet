@@ -28,7 +28,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.K = K 
         self.reward_history = np.array([])
         self.hist_size = hist_size
-        self.action_hist = []
+        self.action_hist = np.array([])
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
@@ -49,6 +49,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
         task_ind = np.random.choice(arr, size=1, p=self.policy)
+        self.action_hist[-1] = task_ind
         return int(task_ind)
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
