@@ -521,13 +521,10 @@ class Trainer:
         delta = 9999
         iiter = 0
 
-        #Initial sampling of task index
-        k = int(np.random.randint(low=0, high=len(tasks)-1, size=1))
-
         while delta > 0.05:
             #Tune stopping criterion later
             iiter+=1
-            curriculum_generator.update_policy()
+            
             k = curriculum_generator.get_next_task_ind()
 
             #for iiter, (_, batch) in enumerate(
@@ -608,14 +605,13 @@ class Trainer:
                     print("Losses:", loss_before, loss_after)
                     progress_gain = loss_before - loss_after
                     progress_gain = progress_gain.detach().cpu().numpy()
-                    reward = curriculum_generator.get_reward(progress_gain=progress_gain, 
-                                                    batch_lens=batch['speech_lengths'].detach().cpu().numpy())
-
-                    print("Mapped rewards:", reward)
-                    curriculum_generator.update_weights(k=k, 
-                                                        reward=reward,
-                                                        iiter=iiter
-                                                        )
+                    
+                    curriculum_generator.update_policy(
+                                        iiter=iiter, 
+                                        k=k, 
+                                        progress_gain=progress_gain, 
+                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                        )
 
                     loss = loss_after
                 
