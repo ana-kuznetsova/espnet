@@ -54,7 +54,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             #If one of the tasks is exhausted, use only those that still have data
             ind = [i for i in range(self.K) if i!=k]
             task_ind = np.random.choice(arr[ind], size=1, p=self.policy[ind])
-        self.action_hist[-1] = task_ind
+        np.append(self.action_hist, task_ind)
         return int(task_ind)
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
