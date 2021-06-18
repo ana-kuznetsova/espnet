@@ -49,11 +49,14 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def get_next_task_ind(self, exhausted=None, **kwargs):
         arr = np.arange(self.K)
         if exhausted is None:
+            print("Enter not exhausted condition")
             task_ind = np.random.choice(arr, size=1, p=self.policy)
         else:
             #If one of the tasks is exhausted, use only those that still have data
             ind = [i for i in range(self.K) if i!=k]
+            print(f"remaining tasks: {ind}")
             task_ind = np.random.choice(arr[ind], size=1, p=self.policy[ind])
+            print(f"next_sampled: {task_ind}")
         np.append(self.action_hist, task_ind)
         return int(task_ind)
 
