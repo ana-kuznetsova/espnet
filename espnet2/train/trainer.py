@@ -99,6 +99,7 @@ class TrainerOptions:
     use_curriculum: bool
     curriculum_algo: Sequence[str]
     gain_type: Sequence[str]
+    refill_task: bool
     wandb_model_log_interval: int
 
 
