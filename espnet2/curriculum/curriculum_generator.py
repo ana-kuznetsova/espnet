@@ -1,5 +1,5 @@
 import numpy as np
-from typeguard import check_argument_types
+#from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 
@@ -9,10 +9,10 @@ class AbsCurriculumGenerator(ABC):
         raise NotImplementedError
         
     @abstractmethod
-    def get_next_task_ind(self):
+    def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
-
+"""
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
@@ -46,7 +46,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
 
-    def get_next_task_ind(self):
+    def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
         task_ind = np.random.choice(arr, size=1, p=self.policy)
         return int(task_ind)
@@ -62,7 +62,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
-        pi = (1 - epsilon)*tmp1 + epsilon/self.K
+        pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
 
     def get_reward(self, progress_gain, batch_lens):
@@ -92,6 +92,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             self.reward_history = np.delete(self.reward_history, 0)
         
         self.reward_history = np.append(self.reward_history, reward)
+        print("Reward:", reward)
         return reward
 
     def update_weights(self, iiter, k, reward):
@@ -100,44 +101,51 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             t = iiter
         alpha_t = t**-1
-        r = (reward + beta)/self.policy[k]
+        r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
         r_vec[k] = r
 
         for i, w in enumerate(self.weights):
             if i!=k:
                 tmp_sum.append(np.exp(w))
-        tmp2 = (alpha_t/(self.K-1))*sum(tmp_sum)
-
-        w_t = np.log(tmp1+tmp2)
-        self.weights[k] = w_t
-            
+            tmp2 = (alpha_t/(self.K-1))*sum(tmp_sum)
+            tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
+            sum_ind = [j for j in range(len(self.weights)) if j!=i]
+            tmp2 = (alpha_t/(self.K-1))*np.exp(self.weights[sum_ind]).sum()
+            w_i = np.log(tmp1+tmp2)
+            self.weights[i] = w_i
+            w_t = np.log(tmp1+tmp2)
+            self.weights[k] = w_t
+        
+"""           
 
 class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, gamma=0.4, lmbda=12.0, slow_k=None, mode=None):
+    def __init__(self, K, hist_size, threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=None, env_mode=None):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
                    as it is proportional to T^(alpha).  
         lambda   : parameter that controls the width of the sliding window.
         hist_size: controls the size of reward history we maintain. 
-        mode     : abruptly varying (1), slowly varying(0)
+        env_mode : abruptly varying (1), slowly varying(0)
         """
-        assert check_argument_types()
+        #assert check_argument_types()
         self.K = K 
         self.action_hist = []
         self.reward_history = np.array([])
         self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
-        self.policy = {i:0 for i in range(self.K)}
+        self.policy = np.zeros(K)
         self.hist_size = hist_size
+        self.threshold = threshold
         #At start we assign the mode of env to be abruptly varying unless specified
-        if mode is None:
-            self.mode = 1
+        if env_mode is None:
+            self.env_mode = 1
         else:
-            self.mode = mode
+            self.env_mode = env_mode
+            self.slow_k = slow_k
         try:
             self.set_params(lmbda, gamma, slow_k)
         except AssertionError as e:
@@ -149,18 +157,12 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         assert lmbda != None, "Parameter lambda is None"
         self.lmbda = lmbda
-        if self.mode:
+        if self.env_mode:
             assert gamma != None, "Parameter gamma is None"
             self.alpha = 1-gamma/2
         else:
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
-
-    def update_mode(self):
-        """
-        Updates the mode of the environment on observing the recent reward history.
-        """
-        raise NotImplementedError
 
     def calc_sliding_window(self, t):
         """
@@ -171,13 +173,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         win_size = min(t, val)
         return win_size
 
+
     def get_reward(self, progress_gain, batch_lens):
         """
         Calculates reward for chosen arm and updates reward list. We store rewards
         only uptil hist_size. 
         """
         reward = progress_gain/np.sum(batch_lens)
-        self.reward_history.append(reward)
+        self.reward_history = np.append(self.reward_history, reward)
         if len(self.reward_history) > self.hist_size:
             self.reward_history = np.delete(self.reward_history, 0)
         return reward
@@ -187,7 +190,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         Updates record of reward for each arm. For the chosen arm, the value is updated
         by the current reward value, for the rest of the arms we simply append 0.
         """
+        print("AARRRMM:",arm)
         for i in self.arm_rewards:
+            print(i, arm)
             if i == arm:
                 self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
                 self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
@@ -197,6 +202,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             else:
                 self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], 0)
                 self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 0)
+        print(self.arm_rewards)
 
     def get_mean_reward(self, win_size):
         """
@@ -206,7 +212,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
+            print("ARM:",arm,"count:",arm_count)
             mean_rewards.append(rewards_sum/arm_count)
+        print(self.arm_rewards)
         return np.array(mean_rewards)
 
     def get_arm_cost(self, iteration, win_size):
@@ -229,23 +237,43 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """
+            
         win_size = self.calc_sliding_window(iiter)
+        print("SW size:", win_size)
         reward = self.get_reward(progress_gain, batch_lens)
+        print("Reward:", reward)
         self.update_arm_reward(k, reward)
-        mean_rewards = self.get_mean_reward(win_size)
-        arm_cost = self.get_arm_cost(iiter, win_size)
-        for arm in range(self.K):
-            self.policy[arm] = mean_rewards[arm-1] + arm_cost[arm-1]
+        print(self.reward_history)
+        if len(self.reward_history) <= self.K:
+            return
+        #Change mode based on reward history.
+        std_dev = np.std(self.reward_history)
+        if std_dev < self.threshold:
+            self.env_mode = 0
+            try:
+                self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
+            except AssertionError as e:
+                raise ValueError("Pass the required parameters. {}".format(e))
 
-    def get_next_task_ind(self, iiter, iepoch):
+        mean_rewards = self.get_mean_reward(win_size)
+        print("Mean rewards:", mean_rewards)
+        arm_cost = self.get_arm_cost(iiter, win_size)
+        print("Arm costs:", arm_cost)
+        self.policy = mean_rewards + arm_cost
+        print("Policy:", self.policy)
+
+    def get_next_task_ind(self, **kwargs):
         """
         We need to run each arm at least once. So for the first K iterations in the first epoch
         we simply run the each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
-        if iiter < self.K and iepoch == 1:
-            return iiter
-        return max(self.policy, key = lambda x:x[1])
+        print(kwargs)
+        if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
+            return kwargs['iiter']
+        return np.argmax(self.policy)
         
         
         
+            
+            
