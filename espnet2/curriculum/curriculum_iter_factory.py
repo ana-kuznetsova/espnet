@@ -60,8 +60,13 @@ class CurriculumIterFactory(AbsIterFactory):
                     **kwargs,
                 )
             )
-        self.loaders = loaders
         return loaders
 
     def refill_task(self, k):
-        return self.loaders[k]
+        return DataLoader(
+                    dataset=self.dataset,
+                    batch_sampler=self.sampler[k],
+                    num_workers=self.num_workers,
+                    pin_memory=self.pin_memory,
+                    **kwargs,
+                )
