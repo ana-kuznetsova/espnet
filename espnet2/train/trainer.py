@@ -530,7 +530,7 @@ class Trainer:
             iiter+=1
             
             if options.refill_task==True:
-                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
@@ -540,7 +540,7 @@ class Trainer:
                     _, batch = tasks[k].next()
             else:
                 try:
-                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                    k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                     print(f"Task {k} has been exhaused.")
                 except StopIteration:
