@@ -536,6 +536,7 @@ class Trainer:
                 except StopIteration:
                     print(f"Refilled task {k}.")
                     tasks.insert(k, iterator.refill_task(k))
+                    _, batch = tasks[k].next()
             else:
                 try:
                     k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
