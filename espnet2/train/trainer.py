@@ -534,6 +534,7 @@ class Trainer:
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
+                    print(f"Refilled iterator {k}.")
                     tasks.insert(k, iterator.refill_task(k))
             else:
                 try:
