@@ -534,7 +534,7 @@ class Trainer:
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    print(f"Refilled iterator {k}.")
+                    print(f"Refilled task {k}.")
                     tasks.insert(k, iterator.refill_task(k))
             else:
                 try:
@@ -546,7 +546,7 @@ class Trainer:
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
-
+            print(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
