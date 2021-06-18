@@ -3,6 +3,7 @@ from typing import Sequence
 from typing import Union
 from typing import List
 from typing import Iterator
+from copy import deepcopy
 
 import numpy as np
 from torch.utils.data import DataLoader
@@ -60,12 +61,10 @@ class CurriculumIterFactory(AbsIterFactory):
                     **kwargs,
                 )
             )
+        self.loaders = deepcopy(loaders)
         return loaders
 
     def refill_task(self, k):
-        return DataLoader(
-                    dataset=self.dataset,
-                    batch_sampler=self.sampler[k],
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                )
+        refill = self.loaders[k]
+        self.loaders[k] = deepcopy(refill)
+        return refill
