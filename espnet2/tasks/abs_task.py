@@ -687,10 +687,6 @@ class AbsTask(ABC):
                            type=int, 
                            default=1,
                            help="Number of tasks for curriculum learning")
-        group.add_argument("--refill_task", 
-                           type=bool, 
-                           default=1,
-                           help="Refill task after the task is exhausted")
 
         group = parser.add_argument_group("Sequence iterator related")
         _batch_type_help = ""
