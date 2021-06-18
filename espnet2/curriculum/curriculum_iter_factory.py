@@ -63,5 +63,5 @@ class CurriculumIterFactory(AbsIterFactory):
         self.loaders = loaders
         return loaders
 
-        def refill_task(self, k):
-            return self.loaders[k]
+    def refill_task(self, k):
+        return self.loaders[k]
