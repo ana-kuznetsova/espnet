@@ -528,9 +528,21 @@ class Trainer:
             #Tune stopping criterion later
             iiter+=1
             
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            if options.refill_task==True:
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                try:
+                    _, batch = tasks[k].next()
+                except StopIteration:
+                    tasks.insert(k, iterator.refill_task(k))
+            else:
+                try:
+                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                    _, batch = tasks[k].next()
+                except StopIteration:
+                    k = curriculum_generator.get_next_task_ind(iiter=iiter, 
+                                                               iepoch=iepoch, 
+                                                               exhausted=k)
 
-            _, batch = tasks[k].next()
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
