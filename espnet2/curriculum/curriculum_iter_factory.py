@@ -68,5 +68,4 @@ class CurriculumIterFactory(AbsIterFactory):
                     batch_sampler=self.sampler[k],
                     num_workers=self.num_workers,
                     pin_memory=self.pin_memory,
-                    **kwargs,
                 )
