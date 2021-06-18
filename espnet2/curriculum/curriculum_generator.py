@@ -46,7 +46,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
 
-    def get_next_task_ind(self, exhausted, **kwargs):
+    def get_next_task_ind(self, exhausted=None, **kwargs):
         arr = np.arange(self.K)
         if exhausted is None:
             print("Enter not exhausted condition")
