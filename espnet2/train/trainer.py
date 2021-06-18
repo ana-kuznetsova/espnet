@@ -530,25 +530,20 @@ class Trainer:
             iiter+=1
             
             if options.refill_task==True:
-                k = curriculum_generator.get_next_task_ind(iiter=iiter, 
-                                                           iepoch=iepoch,
-                                                           exhausted=None,
-                                                            )
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
                     tasks.insert(k, iterator.refill_task(k))
             else:
                 try:
-                    k = curriculum_generator.get_next_task_ind(iiter=iiter, 
-                                                               iepoch=iepoch,
-                                                               exhausted=None
-                                                               )
+                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    k = curriculum_generator.get_next_task_ind(iiter=iiter, 
+                    k = curriculum_generator.get_next_task_ind(exhausted=k,
+                                                               iiter=iiter, 
                                                                iepoch=iepoch, 
-                                                               exhausted=k)
+                                                               )
 
             
             assert isinstance(batch, dict), type(batch)
