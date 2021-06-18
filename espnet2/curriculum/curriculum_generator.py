@@ -52,7 +52,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             task_ind = np.random.choice(arr, size=1, p=self.policy)
         else:
             #If one of the tasks is exhausted, use only those that still have data
-            ind = [i for i in range(self.K) if i!=k]
+            ind = [i for i in range(self.K) if i!=exhausted]
             print(f"remaining tasks: {ind}")
             task_ind = np.random.choice(arr[ind], size=1, p=self.policy[ind])
             print(f"next_sampled: {task_ind}")
