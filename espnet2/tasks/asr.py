@@ -213,6 +213,11 @@ class ASRTask(AbsTask):
             help="Loss-based gain for Curriculum Learning. Prediction Gain (PG) or Self-Prediction Gain (SPG)",
         )
 
+        group.add_argument("--refill_task", 
+                           type=bool, 
+                           default=1,
+                           help="Refill task after the task is exhausted")
+
         group = parser.add_argument_group(description="Preprocess related")
         group.add_argument(
             "--use_preprocessor",

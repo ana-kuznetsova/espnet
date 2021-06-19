@@ -41,6 +41,7 @@ from espnet2.train.reporter import SubReporter
 from espnet2.utils.build_dataclass import build_dataclass
 from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
 from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator
+from espnet2.curriculum.curriculum_iter_factory import CurriculumIterFactory
 
 if LooseVersion(torch.__version__) >= LooseVersion("1.1.0"):
     from torch.utils.tensorboard import SummaryWriter
@@ -98,6 +99,7 @@ class TrainerOptions:
     use_curriculum: bool
     curriculum_algo: Sequence[str]
     gain_type: Sequence[str]
+    refill_task: bool
     wandb_model_log_interval: int
 
 
@@ -290,15 +292,13 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
-                    if iepoch==1:
-                        curriculum_iterator = train_iter_factory.build_iter(iepoch)
-
+            
                     all_steps_are_invalid, curriculum_iterator = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
-                            iterator=curriculum_iterator,
-                            reporter=sub_reporter,
+                            iterator=train_iter_factory,
+                            reporter=sub_reporter,   
                             scaler=scaler,
                             summary_writer=summary_writer,
                             options=trainer_options,
@@ -475,7 +475,8 @@ class Trainer:
     def train_one_epoch_curriculum(
         cls,
         model: torch.nn.Module,
-        iterator: Iterable[Tuple[List[str], Dict[str, torch.Tensor]]],
+        #iterator: Iterable[Tuple[List[str], Dict[str, torch.Tensor]]],
+        iterator: CurriculumIterFactory,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
@@ -510,8 +511,11 @@ class Trainer:
 
         start_time = time.perf_counter()
 
+        if iepoch==1:
+            tasks = iterator.build_iter(iepoch)
+
         #### Initialise Curriculum Learning Environment #######
-        tasks = [iter(it) for it in iterator]
+        tasks = [iter(it) for it in tasks]
         if options.curriculum_algo=='exp3s':
             curriculum_generator = EXP3SCurriculumGenerator(
                                         K=len(tasks),
@@ -524,12 +528,21 @@ class Trainer:
         while delta > 0.05:
             #Tune stopping criterion later
             iiter+=1
-            
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
-
-            #for iiter, (_, batch) in enumerate(
-            #reporter.measure_iter_time(iterator, "iter_time"), 1):
-            _, batch = tasks[k].next()
+            try:
+                k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
+                _, batch = tasks[k].next()
+            except StopIteration as err:
+                if options.refill_task:
+                    tasks.pop(k)
+                    tasks.insert(k, iter(iterator.refill_task(k)))
+                    _, batch = tasks[k].next()
+                    print(f"Refilled task {k}.")
+                else:
+                    k = curriculum_generator.get_next_task_ind(exhausted=k,
+                                                               iiter=iiter, 
+                                                               iepoch=iepoch, 
+                                                               )
+            print(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
             if distributed:

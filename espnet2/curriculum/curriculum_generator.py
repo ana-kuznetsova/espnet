@@ -9,7 +9,7 @@ class AbsCurriculumGenerator(ABC):
         raise NotImplementedError
         
     @abstractmethod
-    def get_next_task_ind(self, **kwargs):
+    def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
@@ -27,7 +27,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.K = K 
         self.reward_history = np.array([])
         self.hist_size = hist_size
-        self.action_hist = []
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
@@ -45,9 +44,15 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
 
-    def get_next_task_ind(self, **kwargs):
+    def get_next_task_ind(self, exhausted=None, **kwargs):
         arr = np.arange(self.K)
-        task_ind = np.random.choice(arr, size=1, p=self.policy)
+        if exhausted is None:
+            task_ind = np.random.choice(arr, size=1, p=self.policy)
+        else:
+            #If one of the tasks is exhausted, use only those that still have data
+            ind = [i for i in range(self.K) if i!=exhausted]
+            norm_probs = self.policy[ind]/self.policy[ind].sum()
+            task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
         return int(task_ind)
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
@@ -258,7 +263,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = mean_rewards + arm_cost
         print("Policy:", self.policy)
 
-    def get_next_task_ind(self, **kwargs):
+    def get_next_task_ind(self, exhausted, **kwargs):
         """
         We need to run each arm at least once. So for the first K iterations in the first epoch
         we simply run the each arm one by one. After K iterations, we switch to running arm with 
@@ -266,7 +271,10 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
-        return np.argmax(self.policy)
+        if exhausted is None:
+            return np.argmax(self.policy)
+        policy = np.concat(self.policy[:exhausted], self.policy[exhausted+1:])
+        return np.argmax(policy)
         
         
         

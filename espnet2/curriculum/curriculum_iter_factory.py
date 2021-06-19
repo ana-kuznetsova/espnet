@@ -3,6 +3,7 @@ from typing import Sequence
 from typing import Union
 from typing import List
 from typing import Iterator
+from copy import deepcopy
 
 import numpy as np
 from torch.utils.data import DataLoader
@@ -38,6 +39,7 @@ class CurriculumIterFactory(AbsIterFactory):
         self.collate_fn = collate_fn
         # https://discuss.pytorch.org/t/what-is-the-disadvantage-of-using-pin-memory/1702
         self.pin_memory = pin_memory
+        self.loaders = None
 
     
     def build_iter(self, epoch=1):
@@ -59,5 +61,10 @@ class CurriculumIterFactory(AbsIterFactory):
                     **kwargs,
                 )
             )
-
+        self.loaders = deepcopy(loaders)
         return loaders
+
+    def refill_task(self, k):
+        refill = self.loaders[k]
+        self.loaders[k] = deepcopy(refill)
+        return refill
