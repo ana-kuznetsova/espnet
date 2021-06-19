@@ -12,7 +12,6 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
-"""
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
@@ -117,7 +116,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             w_t = np.log(tmp1+tmp2)
             self.weights[k] = w_t
         
-"""           
+          
 
 class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
@@ -159,7 +158,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         if self.env_mode:
             assert gamma != None, "Parameter gamma is None"
-            self.alpha = 1-gamma/2
+            self.alpha = (1-gamma)/2
         else:
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
@@ -172,7 +171,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         val = int(np.ceil(self.lmbda * (t**self.alpha)))
         win_size = min(t, val)
         return win_size
-
 
     def get_reward(self, progress_gain, batch_lens):
         """
@@ -190,19 +188,18 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         Updates record of reward for each arm. For the chosen arm, the value is updated
         by the current reward value, for the rest of the arms we simply append 0.
         """
-        print("AARRRMM:",arm)
         for i in self.arm_rewards:
-            print(i, arm)
             if i == arm:
                 self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
                 self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
-                if len(self.arm_rewards[i]['rewards']) > self.hist_size:
-                    self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
-                    self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
             else:
                 self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], 0)
                 self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 0)
-        print(self.arm_rewards)
+            
+            if len(self.arm_rewards[i]['rewards']) > self.hist_size:
+                self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
+                self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
+           
 
     def get_mean_reward(self, win_size):
         """
@@ -213,8 +210,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
             print("ARM:",arm,"count:",arm_count)
+            print("Count:",self.arm_rewards[arm]['count'])
             mean_rewards.append(rewards_sum/arm_count)
-        print(self.arm_rewards)
         return np.array(mean_rewards)
 
     def get_arm_cost(self, iteration, win_size):
@@ -224,7 +221,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         cost = []
         for arm in range(self.K):
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration)) / arm_count))
+            cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
@@ -236,8 +233,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             3. Calculate arm count.
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
-        """
-            
+        """    
         win_size = self.calc_sliding_window(iiter)
         print("SW size:", win_size)
         reward = self.get_reward(progress_gain, batch_lens)
@@ -268,7 +264,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         we simply run the each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
-        print(kwargs)
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
         return np.argmax(self.policy)

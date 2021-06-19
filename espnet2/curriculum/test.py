@@ -16,18 +16,18 @@ def sample(task, data):
     return []
 
 def main():
-    cls = SWUCBCurriculumGenerator(K=5, slow_k=3, env_mode=1, hist_size=1000)
+    cls = SWUCBCurriculumGenerator(K=5, gamma=0.9, lmbda=2, slow_k=3, env_mode=1, hist_size=1000)
     for epoch in range(3):
         data = reset()
         for step in range(10):
             print("STEP:", step)
-            k = cls.get_next_task_ind(iiter=step, iepoch=epoch)
+            k = cls.get_next_task_ind(iiter=step + epoch*10, iepoch=epoch)
             print("task selected:", k)
             batch = sample(k, data)
             if len(batch) > 0:
                 batch_lens = [1 for i in range(10)]
                 gain = sum([model(i) for i in batch])
-                cls.update_policy(iiter=step, 
+                cls.update_policy(iiter=step + epoch*10, 
                                   k=k, 
                                   progress_gain=gain, 
                                   batch_lens=batch_lens)
