@@ -535,13 +535,11 @@ class Trainer:
                 if options.refill_task:
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
-                    _, batch = tasks[k].next()
                     print(f"Refilled task {k}.")
                 else:
-                    k = curriculum_generator.get_next_task_ind(exhausted=k,
-                                                               iiter=iiter, 
-                                                               iepoch=iepoch, 
-                                                               )
+                    k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
+                _, batch = tasks[k].next()
+                
             print(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
