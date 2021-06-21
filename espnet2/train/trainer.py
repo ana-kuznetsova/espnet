@@ -517,16 +517,12 @@ class Trainer:
         #### Initialise Curriculum Learning Environment #######
         tasks = [iter(it) for it in tasks]
         if options.curriculum_algo=='exp3s':
-            curriculum_generator = EXP3SCurriculumGenerator(
-                                        K=len(tasks),
-                                        init='zeros',
-                                        )
+            curriculum_generator = EXP3SCurriculumGenerator(K=len(tasks),
+                                                            init='zeros')
         
         if options.curriculum_algo=='swucb':
-            curriculum_generator = SWUCBCurriculumGenerator(
-                                        K=len(tasks), 
-                                        hist_size=10000,
-                                        )
+            curriculum_generator = SWUCBCurriculumGenerator(K=len(tasks), 
+                                                            hist_size=10000)
 
         delta = 9999
         iiter = 0
@@ -537,7 +533,6 @@ class Trainer:
             try:
                 k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
                 _, batch = tasks[k].next()
-            
             except StopIteration as err:
                 if options.refill_task:
                     tasks.pop(k)
