@@ -55,14 +55,16 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
         self.tasks_exhausted = [False]*self.K
-    '''
+    
     def log_generator_stats(self, iiter, k, progress_gain, reward):
+        pass 
+        '''
         with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
             stats = ', '.join([str(iiter), str(k), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
             fo.write(str(iiter)+' '+str(self.policy)+'\n')
-    '''
+        '''
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
