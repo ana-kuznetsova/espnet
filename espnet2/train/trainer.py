@@ -531,6 +531,7 @@ class Trainer:
             try:
                 k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
                 _, batch = tasks[k].next()
+            
             except StopIteration as err:
                 if options.refill_task:
                     tasks.pop(k)
@@ -539,7 +540,7 @@ class Trainer:
                 else:
                     k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
                 _, batch = tasks[k].next()
-                
+
             print(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
