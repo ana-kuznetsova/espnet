@@ -57,7 +57,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def log_generator_stats(self, iiter, k, progress_gain, reward):
         with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
-            stats = ' '.join([str(iiter), str(k), str(progress_gain), str(reward)])
+            stats = ', '.join([str(iiter), str(k), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
             fo.write(str(iiter)+' '+str(self.policy)+'\n')
