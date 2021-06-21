@@ -36,7 +36,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        
+
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         self.log_dir = log_dir
@@ -79,7 +79,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        reward = self.get_reward(progress_gain, batch_lens)
+        reward = float(self.get_reward(progress_gain, batch_lens))
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
