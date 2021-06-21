@@ -1,5 +1,5 @@
 import numpy as np
-#from typeguard import check_argument_types
+from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 
@@ -123,7 +123,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=None, env_mode=None):
+    def __init__(self, K, hist_size, threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 

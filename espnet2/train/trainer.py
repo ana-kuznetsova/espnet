@@ -40,7 +40,7 @@ from espnet2.train.reporter import Reporter
 from espnet2.train.reporter import SubReporter
 from espnet2.utils.build_dataclass import build_dataclass
 from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
-from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator
+from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator, SWUCBCurriculumGenerator
 from espnet2.curriculum.curriculum_iter_factory import CurriculumIterFactory
 
 if LooseVersion(torch.__version__) >= LooseVersion("1.1.0"):
@@ -520,6 +520,12 @@ class Trainer:
             curriculum_generator = EXP3SCurriculumGenerator(
                                         K=len(tasks),
                                         init='zeros',
+                                        )
+        
+        if options.curriculum_algo=='swucb':
+            curriculum_generator = SWUCBCurriculumGenerator(
+                                        K=len(tasks), 
+                                        hist_size=10000,
                                         )
 
         delta = 9999
