@@ -99,27 +99,23 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         print("Reward:", reward)
         return reward
 
-    def update_weights(self, iiter, k, reward):
-        if iiter==1:
-            t = 0.99
-        else:
-            t = iiter
+    def update_weights(self, k, reward, iepoch, iiter, eta=0.01, beta=0, epsilon=0.05):
+        t = iepoch*iiter
         alpha_t = t**-1
-        r = (reward + self.beta)/self.policy[k]
-        r_vec = np.zeros(self.K)
-        r_vec[k] = r
+        r = (reward + beta)/self.policy[k]
+
+        tmp1 = (1-alpha_t)*np.exp(self.weights[k] + eta*r)
+        
+        tmp_sum = []
 
         for i, w in enumerate(self.weights):
             if i!=k:
                 tmp_sum.append(np.exp(w))
-            tmp2 = (alpha_t/(self.K-1))*sum(tmp_sum)
-            tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
-            sum_ind = [j for j in range(len(self.weights)) if j!=i]
-            tmp2 = (alpha_t/(self.K-1))*np.exp(self.weights[sum_ind]).sum()
-            w_i = np.log(tmp1+tmp2)
-            self.weights[i] = w_i
-            w_t = np.log(tmp1+tmp2)
-            self.weights[k] = w_t
+        tmp2 = (alpha_t/(self.K-1))*sum(tmp_sum)
+
+        w_t = np.log(tmp1+tmp2)
+        self.weights[k] = w_t
+            
         
           
 
