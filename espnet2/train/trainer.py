@@ -100,6 +100,7 @@ class TrainerOptions:
     curriculum_algo: Sequence[str]
     gain_type: Sequence[str]
     refill_task: bool
+    gen_log_dir: Sequence[str]
     wandb_model_log_interval: int
 
 
@@ -520,6 +521,7 @@ class Trainer:
             curriculum_generator = EXP3SCurriculumGenerator(
                                         K=len(tasks),
                                         init='zeros',
+                                        log_dir=options.gen_log_dir
                                         )
         
         if options.curriculum_algo=='swucb':

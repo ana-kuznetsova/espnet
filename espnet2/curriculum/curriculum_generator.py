@@ -2,6 +2,7 @@ import numpy as np
 from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
+import os
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
@@ -12,11 +13,16 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
+    def log_generator_stats(self):
+        raise NotImplementedError
+
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
                 init: str ="zeros",
                 hist_size=10000,
+                log_dir: str='exp3stats',
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
@@ -31,6 +37,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.beta = beta
         self.epsilon = epsilon
 
+        if os.path.exists(log_dir):
+            os.remove(log_dir)
+        os.makedirs(log_dir)
+        self.log_dir = log_dir
+
         if init=='ones':
             self.weights = np.ones(K)
         elif init=='zeros':
@@ -43,6 +54,13 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             )
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
+
+    def log_generator_stats(self, iiter, k, progress_gain, reward):
+        with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
+            stats = ', '.join([str(iiter), str(k), str(progress_gain), str(reward)])
+            fo.write(stats + '\n')
+        with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
+            fo.write(str(iiter)+' '+str(self.policy)+'\n')
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
@@ -62,12 +80,14 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        reward = self.get_reward(progress_gain, batch_lens)
+        progress_gain = float(progress_gain)
+        reward = float(self.get_reward(progress_gain, batch_lens))
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
+        self.log_generator_stats(iiter, k, progress_gain, reward)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
