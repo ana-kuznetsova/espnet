@@ -38,7 +38,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.epsilon = epsilon
 
         if os.path.exists(log_dir):
-            os.remove(log_dir)
+            os.rmdir(log_dir)
         os.makedirs(log_dir)
         self.log_dir = log_dir
 
