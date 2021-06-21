@@ -520,6 +520,7 @@ class Trainer:
             curriculum_generator = EXP3SCurriculumGenerator(
                                         K=len(tasks),
                                         init='zeros',
+                                        log_dir=options.gen_log_dir
                                         )
         
         if options.curriculum_algo=='swucb':
