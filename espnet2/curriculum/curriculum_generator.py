@@ -2,6 +2,7 @@ import numpy as np
 from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
+import os
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
@@ -12,11 +13,16 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
+    def log_generator_stats(self):
+        raise NotImplementedError
+
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
                 init: str ="zeros",
                 hist_size=10000,
+                log_dir: str,
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
@@ -30,6 +36,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
+        self.log_dir = log_dir
 
         if init=='ones':
             self.weights = np.ones(K)
@@ -43,6 +50,13 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             )
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
+
+    def log_generator_stats(self, iiter, k, progress_gain, reward):
+        with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
+            stats = ' '.join([str(iiter), str(k), str(progress_gain), str(reward)])
+            fo.write(stats + '\n')
+        with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
+            fo.write(str(iiter)+' '+str(self.policy)+'\n')
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
