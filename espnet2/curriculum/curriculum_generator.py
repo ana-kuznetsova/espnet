@@ -79,6 +79,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
+        progress_gain = float(progress_gain)
         reward = float(self.get_reward(progress_gain, batch_lens))
         self.update_weights(iiter, k, reward)
 
