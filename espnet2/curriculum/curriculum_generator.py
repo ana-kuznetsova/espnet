@@ -22,7 +22,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 K: int =1, 
                 init: str ="zeros",
                 hist_size=10000,
-                log_dir: str,
+                log_dir: str='exp3stats',
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
