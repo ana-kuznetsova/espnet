@@ -116,9 +116,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             w_i = np.log(tmp1+tmp2)
             self.weights[i] = w_i
             
-        
-          
-
 class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
@@ -140,6 +137,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = np.zeros(K)
         self.hist_size = hist_size
         self.threshold = threshold
+        self.exhausted = [False for i in range(self.K)]
         #At start we assign the mode of env to be abruptly varying unless specified
         if env_mode is None:
             self.env_mode = 1
@@ -262,14 +260,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     def get_next_task_ind(self, exhausted, **kwargs):
         """
         We need to run each arm at least once. So for the first K iterations in the first epoch
-        we simply run the each arm one by one. After K iterations, we switch to running arm with 
+        we simply run each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
-        if exhausted is None:
-            return np.argmax(self.policy)
-        policy = np.concat(self.policy[:exhausted], self.policy[exhausted+1:])
+        if exhausted is not None:
+            self.exhausted[exhausted] = True
+        policy = [self.policy[i] for i in range(self.K) if not self.exhausted[i]]
         return np.argmax(policy)
         
         
