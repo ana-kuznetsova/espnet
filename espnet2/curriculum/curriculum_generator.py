@@ -1,5 +1,6 @@
 import numpy as np
 from typeguard import check_argument_types
+from logger import Logger
 from abc import ABC
 from abc import abstractmethod
 import os
@@ -36,6 +37,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
+        self.logger = Logger(filename=log_dir)
 
         if os.path.exists(log_dir):
             os.remove(log_dir)
@@ -54,13 +56,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             )
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
-
-    def log_generator_stats(self, iiter, k, progress_gain, reward):
-        with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
-            stats = ' '.join([str(iiter), str(k), str(progress_gain), str(reward)])
-            fo.write(stats + '\n')
-        with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
-            fo.write(str(iiter)+' '+str(self.policy)+'\n')
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
@@ -87,7 +82,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
-        self.log_generator_stats(iiter, k, progress_gain, reward)
+        self.logger.log(iiter, k, progress_gain, reward)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
@@ -140,7 +135,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
+    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -157,6 +152,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = np.zeros(K)
         self.hist_size = hist_size
         self.threshold = threshold
+        self.logger = Logger(filename=log_dir)
         self.exhausted = [False for i in range(self.K)]
         #At start we assign the mode of env to be abruptly varying unless specified
         if env_mode is None:
@@ -276,6 +272,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         print("Arm costs:", arm_cost)
         self.policy = mean_rewards + arm_cost
         print("Policy:", self.policy)
+        self.logger.log(iiter, k, progress_gain, reward)
 
     def get_next_task_ind(self, exhausted, **kwargs):
         """
@@ -287,8 +284,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             return kwargs['iiter']
         if exhausted is not None:
             self.exhausted[exhausted] = True
-        policy = [self.policy[i] for i in range(self.K) if not self.exhausted[i]]
-        return np.argmax(policy)
+        policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
+        return max(policy, key=lambda x:x[1])
         
         
         
