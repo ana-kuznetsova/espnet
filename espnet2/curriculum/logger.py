@@ -1,6 +1,6 @@
 import os
 
-class Logger():
+class Logger:
     """
     Simple logger class that logs necessary stats in the mentioned file.
     """
