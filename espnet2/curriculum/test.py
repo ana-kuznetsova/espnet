@@ -21,7 +21,7 @@ def main():
         data = reset()
         for step in range(10):
             print("STEP:", step)
-            k = cls.get_next_task_ind(iiter=step + epoch*10, iepoch=epoch)
+            k = cls.get_next_task_ind(exhausted=None, iiter=(step+epoch*10), iepoch=epoch)
             print("task selected:", k)
             batch = sample(k, data)
             if len(batch) > 0:
