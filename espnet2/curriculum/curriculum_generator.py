@@ -36,6 +36,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
+        
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
         self.log_dir = log_dir
 
         if init=='ones':
