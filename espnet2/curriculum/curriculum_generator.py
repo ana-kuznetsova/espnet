@@ -1,6 +1,6 @@
 import numpy as np
 from typeguard import check_argument_types
-from logger import Logger
+from logger import CurriculumLogger
 from abc import ABC
 from abc import abstractmethod
 import os
@@ -37,7 +37,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = Logger(filename=log_dir)
+        self.logger = CurriculumLogger(filename=log_dir)
 
         if os.path.exists(log_dir):
             os.remove(log_dir)
@@ -152,7 +152,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = np.zeros(K)
         self.hist_size = hist_size
         self.threshold = threshold
-        self.logger = Logger(filename=log_dir)
+        self.logger = CurriculumLogger(filename=log_dir)
         self.exhausted = [False for i in range(self.K)]
         #At start we assign the mode of env to be abruptly varying unless specified
         if env_mode is None:

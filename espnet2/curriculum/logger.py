@@ -1,6 +1,6 @@
 import os
 
-class Logger:
+class CurriculumLogger:
     """
     Simple logger class that logs necessary stats in the mentioned file.
     """
