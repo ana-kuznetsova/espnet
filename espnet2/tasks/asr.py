@@ -218,6 +218,11 @@ class ASRTask(AbsTask):
                            default=1,
                            help="Refill task after the task is exhausted")
 
+        group.add_argument("--gen_log_dir",
+                            type=str,
+                            default='curriculum_log',
+                            help="Directory to store curriculum generator logs")
+
         group = parser.add_argument_group(description="Preprocess related")
         group.add_argument(
             "--use_preprocessor",
