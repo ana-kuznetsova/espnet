@@ -76,6 +76,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
             print("Remaining tasks:", ind)
             norm_probs = self.policy[ind]/self.policy[ind].sum()
+            print("Norm probs:", norm_probs)
+            print("Sample arr:", arr[ind])
             task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
         return int(task_ind)
 
