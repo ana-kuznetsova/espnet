@@ -197,7 +197,7 @@ class Trainer:
             keep_nbest_models = max(trainer_options.keep_nbest_models)
 
         output_dir = Path(trainer_options.output_dir)
-        logging.info(f"OUTPUT DIR {output_dir}")
+
         reporter = Reporter()
         if trainer_options.use_amp:
             if LooseVersion(torch.__version__) < LooseVersion("1.6.0"):
@@ -298,9 +298,9 @@ class Trainer:
                     #### Initialise Curriculum Learning Environment #######
                     if trainer_options.curriculum_algo=='exp3s':
                         curriculum_generator = EXP3SCurriculumGenerator(
-                                                    K=len(tasks),
+                                                    K=train_iter_factory.K,
                                                     init='zeros',
-                                                    log_dir=trainer_options.gen_log_dir
+                                                    log_dir=output_dir
                                                     )
             
                     all_steps_are_invalid = cls.train_one_epoch_curriculum(
