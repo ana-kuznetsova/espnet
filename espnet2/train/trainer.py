@@ -273,6 +273,15 @@ class Trainer:
             summary_writer = None
 
         start_time = time.perf_counter()
+
+        if trainer_options.use_curriculum==True:
+        #### Initialise Curriculum Learning Environment #######
+            if trainer_options.curriculum_algo=='exp3s':
+                curriculum_generator = EXP3SCurriculumGenerator(
+                                            K=train_iter_factory.K,
+                                            init='zeros',
+                                            log_dir=str(output_dir)
+                                            )
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
                 logging.info(
@@ -294,13 +303,6 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
-                    #### Initialise Curriculum Learning Environment #######
-                    if trainer_options.curriculum_algo=='exp3s':
-                        curriculum_generator = EXP3SCurriculumGenerator(
-                                                    K=train_iter_factory.K,
-                                                    init='zeros',
-                                                    log_dir=str(output_dir)
-                                                    )
             
                     all_steps_are_invalid = cls.train_one_epoch_curriculum(
                             model=dp_model,
