@@ -548,6 +548,7 @@ class Trainer:
                 else:
                     print(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
+                    print(f"Out of remaining:{k}")
                 _, batch = tasks[k].next()
 
             print(f"Selected Task: {k}")
