@@ -533,8 +533,6 @@ class Trainer:
         while iiter < iterator.num_iters_per_epoch:
             #Tune stopping criterion later
             iiter+=1
-            if curriculum_generator.all_exhausted:
-                break
 
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
