@@ -89,9 +89,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         '''
         Calculates and scales reward based on previous reward history.
         '''
-        print("Progress gain:", progress_gain)
+        #print("Progress gain:", progress_gain)
         progress_gain = progress_gain/np.sum(batch_lens)
-        print("Scaled progress gain:", progress_gain)
+        #print("Scaled progress gain:", progress_gain)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
@@ -112,7 +112,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             self.reward_history = np.delete(self.reward_history, 0)
         
         self.reward_history = np.append(self.reward_history, reward)
-        print("Reward:", reward)
+        #print("Reward:", reward)
         return reward
 
     def update_weights(self, iiter, k, reward):

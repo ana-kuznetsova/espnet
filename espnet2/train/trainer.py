@@ -548,10 +548,10 @@ class Trainer:
                                                                 iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    logging.info(f"tasks exhausted{curriculum_generator.tasks_exhausted}")
-                    logging.info(f"Task {k} is exhausted.")
                     if curriculum_generator.all_exhausted==True:
                         break
+                    logging.info(f"tasks exhausted{curriculum_generator.tasks_exhausted}")
+                    logging.info(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
