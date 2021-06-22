@@ -13,10 +13,6 @@ class AbsCurriculumGenerator(ABC):
     @abstractmethod
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
-    
-    @abstractmethod
-    def all_exhausted(self):
-        raise NotImplementedError
 
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
@@ -65,9 +61,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             #If one of the tasks is exhausted, use only those that still have data
             self.tasks_exhausted[exhausted] = True
             ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
-            norm_probs = self.policy[ind]/self.policy[ind].sum()
-            task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
-        return int(task_ind)
+            if len(ind) > 0:
+                norm_probs = self.policy[ind]/self.policy[ind].sum()
+                task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
+                return int(task_ind)
+            else:
+                return -1
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
         '''
