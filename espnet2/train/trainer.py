@@ -293,13 +293,22 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
+
+                    #### Initialise Curriculum Learning Environment #######
+                    if trainer_options.curriculum_algo=='exp3s':
+                        curriculum_generator = EXP3SCurriculumGenerator(
+                                                    K=len(tasks),
+                                                    init='zeros',
+                                                    log_dir=trainer_options.gen_log_dir
+                                                    )
             
-                    all_steps_are_invalid, curriculum_iterator = cls.train_one_epoch_curriculum(
+                    all_steps_are_invalid = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
                             iterator=train_iter_factory,
-                            reporter=sub_reporter,   
+                            reporter=sub_reporter,
+                            curriculum_generator=curriculum_generator   
                             scaler=scaler,
                             summary_writer=summary_writer,
                             options=trainer_options,
@@ -481,6 +490,7 @@ class Trainer:
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
         reporter: SubReporter,
+        curriculum_generator: AbsCurriculumGenerator,
         summary_writer: Optional[SummaryWriter],
         options: TrainerOptions,
         distributed_option: DistributedOption,
@@ -511,21 +521,8 @@ class Trainer:
 
         start_time = time.perf_counter()
 
-        if (iepoch==1) or (options.refill_task==False):
-            tasks = iterator.build_iter(iepoch)
-
-        #### Initialise Curriculum Learning Environment #######
-        tasks = [iter(it) for it in tasks]
-        if options.curriculum_algo=='exp3s':
-            curriculum_generator = EXP3SCurriculumGenerator(
-                                        K=len(tasks),
-                                        init='zeros',
-                                        log_dir=options.gen_log_dir
-                                        )
         
-        if options.curriculum_algo=='swucb':
-            curriculum_generator = SWUCBCurriculumGenerator(K=len(tasks), 
-                                                            hist_size=10000)
+        tasks = iterator.build_iter(iepoch)
 
         iiter = 0
 
@@ -747,7 +744,7 @@ class Trainer:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
 
-        return all_steps_are_invalid, tasks
+        return all_steps_are_invalid
 
     @classmethod
     def train_one_epoch(

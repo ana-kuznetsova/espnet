@@ -66,8 +66,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             norm_probs = self.policy[ind]/self.policy[ind].sum()
             task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
             return int(task_ind)
-        else:
-            return -1
+        return -1
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
         '''
