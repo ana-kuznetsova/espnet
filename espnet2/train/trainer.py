@@ -556,7 +556,7 @@ class Trainer:
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
-            print(f"Selected Task: {k}")
+            logging.info(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
