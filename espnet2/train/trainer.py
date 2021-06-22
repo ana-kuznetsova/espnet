@@ -300,7 +300,7 @@ class Trainer:
                         curriculum_generator = EXP3SCurriculumGenerator(
                                                     K=train_iter_factory.K,
                                                     init='zeros',
-                                                    log_dir=output_dir
+                                                    log_dir=str(output_dir)
                                                     )
             
                     all_steps_are_invalid = cls.train_one_epoch_curriculum(
