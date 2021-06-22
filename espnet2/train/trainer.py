@@ -536,23 +536,24 @@ class Trainer:
         while delta > 0.05:
             #Tune stopping criterion later
             iiter+=1
-            try:
-                k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
-                _, batch = tasks[k].next()
-                print("Batch:", len(batch))
-            
-            except StopIteration as err:
-                if options.refill_task:
+            if options.refill_task==True:
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                try:
+                    _, batch = tasks[k].next()
+                except StopIteration:
+                    print(f"Refilled task {k}.")
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
-                    print(f"Refilled task {k}.")
-                else:
-                    print(f"Task {k} is exhausted.")
-                    k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
-                    print(f"Out of remaining:{k}")
-                _, batch = tasks[k].next()
-                print("Batch:", len(batch))
-
+                    _, batch = tasks[k].next()
+            else:
+                try:
+                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                    _, batch = tasks[k].next()
+                except StopIteration:
+                    k = curriculum_generator.get_next_task_ind(exhausted=k,
+                                                               iiter=iiter, 
+                                                               iepoch=iepoch, 
+                                                               )
             print(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
