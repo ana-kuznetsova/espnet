@@ -546,7 +546,7 @@ class Trainer:
                                                                 iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    logging.info(f"tasks exhausted{curriculum_generator.tasks_exhausted}")
+                    logging.info(f"tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     logging.info(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
@@ -744,7 +744,7 @@ class Trainer:
             if distributed:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-
+        logging.info(f"Finished epoch {iepoch}")
         return all_steps_are_invalid
 
     @classmethod
