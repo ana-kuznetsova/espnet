@@ -13,10 +13,6 @@ class AbsCurriculumGenerator(ABC):
     @abstractmethod
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
-    
-    @abstractmethod
-    def all_exhausted(self):
-        raise NotImplementedError
 
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
@@ -61,13 +57,17 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         arr = np.arange(self.K)
         if exhausted is None:
             task_ind = np.random.choice(arr, size=1, p=self.policy)
-        else:
-            #If one of the tasks is exhausted, use only those that still have data
-            self.tasks_exhausted[exhausted] = True
-            ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
+            return int(task_ind)
+
+        #If one of the tasks is exhausted, use only those that still have data
+        self.tasks_exhausted[exhausted] = True
+        ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
+        if len(ind) > 0:
             norm_probs = self.policy[ind]/self.policy[ind].sum()
             task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
-        return int(task_ind)
+            return int(task_ind)
+        else:
+            return -1
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
         '''
@@ -89,9 +89,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         '''
         Calculates and scales reward based on previous reward history.
         '''
-        print("Progress gain:", progress_gain)
+        #print("Progress gain:", progress_gain)
         progress_gain = progress_gain/np.sum(batch_lens)
-        print("Scaled progress gain:", progress_gain)
+        #print("Scaled progress gain:", progress_gain)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
@@ -112,7 +112,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             self.reward_history = np.delete(self.reward_history, 0)
         
         self.reward_history = np.append(self.reward_history, reward)
-        print("Reward:", reward)
+        #print("Reward:", reward)
         return reward
 
     def update_weights(self, iiter, k, reward):
