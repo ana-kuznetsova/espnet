@@ -55,7 +55,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
-        if (exhausted is None) or (all(self.tasks_exhausted)==False):
+        if exhausted is None:
             task_ind = np.random.choice(arr, size=1, p=self.policy)
             return int(task_ind)
 
