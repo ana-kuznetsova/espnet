@@ -136,7 +136,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.001, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
+    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.1, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -148,13 +148,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         #assert check_argument_types()
         self.K = K 
         self.action_hist = []
-        self.reward_history = np.array([])
-        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
-        self.policy = np.zeros(K)
         self.hist_size = hist_size
         self.threshold = threshold
         self.logger = CurriculumLogger(log_dir=log_dir)
         self.env_mode = env_mode
+        self.lmbda = lmbda
+        self.gamma = gamma
+        self.slow_k = slow_k
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """
@@ -169,17 +169,25 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
     
-    def initialize(self, env_mode):
-        #At start we assign the mode of env to be abruptly varying unless specified
+    def initialize(self):
+        """
+        At start we assign the mode of env to be abruptly varying unless specified.
+        We also initialize the exhausted_task list, policy, reward_history and arm_rewards.
+        """
         if self.env_mode is None:
             self.env_mode = 1
         else:
             self.slow_k = slow_k
+
+        self.exhausted = [False for i in range(self.K)]
+        self.reward_history = np.array([])
+        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
+        self.policy = np.zeros(self.K)
         try:
-            self.set_params(lmbda, gamma, slow_k)
+            self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
             raise ValueError("Pass the required parameters. {}".format(e))
-        self.exhausted = [False for i in range(self.K)]
+        
 
     def reset_tasks(self):
         self.exhausted = [False for i in range(self.K)]
