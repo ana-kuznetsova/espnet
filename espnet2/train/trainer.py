@@ -534,7 +534,7 @@ class Trainer:
             iiter+=1
             if curriculum_generator.all_exhausted:
                 break
-                
+
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
