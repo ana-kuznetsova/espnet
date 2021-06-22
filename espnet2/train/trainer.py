@@ -539,6 +539,7 @@ class Trainer:
             try:
                 k = curriculum_generator.get_next_task_ind(exhausted=None, iiter=iiter, iepoch=iepoch)
                 _, batch = tasks[k].next()
+                print("Batch:", len(batch))
             
             except StopIteration as err:
                 if options.refill_task:
@@ -550,6 +551,7 @@ class Trainer:
                     k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
                     print(f"Out of remaining:{k}")
                 _, batch = tasks[k].next()
+                print("Batch:", len(batch))
 
             print(f"Selected Task: {k}")
             
