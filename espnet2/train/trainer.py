@@ -476,7 +476,6 @@ class Trainer:
     def train_one_epoch_curriculum(
         cls,
         model: torch.nn.Module,
-        #iterator: Iterable[Tuple[List[str], Dict[str, torch.Tensor]]],
         iterator: CurriculumIterFactory,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
@@ -512,7 +511,7 @@ class Trainer:
 
         start_time = time.perf_counter()
 
-        if iepoch==1:
+        if (iepoch==1) or (options.refill_task==False):
             tasks = iterator.build_iter(iepoch)
 
         #### Initialise Curriculum Learning Environment #######
@@ -528,12 +527,14 @@ class Trainer:
             curriculum_generator = SWUCBCurriculumGenerator(K=len(tasks), 
                                                             hist_size=10000)
 
-        delta = 9999
         iiter = 0
 
-        while delta > 0.05:
+        while iiter < options.num_iters_per_epoch:
             #Tune stopping criterion later
             iiter+=1
+            if curriculum_generator.all_exhausted:
+                break
+                
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
@@ -639,9 +640,6 @@ class Trainer:
                                         )
 
                     loss = loss_after
-                
-            #### Calculate the reward and update weights
-
 
             reporter.register(stats, weight)
 

@@ -13,6 +13,10 @@ class AbsCurriculumGenerator(ABC):
     @abstractmethod
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
+    
+    @abstractmethod
+    def all_exhausted(self):
+        raise NotImplementedError
 
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
@@ -49,6 +53,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
         self.tasks_exhausted = [False]*self.K
+
+    def all_exhausted(self):
+        return all(self.tasks_exhausted)
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
