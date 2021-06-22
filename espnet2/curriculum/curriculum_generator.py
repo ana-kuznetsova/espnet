@@ -57,7 +57,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         arr = np.arange(self.K)
         if (exhausted is None) or (all(self.tasks_exhausted)==False):
             task_ind = np.random.choice(arr, size=1, p=self.policy)
-            return task_ind
+            return int(task_ind)
 
         #If one of the tasks is exhausted, use only those that still have data
         self.tasks_exhausted[exhausted] = True
