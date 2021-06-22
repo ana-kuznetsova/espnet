@@ -309,7 +309,7 @@ class Trainer:
                             schedulers=schedulers,
                             iterator=train_iter_factory,
                             reporter=sub_reporter,
-                            curriculum_generator=curriculum_generator   
+                            curriculum_generator=curriculum_generator,   
                             scaler=scaler,
                             summary_writer=summary_writer,
                             options=trainer_options,
