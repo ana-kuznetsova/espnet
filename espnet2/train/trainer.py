@@ -294,7 +294,6 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
-                    logging.info(f"OUT dir {str(output_dir)}")
                     #### Initialise Curriculum Learning Environment #######
                     if trainer_options.curriculum_algo=='exp3s':
                         curriculum_generator = EXP3SCurriculumGenerator(
@@ -524,6 +523,7 @@ class Trainer:
 
         
         tasks = iterator.build_iter(iepoch)
+        tasks = [iter(it) for it in tasks]
 
         iiter = 0
 
