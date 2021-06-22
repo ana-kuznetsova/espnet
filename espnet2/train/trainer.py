@@ -547,9 +547,11 @@ class Trainer:
                     _, batch = tasks[k].next()
             else:
                 try:
-                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                    k = curriculum_generator.get_next_task_ind(exhausted=None, 
+                                                                iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
+                    print(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
