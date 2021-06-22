@@ -14,9 +14,6 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, exhausted, **kwargs):
         raise NotImplementedError
 
-    @abstractmethod
-    def log_generator_stats(self):
-        raise NotImplementedError
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
