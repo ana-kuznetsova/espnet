@@ -11,9 +11,9 @@ class CurriculumLogger:
         os.makedirs(log_dir)
         self.log_dir = log_dir
 
-    def log(self, iiter, k, progress_gain, reward):
+    def log(self, iiter, k, progress_gain, reward, policy):
         with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
             stats = ' '.join([str(iiter), str(k), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
-            fo.write(str(iiter)+' '+str(self.policy)+'\n')
+            fo.write(str(iiter)+' '+str(policy)+'\n')

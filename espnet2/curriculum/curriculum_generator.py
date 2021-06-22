@@ -76,7 +76,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
-        self.logger.log(iiter, k, progress_gain, reward)
+        self.logger.log(iiter, k, progress_gain, reward, self.policy)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
