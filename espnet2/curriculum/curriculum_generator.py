@@ -3,7 +3,7 @@ from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 import os
-from curriculum_logger import CurriculumLogger
+from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
