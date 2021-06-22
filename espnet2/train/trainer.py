@@ -744,7 +744,7 @@ class Trainer:
             if distributed:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-        logging.info(f"Finished epoch {iepoch}")
+        logging.info(f"Finished epoch {iepoch}, all steps are valid: {all_steps_are_invalid}")
         return all_steps_are_invalid
 
     @classmethod
