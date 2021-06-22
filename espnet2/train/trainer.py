@@ -529,6 +529,7 @@ class Trainer:
 
         iiter = 0
 
+        logging.info(f"Iterations per epoch: {iterator.num_iters_per_epoch}.")
         while iiter < iterator.num_iters_per_epoch:
             #Tune stopping criterion later
             iiter+=1
