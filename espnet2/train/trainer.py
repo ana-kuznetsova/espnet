@@ -529,20 +529,16 @@ class Trainer:
 
         iiter = 0
 
-        logging.info(f"Iterations per epoch: {iterator.num_iters_per_epoch}.")
         while iiter < iterator.num_iters_per_epoch:
             #Tune stopping criterion later
             iiter+=1
-            
-            if curriculum_generator.all_exhausted==True:
-                break
 
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    print(f"Refilled task {k}.")
+                    loggin.info(f"Refilled task {k}.")
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
                     _, batch = tasks[k].next()
@@ -552,12 +548,14 @@ class Trainer:
                                                                 iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    print(f"Task {k} is exhausted.")
+                    logging.info(f"tasks exhausted{curriculum_generator.tasks_exhausted}")
+                    logging.info(f"Task {k} is exhausted.")
+                    if curriculum_generator.all_exhausted==True:
+                        break
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
-            logging.info(f"Selected Task: {k}")
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
@@ -598,7 +596,6 @@ class Trainer:
                         loss_before *= torch.distributed.get_world_size()
 
                     loss_before /= accum_grad
-                    #logging.info(f"Loss before: {loss_before}")
                 
                 model.train()
                 with autocast(scaler is not None):
@@ -628,9 +625,7 @@ class Trainer:
                         loss_after *= torch.distributed.get_world_size()
 
                     loss_after /= accum_grad
-                    #logging.info(f"Loss after: {loss_after}")
 
-                    print("Losses:", loss_before, loss_after)
                     progress_gain = loss_before - loss_after
                     progress_gain = progress_gain.detach().cpu().numpy()
                     
