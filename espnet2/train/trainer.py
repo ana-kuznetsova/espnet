@@ -197,6 +197,7 @@ class Trainer:
             keep_nbest_models = max(trainer_options.keep_nbest_models)
 
         output_dir = Path(trainer_options.output_dir)
+        logging.info(f"OUTPUT DIR {output_dir}")
         reporter = Reporter()
         if trainer_options.use_amp:
             if LooseVersion(torch.__version__) < LooseVersion("1.6.0"):
@@ -286,7 +287,7 @@ class Trainer:
                     )
                 )
             else:
-                logging.info(f"{iepoch}/{trainer_options.max_epoch}epoch started")
+                logging.info(f"{iepoch}/{trainer_options.max_epoch} epoch started")
             set_all_random_seed(trainer_options.seed + iepoch)
 
             reporter.set_epoch(iepoch)
