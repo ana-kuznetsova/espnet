@@ -546,6 +546,7 @@ class Trainer:
                     tasks.insert(k, iter(iterator.refill_task(k)))
                     print(f"Refilled task {k}.")
                 else:
+                    print(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k, iiter=iiter, iepoch=iepoch)
                 _, batch = tasks[k].next()
 
