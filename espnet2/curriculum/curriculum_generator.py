@@ -1,9 +1,9 @@
 import numpy as np
 from typeguard import check_argument_types
-from logger import CurriculumLogger
 from abc import ABC
 from abc import abstractmethod
 import os
+from curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
@@ -34,12 +34,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = CurriculumLogger(filename=log_dir)
-
-        #if os.path.exists(log_dir):
-        #    os.rmdir(log_dir)
-        #os.makedirs(log_dir)
-        self.log_dir = log_dir
+        self.logger = CurriculumLogger(log_dir=log_dir)
 
         if init=='ones':
             self.weights = np.ones(K)
@@ -54,16 +49,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #Initialize policy with uniform probs
         self.policy = np.array([1/self.K for i in range(self.K)])
         self.tasks_exhausted = [False]*self.K
-    
-    def log_generator_stats(self, iiter, k, progress_gain, reward):
-        pass 
-        '''
-        with open(os.path.join(self.log_dir, "generator_stats"), 'a+') as fo:
-            stats = ', '.join([str(iiter), str(k), str(progress_gain), str(reward)])
-            fo.write(stats + '\n')
-        with open(os.path.join(self.log_dir, "policy"), 'a+') as fo:
-            fo.write(str(iiter)+' '+str(self.policy)+'\n')
-        '''
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
@@ -73,10 +58,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             #If one of the tasks is exhausted, use only those that still have data
             self.tasks_exhausted[exhausted] = True
             ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
-            print("Remaining tasks:", ind)
             norm_probs = self.policy[ind]/self.policy[ind].sum()
-            print("Norm probs:", norm_probs)
-            print("Sample arr:", arr[ind])
             task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
         return int(task_ind)
 
