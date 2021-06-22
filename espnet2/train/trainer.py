@@ -513,7 +513,6 @@ class Trainer:
 
         if (iepoch==1) or (options.refill_task==False):
             tasks = iterator.build_iter(iepoch)
-            num_iters_per_epoch = iterator.num_iters_per_epoch
 
         #### Initialise Curriculum Learning Environment #######
         tasks = [iter(it) for it in tasks]
@@ -530,7 +529,7 @@ class Trainer:
 
         iiter = 0
 
-        while iiter < num_iters_per_epoch:
+        while iiter < iterator.num_iters_per_epoch:
             #Tune stopping criterion later
             iiter+=1
             if curriculum_generator.all_exhausted:
