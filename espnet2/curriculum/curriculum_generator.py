@@ -178,6 +178,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         else:
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
+    
+    def all_exhausted(self):
+        return all(self.exhausted)
 
     def calc_sliding_window(self, t):
         """
