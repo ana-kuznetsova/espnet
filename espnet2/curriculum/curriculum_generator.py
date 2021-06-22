@@ -154,17 +154,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.hist_size = hist_size
         self.threshold = threshold
         self.logger = CurriculumLogger(log_dir=log_dir)
-        self.exhausted = [False for i in range(self.K)]
-        #At start we assign the mode of env to be abruptly varying unless specified
-        if env_mode is None:
-            self.env_mode = 1
-        else:
-            self.env_mode = env_mode
-            self.slow_k = slow_k
-        try:
-            self.set_params(lmbda, gamma, slow_k)
-        except AssertionError as e:
-            raise ValueError("Pass the required parameters. {}".format(e))
+        self.env_mode = env_mode
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """
@@ -178,6 +168,21 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         else:
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
+    
+    def initialize(self, env_mode):
+        #At start we assign the mode of env to be abruptly varying unless specified
+        if self.env_mode is None:
+            self.env_mode = 1
+        else:
+            self.slow_k = slow_k
+        try:
+            self.set_params(lmbda, gamma, slow_k)
+        except AssertionError as e:
+            raise ValueError("Pass the required parameters. {}".format(e))
+        self.exhausted = [False for i in range(self.K)]
+
+    def reset_tasks(self):
+        self.exhausted = [False for i in range(self.K)]
     
     def all_exhausted(self):
         return all(self.exhausted)
