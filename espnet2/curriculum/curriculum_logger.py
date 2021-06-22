@@ -1,10 +1,14 @@
 import os
+import shutil
 
 class CurriculumLogger:
     """
     Simple logger class that logs necessary stats in the log_dir.
     """
     def __init__(self, log_dir):
+        if os.path.exists(log_dir):
+            shutil.rmtree(log_dir)
+        os.makedirs(log_dir)
         self.log_dir = log_dir
 
     def log(self, iiter, k, progress_gain, reward):
