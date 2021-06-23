@@ -2,6 +2,7 @@ from typing import Iterator
 from typing import List
 from typing import Tuple
 from typing import Union
+from espnet2.samplers.abs_sampler import AbsSampler
 
 import numpy as np
 from typeguard import check_argument_types
@@ -9,7 +10,7 @@ from typeguard import check_argument_types
 from espnet2.fileio.read_text import load_num_sequence_text
 
 ################ CURRICULUM SAMPLER CLASS ##################
-class CurriculumSampler:
+class CurriculumSampler(AbsSampler):
     '''
     Returns K iterators with the data sorted according to complexity
     Params: 
@@ -181,6 +182,12 @@ class CurriculumSampler:
             f"sort_in_batch={self.sort_in_batch}, "
             f"sort_batch={self.sort_batch})"
         )
+    
+    def __len__(self):
+        return len(self.batch_list)
+
+    def __iter__(self) -> Iterator[Tuple[str, ...]]:
+        return iter(self.batch_list)
 
     '''
     def get_tasks(self):
