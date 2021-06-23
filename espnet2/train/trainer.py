@@ -530,7 +530,6 @@ class Trainer:
         iiter = 0
 
         while iiter < iterator.num_iters_per_epoch:
-            #Tune stopping criterion later
             iiter+=1
 
             k = curriculum_generator.get_next_task_ind(exhausted=None, 
@@ -552,7 +551,7 @@ class Trainer:
                     if k==-1:
                         #All tasks exhausted, break out
                         break
-                        
+
             _, batch = tasks[k].next()
                     
             
