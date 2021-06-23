@@ -274,8 +274,11 @@ class Trainer:
 
         start_time = time.perf_counter()
 
-        if trainer_options.use_curriculum==True:
         #### Initialise Curriculum Learning Environment #######
+        if trainer_options.use_curriculum==True:
+            #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
+            #wandb.watch(model)
+        
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
@@ -626,6 +629,7 @@ class Trainer:
                     progress_gain = progress_gain.detach().cpu().numpy()
                     
                     curriculum_generator.update_policy(
+                                        iepoch=iepoch,
                                         iiter=iiter, 
                                         k=k, 
                                         progress_gain=progress_gain, 

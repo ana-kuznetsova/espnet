@@ -11,7 +11,7 @@ class CurriculumLogger:
             os.makedirs(log_dir)
         self.log_dir = log_dir
 
-    def log(self, iiter, k, progress_gain, reward, policy):
+    def log(self, iepoch, iiter, k, progress_gain, reward, policy):
         stats_path = os.path.join(self.log_dir, "generator_stats")
         policy_path = os.path.join(self.log_dir, "policy")
 
@@ -20,7 +20,7 @@ class CurriculumLogger:
             os.remove(policy_path)
 
         with open(stats_path, 'a+') as fo:
-            stats = ' '.join([str(iiter), str(k), str(progress_gain), str(reward)])
+            stats = ', '.join([str(iepoch), str(iiter), str(k), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(policy_path, 'a+') as fo:
-            fo.write(str(iiter)+' '+str(policy)+'\n')
+            fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
