@@ -40,3 +40,4 @@ class CurriculumLogger:
                         "progress_gain": progress_gain,
                         "reward":reward
                         }
+            wandb.log(log_dict)
