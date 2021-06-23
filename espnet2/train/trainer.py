@@ -552,7 +552,7 @@ class Trainer:
                         #All tasks exhausted, break out
                         break
 
-            _, batch = tasks[k].next()
+                _, batch = tasks[k].next()
                     
             
             assert isinstance(batch, dict), type(batch)
