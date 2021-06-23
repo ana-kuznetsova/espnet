@@ -610,7 +610,7 @@ class Trainer:
                         optim_idx = None
 
                     stats = {k: v for k, v in stats.items() if v is not None}
-                    logging.info(f"Trainer stats dict: {stats}")
+                    logging.info(f"SubReporter: {reporter.epoch}")
                     if ngpu > 1 or distributed:
                         # Apply weighted averaging for loss and stats
                         loss_after = (loss_before * weight.type(loss.dtype)).sum()
