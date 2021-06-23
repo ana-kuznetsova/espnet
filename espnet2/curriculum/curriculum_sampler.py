@@ -2,6 +2,7 @@ from typing import Iterator
 from typing import List
 from typing import Tuple
 from typing import Union
+from typing import Any
 from espnet2.samplers.abs_sampler import AbsSampler
 
 import numpy as np
