@@ -19,7 +19,7 @@ class CurriculumIterFactory(AbsIterFactory):
     def __init__(
         self,
         dataset,
-        batches: Union[List[Iterator[Any]]],
+        batches: Iterator[Any],
         num_iters_per_epoch: int = None,
         seed: int = 0,
         shuffle: bool = False,
