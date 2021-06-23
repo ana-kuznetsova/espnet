@@ -182,9 +182,8 @@ class CurriculumSampler:
             f"sort_batch={self.sort_batch})"
         )
 
-
+    '''
     def get_tasks(self):
-        '''
         Returns K iterators specified for each task.
-        '''
-        return [iter(batch_list) for batch_list in self.task_batch_lists]
+        #return [iter(batch_list) for batch_list in self.task_batch_lists]
+    '''
