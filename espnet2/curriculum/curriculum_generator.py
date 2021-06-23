@@ -15,7 +15,6 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
-
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
