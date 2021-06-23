@@ -67,7 +67,13 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return int(task_ind)
 
 
-    def update_policy(self, iiter, k, progress_gain, batch_lens):
+    def update_policy(self, 
+                     iepoch, 
+                     iiter, 
+                     k, 
+                     progress_gain, 
+                     batch_lens, 
+                     loss):
         '''
         Executes steps:
             1. Get and scale reward
@@ -81,7 +87,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
-        self.logger.log(iiter, k, progress_gain, reward, self.policy)
+        self.logger.log(iepoch, iiter, k, progress_gain, reward, self.policy, loss)
 
     def get_reward(self, progress_gain, batch_lens):
         '''

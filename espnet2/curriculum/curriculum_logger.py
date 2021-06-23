@@ -1,5 +1,6 @@
 import os
 import shutil
+import wandb
 
 class CurriculumLogger:
     """
@@ -11,7 +12,15 @@ class CurriculumLogger:
             os.makedirs(log_dir)
         self.log_dir = log_dir
 
-    def log(self, iepoch, iiter, k, progress_gain, reward, policy):
+    def log(self, 
+            iepoch, 
+            iiter, 
+            k, 
+            progress_gain, 
+            reward, 
+            policy,
+            loss, 
+            log_wandb=True):
         stats_path = os.path.join(self.log_dir, "generator_stats")
         policy_path = os.path.join(self.log_dir, "policy")
 
@@ -24,3 +33,10 @@ class CurriculumLogger:
             fo.write(stats + '\n')
         with open(policy_path, 'a+') as fo:
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
+        
+        if log_wandb:
+            log_dict = {"loss":loss,
+                        "k":k,
+                        "progress_gain": progress_gain,
+                        "reward":reward
+                        }
