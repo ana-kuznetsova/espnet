@@ -1507,7 +1507,6 @@ class AbsTask(ABC):
 
         #batches = batch_sampler.get_tasks()
         batches = list(batch_sampler)
-        logging.info(f"BATCHES type {batches}")
 
         logging.info(f"[{mode}] dataset:\n{dataset}")
         logging.info(f"[{mode}] Batch sampler: {batch_sampler}")
