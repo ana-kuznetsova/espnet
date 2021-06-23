@@ -533,33 +533,28 @@ class Trainer:
             #Tune stopping criterion later
             iiter+=1
 
-            if options.refill_task==True:
-                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
-                try:
-                    _, batch = tasks[k].next()
-                except StopIteration:
+            k = curriculum_generator.get_next_task_ind(exhausted=None, 
+                                                        iiter=iiter, iepoch=iepoch)
+            try:
+                _, batch = tasks[k].next()
+            except StopIteration:
+                if options.refill_task==True:
                     loggin.info(f"Refilled task {k}.")
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
-                    _, batch = tasks[k].next()
-            else:
-                try:
-                    k = curriculum_generator.get_next_task_ind(exhausted=None, 
-                                                                iiter=iiter, iepoch=iepoch)
-                    _, batch = tasks[k].next()
-
-                except StopIteration:
+                else:
                     logging.info(f"tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     logging.info(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
-                    _, batch = tasks[k].next()
-
-            if k==-1:
-                #All tasks exhausted, break out
-                break
+                    if k==-1:
+                        #All tasks exhausted, break out
+                        break
+                        
+            _, batch = tasks[k].next()
+                    
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
