@@ -573,17 +573,17 @@ class Trainer:
                     _, batch = tasks[k].next()
                 except StopIteration:
                     logging.info(f"Task {k} is exhausted.")
-                    logging.info(f"Tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
+                    logging.info(f"current k {k}")
+                    logging.info(f"Tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     if k==-1:
                         logging.info(f"All tasks exhausted. Quitting the loop.")
                         break
                     else:
                         _, batch = tasks[k].next()
-                logging.info(f"current k {k}")
                     
             
             assert isinstance(batch, dict), type(batch)
