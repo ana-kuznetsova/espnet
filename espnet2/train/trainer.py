@@ -634,7 +634,7 @@ class Trainer:
                                         k=k, 
                                         progress_gain=progress_gain, 
                                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                        loss_after
+                                        loss=loss_after
                                         )
 
                     loss = loss_after
