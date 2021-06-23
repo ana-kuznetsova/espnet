@@ -197,6 +197,7 @@ class Trainer:
             keep_nbest_models = max(trainer_options.keep_nbest_models)
 
         output_dir = Path(trainer_options.output_dir)
+
         reporter = Reporter()
         if trainer_options.use_amp:
             if LooseVersion(torch.__version__) < LooseVersion("1.6.0"):
@@ -272,6 +273,15 @@ class Trainer:
             summary_writer = None
 
         start_time = time.perf_counter()
+
+        if trainer_options.use_curriculum==True:
+        #### Initialise Curriculum Learning Environment #######
+            if trainer_options.curriculum_algo=='exp3s':
+                curriculum_generator = EXP3SCurriculumGenerator(
+                                            K=train_iter_factory.K,
+                                            init='zeros',
+                                            log_dir=str(output_dir)
+                                            )
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
                 logging.info(
@@ -286,7 +296,7 @@ class Trainer:
                     )
                 )
             else:
-                logging.info(f"{iepoch}/{trainer_options.max_epoch}epoch started")
+                logging.info(f"{iepoch}/{trainer_options.max_epoch} epoch started")
             set_all_random_seed(trainer_options.seed + iepoch)
 
             reporter.set_epoch(iepoch)
@@ -294,12 +304,13 @@ class Trainer:
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
             
-                    all_steps_are_invalid, curriculum_iterator = cls.train_one_epoch_curriculum(
+                    all_steps_are_invalid = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
                             iterator=train_iter_factory,
-                            reporter=sub_reporter,   
+                            reporter=sub_reporter,
+                            curriculum_generator=curriculum_generator,   
                             scaler=scaler,
                             summary_writer=summary_writer,
                             options=trainer_options,
@@ -481,6 +492,7 @@ class Trainer:
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
         reporter: SubReporter,
+        curriculum_generator: AbsCurriculumGenerator,
         summary_writer: Optional[SummaryWriter],
         options: TrainerOptions,
         distributed_option: DistributedOption,
@@ -511,52 +523,68 @@ class Trainer:
 
         start_time = time.perf_counter()
 
-        if (iepoch==1) or (options.refill_task==False):
-            tasks = iterator.build_iter(iepoch)
-
-        #### Initialise Curriculum Learning Environment #######
-        tasks = [iter(it) for it in tasks]
-        if options.curriculum_algo=='exp3s':
-            curriculum_generator = EXP3SCurriculumGenerator(
-                                        K=len(tasks),
-                                        init='zeros',
-                                        log_dir=options.gen_log_dir
-                                        )
         
-        if options.curriculum_algo=='swucb':
-            curriculum_generator = SWUCBCurriculumGenerator(K=len(tasks), 
-                                                            hist_size=10000)
+        tasks = iterator.build_iter(iepoch)
+        tasks = [iter(it) for it in tasks]
 
         iiter = 0
 
         while iiter < iterator.num_iters_per_epoch:
-            #Tune stopping criterion later
             iiter+=1
+
+            '''
+            k = curriculum_generator.get_next_task_ind(exhausted=None, 
+                                                        iiter=iiter, iepoch=iepoch)
+            try:
+                _, batch = tasks[k].next()
+            except StopIteration as e:
+                if options.refill_task==True:
+                    logging.info(f"Refilled task {k}.")
+                    tasks.pop(k)
+                    tasks.insert(k, iter(iterator.refill_task(k)))
+                else:
+                    logging.info(f"Task {k} is exhausted.")
+                    logging.info(f"Tasks exhausted: {curriculum_generator.tasks_exhausted}")
+                    k = curriculum_generator.get_next_task_ind(exhausted=k,
+                                                               iiter=iiter, 
+                                                               iepoch=iepoch, 
+                                                               )
+                    if k==-1:
+                        logging.info(f"All tasks exhausted. Quitting the loop.")
+                        break
+                logging.debug(e)
+                logging.info(f"current k {k}")
+                _, batch = tasks[k].next()
+            '''
 
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    loggin.info(f"Refilled task {k}.")
+                    logging.info(f"Refilled task {k}.")
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
                     _, batch = tasks[k].next()
             else:
                 try:
-                    k = curriculum_generator.get_next_task_ind(exhausted=None, 
-                                                                iiter=iiter, iepoch=iepoch)
+                    k = curriculum_generator.get_next_task_ind(exhausted=None,
+                                                               iiter=iiter, iepoch=iepoch)
                     _, batch = tasks[k].next()
                 except StopIteration:
-                    logging.info(f"tasks exhausted{curriculum_generator.tasks_exhausted}")
                     logging.info(f"Task {k} is exhausted.")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
+                    logging.info(f"current k {k}")
+                    logging.info(f"Tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     if k==-1:
-                        #All tasks exhausted, break out
+                        logging.info(f"All tasks exhausted. Quitting the loop.")
                         break
+                    else:
+                        _, batch = tasks[k].next()
+                    
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
@@ -746,8 +774,8 @@ class Trainer:
             if distributed:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-
-        return all_steps_are_invalid, tasks
+        logging.info(f"Finished epoch {iepoch}")
+        return all_steps_are_invalid
 
     @classmethod
     def train_one_epoch(

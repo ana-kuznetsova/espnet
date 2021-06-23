@@ -55,19 +55,21 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def get_next_task_ind(self, exhausted, **kwargs):
         arr = np.arange(self.K)
+        '''
         if exhausted is None:
             task_ind = np.random.choice(arr, size=1, p=self.policy)
             return int(task_ind)
-
-        #If one of the tasks is exhausted, use only those that still have data
-        self.tasks_exhausted[exhausted] = True
-        ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
-        if len(ind) > 0:
-            norm_probs = self.policy[ind]/self.policy[ind].sum()
-            task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
-            return int(task_ind)
-        else:
+        '''
+        if exhausted is not None:
+            self.tasks_exhausted[exhausted] = True
+        if self.all_exhausted():
             return -1
+        arr = np.arange(self.K)
+        ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
+        norm_probs = self.policy[ind]/self.policy[ind].sum()
+        task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
+        return int(task_ind)
+
 
     def update_policy(self, iiter, k, progress_gain, batch_lens):
         '''
