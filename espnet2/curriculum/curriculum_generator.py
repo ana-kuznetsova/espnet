@@ -3,6 +3,7 @@ from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 import os
+import wandb
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -24,7 +25,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
-                ):
+                log_config=True):
 
         assert check_argument_types()
 
@@ -35,6 +36,14 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.beta = beta
         self.epsilon = epsilon
         self.logger = CurriculumLogger(log_dir=log_dir)
+
+        #Whether log RL config params to wandb
+        if log_config:
+            wandb.config = {"algo":"exp3s",
+                            "eps":epsilon,
+                            "eta":eta,
+                            "beta":beta
+                            }
 
         if init=='ones':
             self.weights = np.ones(K)
