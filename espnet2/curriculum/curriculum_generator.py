@@ -195,6 +195,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     def all_exhausted(self):
         return all(self.exhausted)
 
+    def report_exhausted_task(self, k):
+        self.tasks_exhausted[k] = True
+
     def calc_sliding_window(self, t):
         """
         Calculates the sliding window size at time t. Window size cannot be
@@ -299,10 +302,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
-        if exhausted is not None:
-            self.exhausted[exhausted] = True
-        if self.all_exhausted():
-            return -1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
         return int(max(policy, key=lambda x:x[1]))
         
