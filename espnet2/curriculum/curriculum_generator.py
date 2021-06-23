@@ -294,7 +294,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         print("Policy:", self.policy)
         self.logger.log(iiter, k, progress_gain, reward)
 
-    def get_next_task_ind(self, exhausted, **kwargs):
+    def get_next_task_ind(self, **kwargs):
         """
         We need to run each arm at least once. So for the first K iterations in the first epoch
         we simply run each arm one by one. After K iterations, we switch to running arm with 
