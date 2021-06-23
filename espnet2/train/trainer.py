@@ -283,7 +283,8 @@ class Trainer:
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
                                             init='zeros',
-                                            log_dir=str(output_dir)
+                                            log_dir=str(output_dir),
+                                            gain_type=trainer_options.gain_type
                                             )
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:

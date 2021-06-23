@@ -22,6 +22,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 init: str ="zeros",
                 hist_size=10000,
                 log_dir: str='exp3stats',
+                gain_type: str="PG",
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
@@ -42,7 +43,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             wandb.config.update = {"algo":"exp3s",
                             "eps":epsilon,
                             "eta":eta,
-                            "beta":beta
+                            "beta":beta,
+                            "gain_type":gain_type
                             }
 
         if init=='ones':
