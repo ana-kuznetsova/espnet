@@ -184,10 +184,10 @@ class CurriculumSampler(AbsSampler):
         )
     
     def __len__(self):
-        return len(self.batch_list)
+        return len(self.task_batch_lists)
 
     def __iter__(self) -> Iterator[Tuple[str, ...]]:
-        return iter(self.batch_list)
+        return iter(self.task_batch_lists)
 
     '''
     def get_tasks(self):
