@@ -1503,7 +1503,7 @@ class AbsTask(ABC):
                 min_batch_size=1
                 )
 
-        logging.info(f"BATCH SAMPLER: {BatchSampler}")
+        logging.info(f"BATCH SAMPLER: {batch_sampler}")
 
         #batches = batch_sampler.get_tasks()
         batches = list(batch_sampler)
