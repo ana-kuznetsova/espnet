@@ -53,17 +53,15 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def all_exhausted(self):
         return all(self.tasks_exhausted)
 
+    def report_exhausted_task(self, k):
+        self.tasks_exhausted[k] = True
+
     def get_next_task_ind(self, exhausted, **kwargs):
-        arr = np.arange(self.K)
         '''
         if exhausted is None:
             task_ind = np.random.choice(arr, size=1, p=self.policy)
             return int(task_ind)
         '''
-        if exhausted is not None:
-            self.tasks_exhausted[exhausted] = True
-        if self.all_exhausted():
-            return -1
         arr = np.arange(self.K)
         ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
         norm_probs = self.policy[ind]/self.policy[ind].sum()

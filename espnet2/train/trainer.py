@@ -555,8 +555,7 @@ class Trainer:
                 logging.debug(e)
                 logging.info(f"current k {k}")
                 _, batch = tasks[k].next()
-            '''
-
+            
             if options.refill_task==True:
                 k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
                 try:
@@ -584,7 +583,24 @@ class Trainer:
                         break
                     else:
                         _, batch = tasks[k].next()
-                    
+            '''    
+            k = curriculum_generator.get_next_task_ind(exhausted=None, 
+                                                       iiter=iiter, iepoch=iepoch)
+            try:
+                _, batch = tasks[k].next()
+            except StopIteration as e:
+                if options.refill_task==True:
+                    logging.info(f"Refilled task {k}.")
+                    tasks.pop(k)
+                    tasks.insert(k, iter(iterator.refill_task(k)))
+                    _, batch = tasks[k].next()
+                else:   
+                    curriculum_generator.report_exhausted_task(k)
+                    if curriculum_generator.all_exhausted():
+                        break
+                    iiter -= 1
+                    continue
+            
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
