@@ -528,6 +528,8 @@ class Trainer:
         tasks = [iter(it) for it in tasks]
 
         iiter = 0
+        #Reset the exausted tasks list
+        curriculum_generator.reset_exhausted()
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
