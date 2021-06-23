@@ -551,7 +551,7 @@ class Trainer:
                     if k==-1:
                         logging.info(f"All tasks exhausted. Quitting the loop.")
                         break
-
+                logging.info(f"current k {k}")
                 _, batch = tasks[k].next()
                     
             
