@@ -584,8 +584,8 @@ class Trainer:
                     else:
                         _, batch = tasks[k].next()
             '''    
-            k = curriculum_generator.get_next_task_ind(exhausted=None, 
-                                                       iiter=iiter, iepoch=iepoch)
+            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            
             try:
                 _, batch = tasks[k].next()
             except StopIteration as e:

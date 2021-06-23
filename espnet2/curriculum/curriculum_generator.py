@@ -11,7 +11,7 @@ class AbsCurriculumGenerator(ABC):
         raise NotImplementedError
         
     @abstractmethod
-    def get_next_task_ind(self, exhausted, **kwargs):
+    def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
 
@@ -56,7 +56,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def report_exhausted_task(self, k):
         self.tasks_exhausted[k] = True
 
-    def get_next_task_ind(self, exhausted, **kwargs):
+    def get_next_task_ind(self, **kwargs):
         '''
         if exhausted is None:
             task_ind = np.random.choice(arr, size=1, p=self.policy)
