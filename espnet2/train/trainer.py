@@ -538,18 +538,18 @@ class Trainer:
                 _, batch = tasks[k].next()
             except StopIteration:
                 if options.refill_task==True:
-                    loggin.info(f"Refilled task {k}.")
+                    logging.info(f"Refilled task {k}.")
                     tasks.pop(k)
                     tasks.insert(k, iter(iterator.refill_task(k)))
                 else:
-                    logging.info(f"tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     logging.info(f"Task {k} is exhausted.")
+                    logging.info(f"Tasks exhausted: {curriculum_generator.tasks_exhausted}")
                     k = curriculum_generator.get_next_task_ind(exhausted=k,
                                                                iiter=iiter, 
                                                                iepoch=iepoch, 
                                                                )
                     if k==-1:
-                        #All tasks exhausted, break out
+                        logging.info(f"All tasks exhausted. Quitting the loop.")
                         break
 
                 _, batch = tasks[k].next()
