@@ -583,7 +583,6 @@ class Trainer:
                         break
                     else:
                         _, batch = tasks[k].next()
-                logging.debug(e)
                 logging.info(f"current k {k}")
                     
             
