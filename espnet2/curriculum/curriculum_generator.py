@@ -304,7 +304,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if self.all_exhausted():
             return -1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
-        return max(policy, key=lambda x:x[1])
+        return int(max(policy, key=lambda x:x[1]))
         
         
         
