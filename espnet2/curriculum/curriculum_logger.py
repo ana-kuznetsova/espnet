@@ -14,9 +14,9 @@ class CurriculumLogger:
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
 
-        if os.path.exists(stats_path):
-            os.remove(stats_path)
-            os.remove(policy_path)
+        if os.path.exists(self.stats_path):
+            os.remove(self.stats_path)
+            os.remove(self.policy_path)
 
     def log(self, 
             iepoch, 
