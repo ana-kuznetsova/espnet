@@ -39,7 +39,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         #Whether log RL config params to wandb
         if log_config:
-            wandb.config = {"algo":"exp3s",
+            wandb.config.update = {"algo":"exp3s",
                             "eps":epsilon,
                             "eta":eta,
                             "beta":beta
