@@ -571,35 +571,34 @@ class Trainer:
             if options.gain_type=='PG':
                 model.train()
                 with autocast(scaler is not None):
-                    with torch.no_grad():
-                        retval = model(**batch)
-                        # Note(kamo):
-                        # Supporting two patterns for the returned value from the model
-                        #   a. dict type ANAKUZNE: removed code for dict type, excessive
-                        #   b. tuple or list type
-                        #Curriculum goes into this condition
-                        loss_before, stats, weight = retval
-                        optim_idx = None
+                    retval = model(**batch)
+                    # Note(kamo):
+                    # Supporting two patterns for the returned value from the model
+                    #   a. dict type ANAKUZNE: removed code for dict type, excessive
+                    #   b. tuple or list type
+                    #Curriculum goes into this condition
+                    loss_before, stats, weight = retval
+                    optim_idx = None
 
-                        stats = {k: v for k, v in stats.items() if v is not None}
-                        if ngpu > 1 or distributed:
-                            # Apply weighted averaging for loss and stats
-                            loss_before = (loss_before * weight.type(loss.dtype)).sum()
+                    stats = {k: v for k, v in stats.items() if v is not None}
+                    if ngpu > 1 or distributed:
+                        # Apply weighted averaging for loss and stats
+                        loss_before = (loss_before * weight.type(loss.dtype)).sum()
 
-                            # if distributed, this method can also apply all_reduce()
-                            stats, weight = recursive_average(stats, weight, distributed)
+                        # if distributed, this method can also apply all_reduce()
+                        stats, weight = recursive_average(stats, weight, distributed)
 
-                            # Now weight is summation over all workers
-                            loss_before /= weight
-                        if distributed:
-                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                            # automatically normalizes the gradient by world_size.
-                            loss_before *= torch.distributed.get_world_size()
+                        # Now weight is summation over all workers
+                        loss_before /= weight
+                    if distributed:
+                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                        # automatically normalizes the gradient by world_size.
+                        loss_before *= torch.distributed.get_world_size()
 
-                        loss_before /= accum_grad
-                        loss = loss_before
-                        logging.info(f"Loss before: {loss}")
-                    
+                    loss_before /= accum_grad
+                    loss = loss_before
+                    logging.info(f"Loss before: {loss}")
+                
                 
             with reporter.measure_time("backward_time"):
                 if scaler is not None:
@@ -679,6 +678,7 @@ class Trainer:
                             optimizer.zero_grad()
             #### Calculate loss after ######                
             if options.gain_type=='PG':
+                model.eval()
                 with autocast(scaler is not None):
                     with reporter.measure_time("forward_time"): 
                         retval = model(**batch)
@@ -716,7 +716,7 @@ class Trainer:
                                         loss=loss_after
                                         )
 
-                    loss = loss_after
+                    #loss = loss_after
 
                 reporter.register(stats, weight)
 
