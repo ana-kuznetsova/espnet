@@ -25,11 +25,13 @@ class CurriculumLogger:
             progress_gain, 
             reward, 
             policy,
-            loss, 
+            losses, 
             log_wandb=True):
 
         with open(self.stats_path, 'a+') as fo:
-            stats = ', '.join([str(iepoch), str(iiter), str(k), str(progress_gain), str(reward)])
+            stats = ', '.join([str(iepoch), str(iiter),\
+                               str(k), str(losses[0]), \
+                               str(losses[1]), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(self.policy_path, 'a+') as fo:
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
