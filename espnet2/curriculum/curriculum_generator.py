@@ -98,6 +98,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
         reward = float(self.get_reward(progress_gain, batch_lens))
+        logging.info(f"Reward: {reward}")
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
