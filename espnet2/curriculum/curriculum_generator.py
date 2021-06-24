@@ -15,6 +15,8 @@ class AbsCurriculumGenerator(ABC):
         raise NotImplementedError
 
 
+
+
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
@@ -52,6 +54,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def all_exhausted(self):
         return all(self.tasks_exhausted)
+
+    def reset_exhausted(self):
+        self.tasks_exhausted = [False]*self.K
 
     def report_exhausted_task(self, k):
         self.tasks_exhausted[k] = True
