@@ -608,7 +608,7 @@ class Trainer:
                     stats = {k: v for k, v in stats.items() if v is not None}
                     if ngpu > 1 or distributed:
                         # Apply weighted averaging for loss and stats
-                        loss_after = (loss_before * weight.type(loss.dtype)).sum()
+                        loss_after = (loss_after * weight.type(loss.dtype)).sum()
 
                         # if distributed, this method can also apply all_reduce()
                         stats, weight = recursive_average(stats, weight, distributed)
