@@ -37,7 +37,7 @@ class CurriculumLogger:
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
         
         if log_wandb:
-            log_dict = {"loss":loss,
+            log_dict = {"loss":losses[1],
                         "k":k,
                         "progress_gain": progress_gain,
                         "reward":reward
