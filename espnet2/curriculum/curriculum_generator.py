@@ -4,6 +4,7 @@ from abc import ABC
 from abc import abstractmethod
 import os
 import wandb
+import logging
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -94,6 +95,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = losses[1]
         progress_gain = loss_before - loss_after
         progress_gain = float(progress_gain.detach().cpu().numpy())
+        logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
         reward = float(self.get_reward(progress_gain, batch_lens))
         self.update_weights(iiter, k, reward)
