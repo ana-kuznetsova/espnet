@@ -569,75 +569,37 @@ class Trainer:
                 continue
 
             if options.gain_type=='PG':
-                model.eval()
-                with autocast(scaler is not None):
-                    retval = model(**batch)
-                    # Note(kamo):
-                    # Supporting two patterns for the returned value from the model
-                    #   a. dict type ANAKUZNE: removed code for dict type, excessive
-                    #   b. tuple or list type
-                    #Curriculum goes into this condition
-                    loss_before, stats, weight = retval
-                    optim_idx = None
-
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss_before = (loss_before * weight.type(loss.dtype)).sum()
-
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
-
-                        # Now weight is summation over all workers
-                        loss_before /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss_before *= torch.distributed.get_world_size()
-
-                    loss_before /= accum_grad
-                
                 model.train()
                 with autocast(scaler is not None):
-                    with reporter.measure_time("forward_time"): 
+                    with torch.no_grad()
                         retval = model(**batch)
-
-                        loss_after, stats, weight = retval
+                        # Note(kamo):
+                        # Supporting two patterns for the returned value from the model
+                        #   a. dict type ANAKUZNE: removed code for dict type, excessive
+                        #   b. tuple or list type
+                        #Curriculum goes into this condition
+                        loss_before, stats, weight = retval
                         optim_idx = None
 
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss_after = (loss_after * weight.type(loss.dtype)).sum()
+                        stats = {k: v for k, v in stats.items() if v is not None}
+                        if ngpu > 1 or distributed:
+                            # Apply weighted averaging for loss and stats
+                            loss_before = (loss_before * weight.type(loss.dtype)).sum()
 
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
+                            # if distributed, this method can also apply all_reduce()
+                            stats, weight = recursive_average(stats, weight, distributed)
 
-                        # Now weight is summation over all workers
-                        loss_after /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss_after *= torch.distributed.get_world_size()
+                            # Now weight is summation over all workers
+                            loss_before /= weight
+                        if distributed:
+                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                            # automatically normalizes the gradient by world_size.
+                            loss_before *= torch.distributed.get_world_size()
 
-                    loss_after /= accum_grad
-
-                    progress_gain = loss_before - loss_after
-                    progress_gain = progress_gain.detach().cpu().numpy()
+                        loss_before /= accum_grad
+                        loss = loss_before
                     
-                    curriculum_generator.update_policy(
-                                        iepoch=iepoch,
-                                        iiter=iiter, 
-                                        k=k, 
-                                        progress_gain=progress_gain, 
-                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                        loss=loss_after
-                                        )
-
-                    loss = loss_after
-
-            reporter.register(stats, weight)
-
+                
             with reporter.measure_time("backward_time"):
                 if scaler is not None:
                     # Scales loss.  Calls backward() on scaled loss
@@ -714,6 +676,47 @@ class Trainer:
                             if isinstance(scheduler, AbsBatchStepScheduler):
                                 scheduler.step()
                             optimizer.zero_grad()
+            #### Calculate loss after ######                
+            if options.gain_type=='PG':
+                with autocast(scaler is not None):
+                    with reporter.measure_time("forward_time"): 
+                        retval = model(**batch)
+
+                        loss_after, stats, weight = retval
+                        optim_idx = None
+
+                    stats = {k: v for k, v in stats.items() if v is not None}
+                    if ngpu > 1 or distributed:
+                        # Apply weighted averaging for loss and stats
+                        loss_after = (loss_after * weight.type(loss.dtype)).sum()
+
+                        # if distributed, this method can also apply all_reduce()
+                        stats, weight = recursive_average(stats, weight, distributed)
+
+                        # Now weight is summation over all workers
+                        loss_after /= weight
+                    if distributed:
+                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                        # automatically normalizes the gradient by world_size.
+                        loss_after *= torch.distributed.get_world_size()
+
+                    loss_after /= accum_grad
+
+                    progress_gain = loss_before - loss_after
+                    progress_gain = progress_gain.detach().cpu().numpy()
+                    
+                    curriculum_generator.update_policy(
+                                        iepoch=iepoch,
+                                        iiter=iiter, 
+                                        k=k, 
+                                        progress_gain=progress_gain, 
+                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                        loss=loss_after
+                                        )
+
+                    loss = loss_after
+
+                reporter.register(stats, weight)
 
                 # Register lr and train/load time[sec/step],
                 # where step refers to accum_grad * mini-batch
