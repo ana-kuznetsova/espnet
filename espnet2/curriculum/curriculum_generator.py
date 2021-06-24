@@ -95,6 +95,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = losses[1]
         progress_gain = loss_before - loss_after
         progress_gain = float(progress_gain.detach().cpu().numpy())
+        progress_gain = progress_gain/np.sum(batch_lens)
         logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
         reward = float(self.get_reward(progress_gain, batch_lens))
@@ -116,7 +117,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         '''
         Calculates and scales reward based on previous reward history.
         '''
-        progress_gain = progress_gain/np.sum(batch_lens)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
