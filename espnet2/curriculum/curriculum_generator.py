@@ -3,6 +3,8 @@ from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 import os
+import wandb
+import logging
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -14,19 +16,17 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
-
-
-
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
                 init: str ="zeros",
                 hist_size=10000,
                 log_dir: str='exp3stats',
+                gain_type: str="PG",
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
-                ):
+                log_config=True):
 
         assert check_argument_types()
 
@@ -37,6 +37,15 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.beta = beta
         self.epsilon = epsilon
         self.logger = CurriculumLogger(log_dir=log_dir)
+
+        #Whether log RL config params to wandb
+        if log_config:
+            wandb.config.update = {"algo":"exp3s",
+                            "eps":epsilon,
+                            "eta":eta,
+                            "beta":beta,
+                            "gain_type":gain_type
+                            }
 
         if init=='ones':
             self.weights = np.ones(K)
@@ -62,11 +71,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.tasks_exhausted[k] = True
 
     def get_next_task_ind(self, **kwargs):
-        '''
-        if exhausted is None:
-            task_ind = np.random.choice(arr, size=1, p=self.policy)
-            return int(task_ind)
-        '''
         arr = np.arange(self.K)
         ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
         norm_probs = self.policy[ind]/self.policy[ind].sum()
@@ -74,36 +78,52 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return int(task_ind)
 
 
-    def update_policy(self, iiter, k, progress_gain, batch_lens):
+    def update_policy(self, 
+                     iepoch, 
+                     iiter, 
+                     k, 
+                     losses,
+                     batch_lens,
+                    ):
         '''
         Executes steps:
             1. Get and scale reward
             2. Update weigths 
             3. Update policy
         '''
-        progress_gain = float(progress_gain)
+        loss_before = losses[0]
+        loss_after = losses[1]
+        progress_gain = loss_before - loss_after
+        progress_gain = float(progress_gain.detach().cpu().numpy())
+        progress_gain = progress_gain/np.sum(batch_lens)
+        #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
+
         reward = float(self.get_reward(progress_gain, batch_lens))
+        #logging.info(f"Reward: {reward}")
         self.update_weights(iiter, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
-        self.logger.log(iiter, k, progress_gain, reward, self.policy)
+        self.logger.log(iepoch, 
+                        iiter, 
+                        k, 
+                        progress_gain, 
+                        reward, 
+                        self.policy, 
+                        (loss_before, loss_after))
 
     def get_reward(self, progress_gain, batch_lens):
         '''
         Calculates and scales reward based on previous reward history.
         '''
-        #print("Progress gain:", progress_gain)
-        progress_gain = progress_gain/np.sum(batch_lens)
-        #print("Scaled progress gain:", progress_gain)
 
         if len(self.reward_history)==0:
             q_lo = 0.000000000098
             q_hi = 0.000000000099
         else:
-            q_lo = np.ceil(np.quantile(self.reward_history, 0.2))
-            q_hi = np.ceil(np.quantile(self.reward_history, 0.8))
+            q_lo = np.quantile(self.reward_history, 0.2)
+            q_hi = np.quantile(self.reward_history, 0.8)
 
         ## Map reward to be in [-1, 1]
         if progress_gain < q_lo:
@@ -116,8 +136,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         if len(self.reward_history) > self.hist_size:
             self.reward_history = np.delete(self.reward_history, 0)
         
-        self.reward_history = np.append(self.reward_history, reward)
-        #print("Reward:", reward)
+        self.reward_history = np.append(self.reward_history, float(progress_gain))
         return reward
 
     def update_weights(self, iiter, k, reward):
