@@ -571,7 +571,7 @@ class Trainer:
             if options.gain_type=='PG':
                 model.train()
                 with autocast(scaler is not None):
-                    with torch.no_grad()
+                    with torch.no_grad():
                         retval = model(**batch)
                         # Note(kamo):
                         # Supporting two patterns for the returned value from the model
