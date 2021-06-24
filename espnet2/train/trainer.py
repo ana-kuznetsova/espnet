@@ -597,7 +597,6 @@ class Trainer:
 
                     loss_before /= accum_grad
                     loss = loss_before
-                    logging.info(f"Loss before: {loss}")
                 
                 
             with reporter.measure_time("backward_time"):
@@ -702,21 +701,14 @@ class Trainer:
                         loss_after *= torch.distributed.get_world_size()
 
                     loss_after /= accum_grad
-                    logging.info(f"Loss after: {loss_after}")
-
-                    progress_gain = loss_before - loss_after
-                    progress_gain = progress_gain.detach().cpu().numpy()
                     
                     curriculum_generator.update_policy(
                                         iepoch=iepoch,
                                         iiter=iiter, 
                                         k=k, 
-                                        progress_gain=progress_gain, 
+                                        losses=(loss_before, loss_after), 
                                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                        loss=loss_after
                                         )
-
-                    #loss = loss_after
 
                 reporter.register(stats, weight)
 

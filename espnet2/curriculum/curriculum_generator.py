@@ -81,16 +81,20 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                      iepoch, 
                      iiter, 
                      k, 
-                     progress_gain, 
-                     batch_lens, 
-                     loss):
+                     losses,
+                     batch_lens,
+                    ):
         '''
         Executes steps:
             1. Get and scale reward
             2. Update weigths 
             3. Update policy
         '''
-        progress_gain = float(progress_gain)
+        loss_before = losses[0]
+        loss_after = losses[1]
+        progress_gain = loss_before - loss_after
+        progress_gain = float(progress_gain.detach().cpu().numpy())
+
         reward = float(self.get_reward(progress_gain, batch_lens))
         self.update_weights(iiter, k, reward)
 
