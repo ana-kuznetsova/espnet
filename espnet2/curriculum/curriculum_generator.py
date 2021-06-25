@@ -91,8 +91,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        loss_before = losses[0]
-        loss_after = losses[1]
+        loss_before = float(losses[0].detach().cpu().numpy())
+        loss_after = float(losses[1].detach().cpu().numpy())
         progress_gain = loss_before - loss_after
         progress_gain = float(progress_gain.detach().cpu().numpy())
         #progress_gain = progress_gain/np.sum(batch_lens)
