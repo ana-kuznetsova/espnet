@@ -47,11 +47,11 @@ class CurriculumLogger:
                                 str(kwargs["reward"])])
                 fo.write(stats + '\n')
             with open(self.policy_path, 'a+') as fo:
-                fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
+                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
 
         if kwargs["algo"]=='exp3':
             with open(self.weights_path, 'a+') as fo:
-                fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
+                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
         
         if log_wandb:
             log_dict = {"loss":losses[1],
