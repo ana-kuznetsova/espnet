@@ -49,10 +49,10 @@ class CurriculumLogger:
 
         
         if kwargs["log_wandb"]:
-            log_dict = {"loss":losses[1],
-                        "k":k,
-                        "progress_gain": progress_gain,
-                        "reward":reward
+            log_dict = {"loss":kwargs["losses"][1],
+                        "k":kwargs["k"],
+                        "progress_gain": kwargs["progress_gain"],
+                        "reward":kwargs["reward"]
                         }
             wandb.log(log_dict)
         #### Save state ####
