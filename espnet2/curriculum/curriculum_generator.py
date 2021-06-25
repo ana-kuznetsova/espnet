@@ -5,6 +5,7 @@ from abc import abstractmethod
 import os
 import wandb
 import logging
+from espnet2.curriculum.utils import str2numpy
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -27,7 +28,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 eta=0.01, 
                 beta=0,
                 restore=False,
-                log_config=True):
+                log_config=True,
+                **kwargs):
 
         assert check_argument_types()
 
@@ -40,7 +42,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.logger = CurriculumLogger(log_dir=log_dir,
                                         algo="exp3s",
                                         restore=restore)
-
+        
         #Whether log RL config params to wandb
         if log_config:
             wandb.config.update = {"algo":"exp3s",
@@ -50,19 +52,34 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
-        if init=='ones':
-            self.weights = np.ones(K)
-        elif init=='zeros':
-            self.weights = np.zeros(K)
-        elif init=='random':
-            self.weights = np.random.rand(K)
+        if not restore:
+            if init=='ones':
+                self.weights = np.ones(K)
+            elif init=='zeros':
+                self.weights = np.zeros(K)
+            elif init=='random':
+                self.weights = np.random.rand(K)
+            else:
+                raise ValueError(
+                    f"Initialization type is not supported: {init}"
+                )
+            #Initialize policy with uniform probs
+            self.policy = np.array([1/self.K for i in range(self.K)])
         else:
-            raise ValueError(
-                f"Initialization type is not supported: {init}"
-            )
-        #Initialize policy with uniform probs
-        self.policy = np.array([1/self.K for i in range(self.K)])
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            #Restore policy
+            with open(os.path.join(self.log_dir, "policy"), 'r') as fo:
+                for line in fo:
+                    pass
+                policy = line
+                self.policy = str2numpy(policy)
+            #Restore weights
+
+        
         self.tasks_exhausted = [False]*self.K
+
+
 
     def all_exhausted(self):
         return all(self.tasks_exhausted)
