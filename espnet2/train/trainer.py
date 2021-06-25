@@ -710,6 +710,7 @@ class Trainer:
                                         k=k, 
                                         losses=(loss_before, loss_after), 
                                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                        algo=options.curriculum_algo
                                         )
 
                 reporter.register(stats, weight)
