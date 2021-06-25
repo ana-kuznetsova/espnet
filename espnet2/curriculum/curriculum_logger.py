@@ -53,7 +53,7 @@ class CurriculumLogger:
             with open(self.weights_path, 'a+') as fo:
                 fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
         
-        if log_wandb:
+        if kwargs["log_wandb"]:
             log_dict = {"loss":losses[1],
                         "k":k,
                         "progress_gain": progress_gain,
