@@ -144,12 +144,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         Calculates and scales reward based on previous reward history.
         '''
 
-        if len(self.reward_history)==0:
+        if len(self.reward_hist)==0:
             q_lo = 0.000000000098
             q_hi = 0.000000000099
         else:
-            q_lo = np.quantile(self.reward_history, 0.2)
-            q_hi = np.quantile(self.reward_history, 0.8)
+            q_lo = np.quantile(self.reward_hist, 0.2)
+            q_hi = np.quantile(self.reward_hist, 0.8)
 
         ## Map reward to be in [-1, 1]
         if progress_gain < q_lo:
@@ -160,9 +160,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
 
         if len(self.reward_history) > self.hist_size:
-            self.reward_history = np.delete(self.reward_history, 0)
+            self.reward_hist = np.delete(self.reward_hist, 0)
         
-        self.reward_history = np.append(self.reward_history, float(progress_gain))
+        self.reward_hist = np.append(self.reward_hist, float(progress_gain))
         return reward
 
     def update_weights(self, iiter, k, reward):
