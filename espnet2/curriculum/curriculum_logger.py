@@ -20,13 +20,18 @@ class CurriculumLogger:
 
     def log(self, 
             iepoch, 
-            iiter, 
+            iiter,
+            restore, 
+            **kwargs):
+
+            '''
             k, 
             progress_gain, 
             reward, 
             policy,
             losses, 
-            log_wandb=True):
+            log_wandb=True
+            '''
 
         with open(self.stats_path, 'a+') as fo:
             stats = ', '.join([str(iepoch), str(iiter),\
