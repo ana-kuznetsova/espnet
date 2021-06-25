@@ -21,12 +21,19 @@ class CurriculumLogger:
     def log(self, 
             iepoch, 
             iiter, 
-            k, 
-            progress_gain, 
-            reward, 
-            policy,
-            losses, 
-            log_wandb=True):
+            **kwargs):
+
+        '''
+        Supported kwargs:
+            k (int)
+            progress_gain (float)
+            reward (float)
+            policy (np array)
+            weights (np array): for EXP3S algo only
+            losses tuple(float, float)
+            log_wandb (bool): logging stats to wandb
+            algo (str): EXP3S or UCB
+        '''
 
         with open(self.stats_path, 'a+') as fo:
             stats = ', '.join([str(iepoch), str(iiter),\

@@ -84,6 +84,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                      k, 
                      losses,
                      batch_lens,
+                     **kwargs
                     ):
         '''
         Executes steps:
@@ -107,11 +108,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = pi
         self.logger.log(iepoch, 
                         iiter, 
-                        k, 
-                        progress_gain, 
-                        reward, 
-                        self.policy, 
-                        (loss_before, loss_after))
+                        k=k, 
+                        progress_gain=progress_gain, 
+                        reward=reward, 
+                        policy=self.policy, 
+                        losses=(loss_before, loss_after)
+                        algo=algo)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
