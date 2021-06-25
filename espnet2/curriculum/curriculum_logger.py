@@ -47,8 +47,8 @@ class CurriculumLogger:
                                 str(kwargs["progress_gain"]), 
                                 str(kwargs["reward"])])
                 fo.write(stats + '\n')
-            with open(self.policy_path, 'a+') as fo:
-                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
+        with open(self.policy_path, 'a+') as fo:
+            fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
 
         
         if kwargs["log_wandb"]:
