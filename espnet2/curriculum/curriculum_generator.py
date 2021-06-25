@@ -34,7 +34,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         assert check_argument_types()
 
         self.K = K 
-        self.reward_history = np.array([])
         self.hist_size = hist_size
         self.eta = eta
         self.beta = beta
@@ -53,6 +52,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             }
 
         if not restore:
+            self.reward_history = np.array([])
             if init=='ones':
                 self.weights = np.ones(K)
             elif init=='zeros':
@@ -75,6 +75,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 policy = line
                 self.policy = str2numpy(policy)
             #Restore weights
+            with open(os.path.join(self.log_dir, 'weights'), 'r') as fo:
+                for line in fo:
+                    pass
+                weights = line
+                self.weights = str2numpy(weights)
 
         
         self.tasks_exhausted = [False]*self.K
