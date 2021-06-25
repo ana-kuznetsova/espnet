@@ -159,7 +159,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
 
-        if len(self.reward_history) > self.hist_size:
+        if len(self.reward_hist) > self.hist_size:
             self.reward_hist = np.delete(self.reward_hist, 0)
         
         self.reward_hist = np.append(self.reward_hist, float(progress_gain))
