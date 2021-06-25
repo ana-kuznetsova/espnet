@@ -136,7 +136,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                         losses=(loss_before, loss_after),
                         weights= self.weights,
                         algo=kwargs["algo"],
-                        log_wandb=True)
+                        log_wandb=True,
+                        reward_hist=self.reward_hist)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
