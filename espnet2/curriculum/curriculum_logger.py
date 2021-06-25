@@ -14,15 +14,12 @@ class CurriculumLogger:
 
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
-        if algo=='exp3s':
-            self.weights_path = os.path.join(self.log_dir, "policy_weights")
 
         if not restore:
             if os.path.exists(self.stats_path):
                 os.remove(self.stats_path)
                 os.remove(self.policy_path)
-                if algo=='exp3s':
-                    os.remove(self.weights_path)
+                #os.remove(os.path.join(self.log_dir, "generator_state.npy"))
 
     def log(self, 
             iepoch, 
