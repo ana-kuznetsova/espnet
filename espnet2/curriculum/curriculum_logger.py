@@ -58,9 +58,9 @@ class CurriculumLogger:
         #### Save state ####
         if self.algo=='exp3s':
             self.save_state(iepoch, iiter, self.algo, 
-                            kwargs["policy"], 
-                            kwargs["weights"],
-                            kwargs['reward_hist'])
+                            policy=kwargs["policy"], 
+                            weights=kwargs["weights"],
+                            reward_hist=kwargs['reward_hist'])
 
     def save_state(self, iepoch, iiter, algo, policy, **kwargs):
         if algo=='exp3s':
