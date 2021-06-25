@@ -16,6 +16,22 @@ class AbsCurriculumGenerator(ABC):
     def get_next_task_ind(self, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
+    def all_exhausted(self):
+        raise NotImplementedError
+    
+     @abstractmethod
+    def reset_exhausted(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def report_exhausted_task(self, k):
+        raise NotImplementedError
+
+    @abstractmethod
+    def restore(self, load_dir):
+        raise NotImplementedError
+
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
                 K: int =1, 
@@ -179,6 +195,32 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
+
+    def restore(self, load_dir):
+        """
+        Function to load saved parameters in case of resume training.
+        """
+        policy = os.path.join(load_dir, "policy")
+        stats = os.path.join(load_dir, "generator_stats") 
+        params = {}
+        #Read policy
+        with open(policy, 'r') as policy_reader:
+            policy_reader.seek(-2, os.SEEK_END)
+            while policy_reader.read(1) != b'\n':
+                policy_reader.seek(-2, os.SEEK_CUR) 
+            val = policy_reader.readline().decode().split(',')
+            params['iepoch'] = int(val[0])
+            params['iiter'] = int(val[1])
+            self.policy = np.fromstring(val[2])
+        #Read other stats
+        with open(stats, 'r') as stats_reader:
+            stats_reader.seek(-2, os.SEEK_END)
+            while stats_reader.read(1) != b'\n':
+                stats_reader.seek(-2, os.SEEK_CUR) 
+            val = stats_reader.readline().decode().split(',')
+            params['iepoch'] = int(val[0])
+            params['iiter'] = int(val[1])
+            self.policy = np.fromstring(val[2])
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """

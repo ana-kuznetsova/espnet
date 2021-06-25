@@ -34,7 +34,7 @@ class CurriculumLogger:
                                str(losses[1]), str(progress_gain), str(reward)])
             fo.write(stats + '\n')
         with open(self.policy_path, 'a+') as fo:
-            fo.write(str(iepoch)+', '+str(iiter)+', '+str(policy)+'\n')
+            fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
         
         if log_wandb:
             log_dict = {"loss":losses[1],
