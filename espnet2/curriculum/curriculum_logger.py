@@ -1,5 +1,5 @@
 import os
-import shutil
+import numpy as np
 import wandb
 
 class CurriculumLogger:
@@ -10,6 +10,7 @@ class CurriculumLogger:
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         self.log_dir = log_dir
+        self.algo=algo
 
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
@@ -49,9 +50,6 @@ class CurriculumLogger:
             with open(self.policy_path, 'a+') as fo:
                 fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
 
-        if kwargs["algo"]=='exp3':
-            with open(self.weights_path, 'a+') as fo:
-                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
         
         if kwargs["log_wandb"]:
             log_dict = {"loss":losses[1],
@@ -60,3 +58,16 @@ class CurriculumLogger:
                         "reward":reward
                         }
             wandb.log(log_dict)
+        #### Save state ####
+        if self.algo=='exp3s':
+            self.save_state(iepoch, iiter, algo, kwargs["policy"], kwargs["weights"])
+
+    def save_state(self, iepoch, iiter, algo, policy, **kwargs):
+        if algo=='exp3s':
+            state_dict = {
+                "iepoch":iepoch,
+                "iiter":iiter,
+                "policy":policy, 
+                "weights":kwargs['weights']
+            }
+        np.save(os.path.join(self.log_dict, "generator_state.npy"))

@@ -65,24 +65,10 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 )
             #Initialize policy with uniform probs
             self.policy = np.array([1/self.K for i in range(self.K)])
+            self.tasks_exhausted = [False]*self.K
         else:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            #Restore policy
-            with open(os.path.join(self.log_dir, "policy"), 'r') as fo:
-                for line in fo:
-                    pass
-                policy = line
-                self.policy = str2numpy(policy)
-            #Restore weights
-            with open(os.path.join(self.log_dir, 'weights'), 'r') as fo:
-                for line in fo:
-                    pass
-                weights = line
-                self.weights = str2numpy(weights)
-
-        
-        self.tasks_exhausted = [False]*self.K
 
 
 
@@ -138,7 +124,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                         reward=reward, 
                         policy=self.policy, 
                         losses=(loss_before, loss_after),
-                        weights=self.weights,
                         algo=algo)
 
     def get_reward(self, progress_gain, batch_lens):
