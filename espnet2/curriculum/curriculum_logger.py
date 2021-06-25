@@ -60,7 +60,10 @@ class CurriculumLogger:
             wandb.log(log_dict)
         #### Save state ####
         if self.algo=='exp3s':
-            self.save_state(iepoch, iiter, algo, kwargs["policy"], kwargs["weights"])
+            self.save_state(iepoch, iiter, algo, 
+                            kwargs["policy"], 
+                            kwargs["weights"],
+                            kwargs['reward_hist'])
 
     def save_state(self, iepoch, iiter, algo, policy, **kwargs):
         if algo=='exp3s':
@@ -68,6 +71,7 @@ class CurriculumLogger:
                 "iepoch":iepoch,
                 "iiter":iiter,
                 "policy":policy, 
-                "weights":kwargs['weights']
+                "weights":kwargs['weights'],
+                "reward_hist":kwargs['reward_hist']
             }
         np.save(os.path.join(self.log_dict, "generator_state.npy"))
