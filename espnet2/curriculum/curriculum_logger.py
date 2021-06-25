@@ -39,7 +39,7 @@ class CurriculumLogger:
         '''
         with open(self.stats_path, 'a+') as fo:
                 stats = ', '.join([str(iepoch), str(iiter),\
-                                str(k), str(kwargs["losses"][0]), \
+                                str(kwargs["k"]), str(kwargs["losses"][0]), \
                                 str(kwargs["losses"][1]), 
                                 str(kwargs["progress_gain"]), 
                                 str(kwargs["reward"])])
