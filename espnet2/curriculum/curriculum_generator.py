@@ -51,7 +51,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             }
 
         if not restore:
-            self.reward_history = np.array([])
+            self.reward_hist = np.array([])
             if init=='ones':
                 self.weights = np.ones(K)
             elif init=='zeros':
