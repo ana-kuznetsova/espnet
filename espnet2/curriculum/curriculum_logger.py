@@ -71,4 +71,4 @@ class CurriculumLogger:
                 "weights":kwargs['weights'],
                 "reward_hist":kwargs['reward_hist']
             }
-        np.save(os.path.join(self.log_dict, "generator_state.npy"))
+        np.save(os.path.join(self.log_dir, "generator_state.npy"))
