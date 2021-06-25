@@ -26,6 +26,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
+                restore=False,
                 log_config=True):
 
         assert check_argument_types()
@@ -36,7 +37,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = CurriculumLogger(log_dir=log_dir)
+        self.logger = CurriculumLogger(log_dir=log_dir,
+                                        algo="exp3s",
+                                        restore=restore)
 
         #Whether log RL config params to wandb
         if log_config:
