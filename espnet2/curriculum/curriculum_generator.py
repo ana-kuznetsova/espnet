@@ -5,7 +5,6 @@ from abc import abstractmethod
 import os
 import wandb
 import logging
-from espnet2.curriculum.utils import str2numpy
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -77,7 +76,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             self.reward_hist = generator_state["reward_hist"]
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
-            
+
             logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
 
 
