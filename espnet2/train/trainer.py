@@ -285,7 +285,8 @@ class Trainer:
                                             init='zeros',
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
-                                            restore=trainer_options.resume
+                                            #restore=trainer_options.resume
+                                            restore=False
                                             )
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
