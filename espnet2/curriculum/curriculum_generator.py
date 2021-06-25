@@ -115,7 +115,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         loss_before = float(losses[0].detach().cpu().numpy())
         loss_after = float(losses[1].detach().cpu().numpy())
         progress_gain = loss_before - loss_after
-        progress_gain = float(progress_gain.detach().cpu().numpy())
         #progress_gain = progress_gain/np.sum(batch_lens)
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
