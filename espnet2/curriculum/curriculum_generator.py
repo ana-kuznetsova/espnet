@@ -42,18 +42,21 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 epsilon=0.05,
                 eta=0.01, 
                 beta=0,
-                log_config=True):
+                restore=False,
+                log_config=True,
+                **kwargs):
 
         assert check_argument_types()
 
         self.K = K 
-        self.reward_history = np.array([])
         self.hist_size = hist_size
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = CurriculumLogger(log_dir=log_dir)
-
+        self.logger = CurriculumLogger(log_dir=log_dir,
+                                        algo="exp3s",
+                                        restore=restore)
+        
         #Whether log RL config params to wandb
         if log_config:
             wandb.config.update = {"algo":"exp3s",
@@ -63,19 +66,36 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
-        if init=='ones':
-            self.weights = np.ones(K)
-        elif init=='zeros':
-            self.weights = np.zeros(K)
-        elif init=='random':
-            self.weights = np.random.rand(K)
+        if not restore:
+            self.reward_hist = np.array([])
+            if init=='ones':
+                self.weights = np.ones(K)
+            elif init=='zeros':
+                self.weights = np.zeros(K)
+            elif init=='random':
+                self.weights = np.random.rand(K)
+            else:
+                raise ValueError(
+                    f"Initialization type is not supported: {init}"
+                )
+            #Initialize policy with uniform probs
+            self.policy = np.array([1/self.K for i in range(self.K)])
+            self.tasks_exhausted = [False]*self.K
         else:
-            raise ValueError(
-                f"Initialization type is not supported: {init}"
-            )
-        #Initialize policy with uniform probs
-        self.policy = np.array([1/self.K for i in range(self.K)])
-        self.tasks_exhausted = [False]*self.K
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+                                      allow_pickle=True).item()
+
+            self.policy = generator_state["policy"]
+            self.weights = generator_state["weights"]
+            self.reward_hist = generator_state["reward_hist"]
+            iepoch = generator_state["iepoch"]
+            iiter = generator_state["iiter"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
+
+
 
     def all_exhausted(self):
         return all(self.tasks_exhausted)
@@ -100,6 +120,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                      k, 
                      losses,
                      batch_lens,
+                     **kwargs
                     ):
         '''
         Executes steps:
@@ -107,10 +128,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        loss_before = losses[0]
-        loss_after = losses[1]
+        loss_before = float(losses[0].detach().cpu().numpy())
+        loss_after = float(losses[1].detach().cpu().numpy())
         progress_gain = loss_before - loss_after
-        progress_gain = float(progress_gain.detach().cpu().numpy())
         #progress_gain = progress_gain/np.sum(batch_lens)
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
@@ -121,25 +141,31 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         self.policy = pi
+
+        ###Logging
         self.logger.log(iepoch, 
                         iiter, 
-                        k, 
-                        progress_gain, 
-                        reward, 
-                        self.policy, 
-                        (loss_before, loss_after))
+                        k=k, 
+                        progress_gain=progress_gain, 
+                        reward=reward, 
+                        policy=self.policy, 
+                        losses=(loss_before, loss_after),
+                        weights= self.weights,
+                        algo=kwargs["algo"],
+                        log_wandb=True,
+                        reward_hist=self.reward_hist)
 
     def get_reward(self, progress_gain, batch_lens):
         '''
         Calculates and scales reward based on previous reward history.
         '''
 
-        if len(self.reward_history)==0:
+        if len(self.reward_hist)==0:
             q_lo = 0.000000000098
             q_hi = 0.000000000099
         else:
-            q_lo = np.quantile(self.reward_history, 0.2)
-            q_hi = np.quantile(self.reward_history, 0.8)
+            q_lo = np.quantile(self.reward_hist, 0.2)
+            q_hi = np.quantile(self.reward_hist, 0.8)
 
         ## Map reward to be in [-1, 1]
         if progress_gain < q_lo:
@@ -149,10 +175,10 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
 
-        if len(self.reward_history) > self.hist_size:
-            self.reward_history = np.delete(self.reward_history, 0)
+        if len(self.reward_hist) > self.hist_size:
+            self.reward_hist = np.delete(self.reward_hist, 0)
         
-        self.reward_history = np.append(self.reward_history, float(progress_gain))
+        self.reward_hist = np.append(self.reward_hist, float(progress_gain))
         return reward
 
     def update_weights(self, iiter, k, reward):

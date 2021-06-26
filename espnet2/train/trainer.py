@@ -284,7 +284,9 @@ class Trainer:
                                             K=train_iter_factory.K,
                                             init='zeros',
                                             log_dir=str(output_dir),
-                                            gain_type=trainer_options.gain_type
+                                            gain_type=trainer_options.gain_type,
+                                            #restore=trainer_options.resume
+                                            restore=True
                                             )
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
@@ -708,6 +710,7 @@ class Trainer:
                                         k=k, 
                                         losses=(loss_before, loss_after), 
                                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                        algo=options.curriculum_algo
                                         )
 
                 reporter.register(stats, weight)
