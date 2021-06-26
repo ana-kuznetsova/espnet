@@ -288,7 +288,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         return all(self.exhausted)
 
     def report_exhausted_task(self, k):
-        self.tasks_exhausted[k] = True
+        self.exhausted[k] = True
 
     def calc_sliding_window(self, t):
         """
@@ -363,7 +363,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """    
         win_size = self.calc_sliding_window(iiter)
         print("SW size:", win_size)
-        progress_gain = losses[0] - losses[1]
+        loss_before = float(losses[0].detach().cpu().numpy())
+        loss_after = float(losses[1].detach().cpu().numpy())
+        progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
         print("Reward:", reward)
         self.update_arm_reward(k, reward)
