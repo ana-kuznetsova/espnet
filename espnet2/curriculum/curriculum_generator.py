@@ -20,7 +20,7 @@ class AbsCurriculumGenerator(ABC):
     def all_exhausted(self):
         raise NotImplementedError
     
-     @abstractmethod
+    @abstractmethod
     def reset_exhausted(self):
         raise NotImplementedError
 
@@ -325,7 +325,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, k, progress_gain, batch_lens):
+    def update_policy(self, iiter, k, losses, batch_lens):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -337,6 +337,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """    
         win_size = self.calc_sliding_window(iiter)
         print("SW size:", win_size)
+        progress_gain = losses[0] - losses[1]
         reward = self.get_reward(progress_gain, batch_lens)
         print("Reward:", reward)
         self.update_arm_reward(k, reward)
