@@ -332,6 +332,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         Calculates mean reward for all arms within the sliding window range.
         """
+        if win_size == 0:
+           win_size += 1 
         mean_rewards = []
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
