@@ -309,7 +309,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         Updates record of reward for each arm. For the chosen arm, the value is updated
         by the current reward value, for the rest of the arms we simply append 0.
         """
-        for i in self.arm_rewards:
+        for i in range(self.K):
             if i == arm:
                 self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
                 self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
