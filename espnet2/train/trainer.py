@@ -293,7 +293,7 @@ class Trainer:
                                        K=train_iter_factory.K,
                                        hist_size=1000,
                                        log_dir=str(output_dir),
-                                       lmbda=20,
+                                       lmbda=5,
                                        #gain_type=trainer_options.gain_type,
                 )
 
