@@ -398,6 +398,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         we simply run each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
+        logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
