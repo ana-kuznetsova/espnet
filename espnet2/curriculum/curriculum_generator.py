@@ -216,7 +216,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
-        self.logger = CurriculumLogger(log_dir=log_dir)
+        self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb")
         self.env_mode = env_mode
         self.lmbda = lmbda
         self.gamma = gamma
