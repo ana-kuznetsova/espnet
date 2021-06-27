@@ -43,7 +43,7 @@ class CurriculumLogger:
                 fo.write(stats + '\n')
         with open(self.policy_path, 'a+') as fo:
             #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
-            fo.write(str(iepoch)+', '+str(iiter)+', '+kwargs["policy"].tostring().decode()+'\n')
+            fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
         
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
