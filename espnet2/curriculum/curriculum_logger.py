@@ -53,7 +53,9 @@ class CurriculumLogger:
             wandb.log(log_dict)
         #### Save state ####
         if self.algo=='exp3s':
-            self.save_state(iepoch, iiter, self.algo, 
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
                             policy=kwargs["policy"], 
                             weights=kwargs["weights"],
                             reward_hist=kwargs['reward_hist'])
