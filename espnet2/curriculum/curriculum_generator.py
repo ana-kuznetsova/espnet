@@ -347,7 +347,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, k, losses, batch_lens):
+    def update_policy(self, iiter, iepoch, k, losses, batch_lens):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -387,7 +387,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
         logging.info(f"Policy: {self.policy}")
-        self.logger.log(iiter, k, progress_gain, reward)
+        self.logger.log(iiter, iepoch, k, progress_gain, reward)
 
     def get_next_task_ind(self, **kwargs):
         """
