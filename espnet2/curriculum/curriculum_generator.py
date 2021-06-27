@@ -338,8 +338,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            print("ARM:",arm,"count:",arm_count)
-            print("Count:",self.arm_rewards[arm]['count'])
+            logging.info("ARM:{%0.4f}, count:{%0.4f}".format(rewards_sum, arm_count))
+            #print("Count:",self.arm_rewards[arm]['count'])
+            logging.info(f"Count: {self.arm_rewards[arm]['count']}")
             mean_rewards.append(rewards_sum/arm_count)
         return np.array(mean_rewards)
 
@@ -364,14 +365,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             5. Calculate arm cost and update policy.
         """    
         win_size = self.calc_sliding_window(iiter)
-        print("SW size:", win_size)
+        #print("SW size:", win_size)
+        logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0].detach().cpu().numpy())
         loss_after = float(losses[1].detach().cpu().numpy())
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
-        print("Reward:", reward)
+        #print("Reward:", reward)
+        logging.info(f"Reward: {reward}")
         self.update_arm_reward(k, reward)
-        print(self.reward_history)
         if len(self.reward_history) <= self.K:
             return
         #Change mode based on reward history.
@@ -384,11 +386,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 raise ValueError("Pass the required parameters. {}".format(e))
 
         mean_rewards = self.get_mean_reward(win_size)
-        print("Mean rewards:", mean_rewards)
+        #print("Mean rewards:", mean_rewards)
+        logging.info(f"Mean rewards: {mean_rewards}")
         arm_cost = self.get_arm_cost(iiter, win_size)
-        print("Arm costs:", arm_cost)
+        #print("Arm costs:", arm_cost)
+        logging.info(f"Arm costs: {arm_cost}")
         self.policy = mean_rewards + arm_cost
-        print("Policy:", self.policy)
+        #print("Policy:", self.policy)
+        logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter, k, progress_gain, reward)
 
     def get_next_task_ind(self, **kwargs):
