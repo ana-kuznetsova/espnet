@@ -221,6 +221,19 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
+        if self.env_mode is None:
+            self.env_mode = 1
+        else:
+            self.slow_k = slow_k
+
+        self.exhausted = [False for i in range(self.K)]
+        self.reward_history = np.array([])
+        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
+        self.policy = np.zeros(self.K)
+        try:
+            self.set_params(self.lmbda, self.gamma, self.slow_k)
+        except AssertionError as e:
+            raise ValueError("Pass the required parameters. {}".format(e))
 
     def restore(self, load_dir):
         """
@@ -260,26 +273,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         else:
             assert slow_k != None, "Parameter k is None"
             self.alpha = min(1, 3*slow_k/4)
-    
-    def initialize(self):
-        """
-        At start we assign the mode of env to be abruptly varying unless specified.
-        We also initialize the exhausted_task list, policy, reward_history and arm_rewards.
-        """
-        if self.env_mode is None:
-            self.env_mode = 1
-        else:
-            self.slow_k = slow_k
-
-        self.exhausted = [False for i in range(self.K)]
-        self.reward_history = np.array([])
-        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
-        self.policy = np.zeros(self.K)
-        try:
-            self.set_params(self.lmbda, self.gamma, self.slow_k)
-        except AssertionError as e:
-            raise ValueError("Pass the required parameters. {}".format(e))
-        
 
     def reset_exhausted(self):
         self.exhausted = [False for i in range(self.K)]
