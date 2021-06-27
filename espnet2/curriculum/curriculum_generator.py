@@ -332,9 +332,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
+            #logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
             #print("Count:",self.arm_rewards[arm]['count'])
-            logging.info(f"Count: {self.arm_rewards[arm]['count']}")
+            #logging.info(f"Count: {self.arm_rewards[arm]['count']}")
             if arm_count < 1:
                 mean_rewards.append(9999999)
             else:
@@ -367,14 +367,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         logging.info(f"Task_ind:{k}") 
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
-        logging.info(f"SW size: {win_size}")
+        #logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0].detach().cpu().numpy())
         loss_after = float(losses[1].detach().cpu().numpy())
         logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
         #print("Reward:", reward)
-        logging.info(f"Reward: {reward}")
+        #logging.info(f"Reward: {reward}")
         self.update_arm_reward(k, reward)
         if len(self.reward_history) <= self.K:
             return
@@ -389,13 +389,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
         mean_rewards = self.get_mean_reward(win_size)
         #print("Mean rewards:", mean_rewards)
-        logging.info(f"Mean rewards: {mean_rewards}")
+        #logging.info(f"Mean rewards: {mean_rewards}")
         arm_cost = self.get_arm_cost(iiter, win_size)
         #print("Arm costs:", arm_cost)
-        logging.info(f"Arm costs: {arm_cost}")
+        #logging.info(f"Arm costs: {arm_cost}")
         self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
-        logging.info(f"Policy: {self.policy}")
+        #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch, 
                         k=k, 
@@ -404,7 +404,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
-                        log_wandb=False)
+                        log_wandb=True)
 
     def get_next_task_ind(self, **kwargs):
         """
