@@ -363,6 +363,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0].detach().cpu().numpy())
         loss_after = float(losses[1].detach().cpu().numpy())
+        logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
         #print("Reward:", reward)
