@@ -331,11 +331,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         mean_rewards = []
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
-            arm_count = max(np.sum(self.arm_rewards[arm]['count'][-win_size:]), 1)
+            arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
             logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
             #print("Count:",self.arm_rewards[arm]['count'])
             logging.info(f"Count: {self.arm_rewards[arm]['count']}")
-            mean_rewards.append(rewards_sum/arm_count)
+            if arm_count < 1:
+                mean_rewards.append(9999999)
+            else:
+                mean_rewards.append(rewards_sum/arm_count)
         return np.array(mean_rewards)
 
     def get_arm_cost(self, iteration, win_size):
@@ -344,8 +347,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         cost = []
         for arm in range(self.K):
-            arm_count = max(np.sum(self.arm_rewards[arm]['count'][-win_size:]), 1)
-            cost.append(np.sqrt((2 + self.alpha) * (np.log(iteration+1)) / arm_count))
+            arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
+            if arm_count < 1:
+                cost.append(999999)
+            else:
+                cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
     def update_policy(self, iiter, iepoch, k, algo, losses, batch_lens):
