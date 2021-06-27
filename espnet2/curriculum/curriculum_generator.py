@@ -281,7 +281,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             raise ValueError("Pass the required parameters. {}".format(e))
         
 
-    def reset_tasks(self):
+    def reset_exhausted(self):
         self.exhausted = [False for i in range(self.K)]
     
     def all_exhausted(self):
