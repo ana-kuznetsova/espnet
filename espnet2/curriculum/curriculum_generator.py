@@ -357,7 +357,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             3. Calculate arm count.
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
-        """    
+        """   
+        logging.info("Task_ind:{k}") 
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
         logging.info(f"SW size: {win_size}")
@@ -400,6 +401,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
+        #logging.info("Policy:{}")
         return max(policy.items(), key=lambda x:x[1])[0]
         
         
