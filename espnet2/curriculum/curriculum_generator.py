@@ -398,7 +398,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
-                        log_wandb=True)
+                        log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
         """
