@@ -288,6 +288,14 @@ class Trainer:
                                             #restore=trainer_options.resume
                                             restore=True
                                             )
+            elif trainer_options.curriculum_algo=='swucb':
+                curriculum_generator = SWUCBCurriculumGenerator(
+                                       K=train_iter_factory.K,
+                                       hist_size=1000,
+                                       log_dir=str(output_dir),
+                                       #gain_type=trainer_options.gain_type,
+                )
+
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
                 logging.info(
