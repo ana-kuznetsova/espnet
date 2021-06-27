@@ -58,15 +58,8 @@ class CurriculumLogger:
                             weights=kwargs["weights"],
                             reward_hist=kwargs['reward_hist'])
 
-    def save_state(self, iepoch, iiter, algo, policy, **kwargs):
+    def save_state(self, **kwargs):
         #if algo=='exp3s':
         #Common for both of our algorithms
-        state_dict = {
-            "algo":algo,
-            "iepoch":iepoch,
-            "iiter":iiter,
-            "policy":policy, 
-            "weights":kwargs['weights'],
-            "reward_hist":kwargs['reward_hist']
-        }
+        state_dict = kwargs
         np.save(os.path.join(self.log_dir, "generator_state.npy"), state_dict)
