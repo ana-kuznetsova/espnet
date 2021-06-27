@@ -331,7 +331,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         mean_rewards = []
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
-            arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
+            arm_count = max(np.sum(self.arm_rewards[arm]['count'][-win_size:]), 1)
             logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
             #print("Count:",self.arm_rewards[arm]['count'])
             logging.info(f"Count: {self.arm_rewards[arm]['count']}")
