@@ -390,7 +390,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
         logging.info(f"Policy: {self.policy}")
-        self.logger.log(iiter, iepoch, k, algo, progress_gain, reward)
+        self.logger.log(iiter=iiter, iepoch=iepoch, task=k, algo=algo, progress_gain=progress_gain, reward=reward)
 
     def get_next_task_ind(self, **kwargs):
         """
