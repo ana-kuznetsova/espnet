@@ -358,7 +358,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        logging.info("Task_ind:{k}") 
+        logging.info(f"Task_ind:{k}") 
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
         logging.info(f"SW size: {win_size}")
