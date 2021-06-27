@@ -345,7 +345,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         cost = []
         for arm in range(self.K):
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
+            cost.append(np.sqrt((2 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
     def update_policy(self, iiter, iepoch, k, algo, losses, batch_lens):
