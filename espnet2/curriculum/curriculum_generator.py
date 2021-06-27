@@ -398,7 +398,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if kwargs['iiter'] < self.K and kwargs['iepoch'] == 0:
             return kwargs['iiter']
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
-        return max(policy, key=lambda x:x[1])
+        return max(policy.items(), key=lambda x:x[1])
         
         
         
