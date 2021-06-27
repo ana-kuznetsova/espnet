@@ -297,7 +297,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         Calculates reward for chosen arm and updates reward list. We store rewards
         only uptil hist_size. 
         """
-        reward = progress_gain/np.sum(batch_lens)
+        #reward = progress_gain/np.sum(batch_lens)
+        reward = progress_gain
         self.reward_history = np.append(self.reward_history, reward)
         if len(self.reward_history) > self.hist_size:
             self.reward_history = np.delete(self.reward_history, 0)
