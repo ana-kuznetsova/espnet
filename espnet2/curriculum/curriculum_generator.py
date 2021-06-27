@@ -344,7 +344,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         cost = []
         for arm in range(self.K):
-            arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
+            arm_count = max(np.sum(self.arm_rewards[arm]['count'][-win_size:]), 1)
             cost.append(np.sqrt((2 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
