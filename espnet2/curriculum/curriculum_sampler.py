@@ -95,7 +95,8 @@ class CurriculumSampler(AbsSampler):
         self.task_batch_lists = []
         for k in range(self.K):
             #Shuffle
-            keys = random.shuffle(sorted_task_keys[k])
+            keys = sorted_task_keys[k]
+            random.shuffle(keys)
             # Decide batch-sizes
             batch_sizes = []
             current_batch_keys = []
