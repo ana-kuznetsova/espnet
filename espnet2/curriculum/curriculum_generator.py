@@ -232,6 +232,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         except AssertionError as e:
             raise ValueError("Pass the required parameters. {}".format(e))
 
+    '''
     def restore(self, load_dir):
         """
         Function to load saved parameters in case of resume training.
@@ -257,6 +258,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             params['iepoch'] = int(val[0])
             params['iiter'] = int(val[1])
             self.policy = np.fromstring(val[2])
+    '''
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """
@@ -409,7 +411,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         we simply run each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
-        logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
+        #logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
         if kwargs['iiter']-1 < self.K and kwargs['iepoch'] <= 1:
             return kwargs['iiter']-1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
