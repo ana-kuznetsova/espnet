@@ -17,7 +17,7 @@ from typeguard import check_argument_types
 
 from espnet2.train.dataset import ESPnetDataset
 
-if LooseVersion(torch.__version__) >= LooseVersion("1.2"):
+if LooseVersion(torch.__version__) >= LooseVersion("1.2") and LooseVersion(torch.__version__) < LooseVersion("1.9"):
     from torch.utils.data.dataset import IterableDataset
 else:
     from torch.utils.data.dataset import Dataset as IterableDataset
