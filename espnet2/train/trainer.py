@@ -294,7 +294,7 @@ class Trainer:
                                        hist_size=1000,
                                        log_dir=str(output_dir),
                                        lmbda=5,
-                                       #gain_type=trainer_options.gain_type,
+                                       gain_type=trainer_options.gain_type,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):

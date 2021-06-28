@@ -40,7 +40,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 eta=0.01, 
                 beta=0,
                 restore=False,
-                log_config=False,
+                log_config=True,
                 **kwargs):
 
         assert check_argument_types()
@@ -199,7 +199,16 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.1, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
+    def __init__(self, 
+                 K, hist_size, 
+                 log_dir='swucbstats', 
+                 threshold=0.1, 
+                 gamma=0.4, 
+                 lmbda=12.0, 
+                 slow_k=3, 
+                 gain_type='PG',
+                 env_mode=None,
+                 log_config=True):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -218,6 +227,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
+        self.gain_type = gain_type
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -231,7 +241,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
             raise ValueError("Pass the required parameters. {}".format(e))
+        if log_config:
+            wandb.config.update = {"algo":"swucb",
+                            "treshold":self.treshold,
+                            "lambda":self.lmbda,
+                            "slow_k":self.slow_k,
+                            "gain_type":gain_type
+                            }
 
+    '''
     def restore(self, load_dir):
         """
         Function to load saved parameters in case of resume training.
@@ -257,6 +275,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             params['iepoch'] = int(val[0])
             params['iiter'] = int(val[1])
             self.policy = np.fromstring(val[2])
+    '''
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """
@@ -397,7 +416,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         iepoch=iepoch, 
                         k=k, 
                         algo=algo, 
-                        losses=losses, 
+                        losses=(loss_before, loss_after), 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
@@ -409,7 +428,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         we simply run each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
-        logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
+        #logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
         if kwargs['iiter']-1 < self.K and kwargs['iepoch'] <= 1:
             return kwargs['iiter']-1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
