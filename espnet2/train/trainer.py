@@ -276,8 +276,8 @@ class Trainer:
 
         #### Initialise Curriculum Learning Environment #######
         if trainer_options.use_curriculum==True:
-            #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
-            #wandb.watch(model)
+            wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
+            wandb.watch(model)
         
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
@@ -294,7 +294,7 @@ class Trainer:
                                        hist_size=1000,
                                        log_dir=str(output_dir),
                                        lmbda=5,
-                                       #gain_type=trainer_options.gain_type,
+                                       gain_type=trainer_options.gain_type,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):

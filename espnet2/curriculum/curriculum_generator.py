@@ -40,7 +40,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 eta=0.01, 
                 beta=0,
                 restore=False,
-                log_config=False,
+                log_config=True,
                 **kwargs):
 
         assert check_argument_types()
@@ -149,7 +149,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                         losses=(loss_before, loss_after),
                         weights= self.weights,
                         algo=kwargs["algo"],
-                        log_wandb=False,
+                        log_wandb=True,
                         reward_hist=self.reward_hist)
 
     def get_reward(self, progress_gain, batch_lens):
@@ -199,7 +199,16 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.1, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
+    def __init__(self, 
+                 K, hist_size, 
+                 log_dir='swucbstats', 
+                 threshold=0.1, 
+                 gamma=0.4, 
+                 lmbda=12.0, 
+                 slow_k=3, 
+                 gain_type,
+                 env_mode=None,
+                 log_config=True):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -231,6 +240,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
             raise ValueError("Pass the required parameters. {}".format(e))
+        if log_config:
+            wandb.config.update = {"algo":"swucb",
+                            "treshold":treshold,
+                            "lambda":lmbda,
+                            "slow_k":slow_k,
+                            "gain_type":gain_type
+                            }
 
     '''
     def restore(self, load_dir):
@@ -403,7 +419,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
-                        log_wandb=False)
+                        log_wandb=True)
 
     def get_next_task_ind(self, **kwargs):
         """
