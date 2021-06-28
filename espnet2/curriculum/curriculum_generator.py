@@ -399,7 +399,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         iepoch=iepoch, 
                         k=k, 
                         algo=algo, 
-                        losses=losses, 
+                        losses=(loss_before, loss_after), 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
