@@ -28,9 +28,6 @@ class AbsCurriculumGenerator(ABC):
     def report_exhausted_task(self, k):
         raise NotImplementedError
 
-    @abstractmethod
-    def restore(self, load_dir):
-        raise NotImplementedError
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
