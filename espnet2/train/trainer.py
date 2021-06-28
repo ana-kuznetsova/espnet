@@ -286,7 +286,7 @@ class Trainer:
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             #restore=trainer_options.resume
-                                            restore=True
+                                            restore=False
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
