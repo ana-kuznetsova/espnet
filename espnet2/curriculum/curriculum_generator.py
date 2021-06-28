@@ -227,6 +227,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
+        self.gain_type = gain_type
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -242,9 +243,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             raise ValueError("Pass the required parameters. {}".format(e))
         if log_config:
             wandb.config.update = {"algo":"swucb",
-                            "treshold":treshold,
-                            "lambda":lmbda,
-                            "slow_k":slow_k,
+                            "treshold":self.treshold,
+                            "lambda":self.lmbda,
+                            "slow_k":self.slow_k,
                             "gain_type":gain_type
                             }
 
