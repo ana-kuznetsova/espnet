@@ -8,6 +8,7 @@ from espnet2.samplers.abs_sampler import AbsSampler
 import numpy as np
 from typeguard import check_argument_types
 import logging
+import random
 
 from espnet2.fileio.read_text import load_num_sequence_text
 
@@ -37,7 +38,7 @@ class CurriculumSampler(AbsSampler):
             raise ValueError(
                 f"sort_batch must be ascending or descending: {sort_batch}"
             )
-        if sort_in_batch != "descending" and sort_in_batch != "ascending" and sort_in_batch != "random":
+        if sort_in_batch != "descending" and sort_in_batch != "ascending":
             raise ValueError(
                 f"sort_in_batch must be ascending, descending: {sort_in_batch}"
             )
@@ -93,7 +94,8 @@ class CurriculumSampler(AbsSampler):
 
         self.task_batch_lists = []
         for k in range(self.K):
-            keys = sorted_task_keys[k]
+            #Shuffle
+            keys = random.shuffle(sorted_task_keys[k])
             # Decide batch-sizes
             batch_sizes = []
             current_batch_keys = []
@@ -147,13 +149,10 @@ class CurriculumSampler(AbsSampler):
             for key in keys:
                 minibatch_keys.append(key)
                 if len(minibatch_keys) == bs:
-                    logging.info(f"MINIBATCH KEYS:{minibatch_keys}")
                     if sort_in_batch == "descending":
                         minibatch_keys.reverse()
                     elif sort_in_batch == "ascending":
                         # Key are already sorted in ascending
-                        pass
-                    elif sort_in_batch=="random":
                         pass
                     else:
                         raise ValueError(
