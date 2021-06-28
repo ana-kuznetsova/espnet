@@ -149,7 +149,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                         losses=(loss_before, loss_after),
                         weights= self.weights,
                         algo=kwargs["algo"],
-                        log_wandb=True,
+                        log_wandb=False,
                         reward_hist=self.reward_hist)
 
     def get_reward(self, progress_gain, batch_lens):
@@ -420,7 +420,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
-                        log_wandb=True)
+                        log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
         """
