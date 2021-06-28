@@ -276,7 +276,8 @@ class Trainer:
 
         #### Initialise Curriculum Learning Environment #######
         if trainer_options.use_curriculum==True:
-            wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
+            wandb.init(project='curriculum_learning_2.0', entity='anakuzne', 
+                        settings=wandb.Settings(start_method="thread", console="off"))
             wandb.watch(model)
         
             if trainer_options.curriculum_algo=='exp3s':
