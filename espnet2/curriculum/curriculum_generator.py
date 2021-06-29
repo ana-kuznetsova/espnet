@@ -206,7 +206,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
-                   as it is proportional to T^(alpha).  
+                   as it is proportional to T^(alpha), alpha=(1-gamma)/2.  
         lambda   : parameter that controls the width of the sliding window.
         hist_size: controls the size of reward history we maintain. 
         env_mode : abruptly varying (1), slowly varying(0)

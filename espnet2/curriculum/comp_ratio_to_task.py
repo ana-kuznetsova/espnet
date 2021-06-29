@@ -1,5 +1,5 @@
 import sys
-
+import argparse
 ################ AUX FUNCS ################
 def read_CR(cr_file):
     '''
@@ -19,22 +19,29 @@ def read_CR(cr_file):
         cr_dict[line[0]] = 1 - float(line[1])
     return cr_dict
 
-nTasks = sys.argv[1]
-cr_file = sys.argv[2]
-task_file = sys.argv[3]
+def main(args):
+    nTasks = args.k
+    cr_file = args.cr_file
+    task_file = args.res_dir
 
-utt2cr = read_CR(cr_file)
+    utt2cr = read_CR(cr_file)
 
-cr_sorted = sorted(utt2cr.items(), key=lambda k: k[1])
+    cr_sorted = sorted(utt2cr.items(), key=lambda k: k[1])
 
-nPerTask = len(cr_sorted) / int(nTasks)
+    nPerTask = len(cr_sorted) / int(nTasks)
 
-with open(task_file, 'w') as f:
-    i = 0
-    task = 0
-    for ID, _ in cr_sorted:
-        f.write(ID + " " + str(task) + "\n")
-        i += 1
-        if i % nPerTask == 0:
-            task += 1
+    with open(task_file, 'w') as f:
+        i = 0
+        task = 0
+        for ID, _ in cr_sorted:
+            f.write(ID + " " + str(task) + "\n")
+            i += 1
+            if i % nPerTask == 0:
+                task += 1
         
+if __name__=='__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--k", required=True)
+    parser.add_argument("--cr_file", required=True)
+    parser.add_argument("--res_dir", required=True)
+
