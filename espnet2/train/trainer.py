@@ -692,41 +692,43 @@ class Trainer:
                             optimizer.zero_grad()
             #### Calculate loss after ######                
             if options.gain_type=='PG':
-                model.eval()
-                with autocast(scaler is not None):
-                    with reporter.measure_time("forward_time"): 
-                        retval = model(**batch)
+                with torch.no_grad:
+                    model.eval()
+                    with autocast(scaler is not None):
+                        with reporter.measure_time("forward_time"): 
+                            retval = model(**batch)
 
-                        loss_after, stats, weight = retval
-                        optim_idx = None
+                            loss_after, stats, weight = retval
+                            optim_idx = None
 
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss_after = (loss_after * weight.type(loss.dtype)).sum()
+                        stats = {k: v for k, v in stats.items() if v is not None}
+                        if ngpu > 1 or distributed:
+                            # Apply weighted averaging for loss and stats
+                            loss_after = (loss_after * weight.type(loss.dtype)).sum()
 
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
+                            # if distributed, this method can also apply all_reduce()
+                            stats, weight = recursive_average(stats, weight, distributed)
 
-                        # Now weight is summation over all workers
-                        loss_after /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss_after *= torch.distributed.get_world_size()
+                            # Now weight is summation over all workers
+                            loss_after /= weight
+                        if distributed:
+                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                            # automatically normalizes the gradient by world_size.
+                            loss_after *= torch.distributed.get_world_size()
 
-                    loss_after /= accum_grad
-                    
-                    curriculum_generator.update_policy(
-                                        iepoch=iepoch,
-                                        iiter=iiter, 
-                                        k=k, 
-                                        losses=(loss_before, loss_after), 
-                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                        algo=options.curriculum_algo
-                                        )
+                        loss_after /= accum_grad
+                        
+                        curriculum_generator.update_policy(
+                                            iepoch=iepoch,
+                                            iiter=iiter, 
+                                            k=k, 
+                                            losses=(loss_before.detach().cpu().numpy()
+                                                    ,loss_after..detach().cpu().numpy()), 
+                                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                            algo=options.curriculum_algo
+                                            )
 
-                reporter.register(stats, weight)
+                    reporter.register(stats, weight)
 
                 # Register lr and train/load time[sec/step],
                 # where step refers to accum_grad * mini-batch

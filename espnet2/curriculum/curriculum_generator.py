@@ -384,8 +384,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
         #logging.info(f"SW size: {win_size}")
-        loss_before = float(losses[0].detach().cpu().numpy())
-        loss_after = float(losses[1].detach().cpu().numpy())
+        loss_before = float(losses[0])
+        loss_after = float(losses[1])
         logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
