@@ -322,11 +322,12 @@ class Trainer:
                     if (iepoch==1) or (trainer_options.resume)==True: 
                         tasks = train_iter_factory.build_iter(iepoch)
             
-                    all_steps_are_invalid, tasks = cls.train_one_epoch_curriculum(
+                    all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
-                            iterator=tasks,
+                            iterator=train_iter_factory,
+                            tasks=tasks,
                             reporter=sub_reporter,
                             curriculum_generator=curriculum_generator,   
                             scaler=scaler,
@@ -505,8 +506,8 @@ class Trainer:
     def train_one_epoch_curriculum(
         cls,
         model: torch.nn.Module,
-        #iterator: CurriculumIterFactory,
-        iterator: List,
+        iterator: CurriculumIterFactory,
+        tasks: List,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
@@ -541,7 +542,7 @@ class Trainer:
         iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
 
         start_time = time.perf_counter()
-        tasks = [iter(it) for it in iterator]
+        tasks = [iter(it) for it in tasks]
 
         iiter = 0
         #Reset the exausted tasks list
@@ -754,7 +755,7 @@ class Trainer:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
         logging.info(f"Finished epoch {iepoch}")
-        return all_steps_are_invalid, iterator
+        return all_steps_are_invalid, iterator, tasks
 
     @classmethod
     def train_one_epoch(
