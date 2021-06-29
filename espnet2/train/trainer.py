@@ -697,7 +697,7 @@ class Trainer:
                     with reporter.measure_time("forward_time"): 
                         retval = model(**batch)
 
-                        with torch.no_grad:
+                        with torch.no_grad():
                             loss_after, stats, weight = retval
                         optim_idx = None
 
