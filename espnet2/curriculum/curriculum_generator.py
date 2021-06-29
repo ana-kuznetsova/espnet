@@ -243,7 +243,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             raise ValueError("Pass the required parameters. {}".format(e))
         if log_config:
             wandb.config.update = {"algo":"swucb",
-                            "treshold":self.treshold,
+                            "threshold":self.threshold,
                             "lambda":self.lmbda,
                             "slow_k":self.slow_k,
                             "gain_type":gain_type
