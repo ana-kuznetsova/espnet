@@ -506,7 +506,7 @@ class Trainer:
         cls,
         model: torch.nn.Module,
         #iterator: CurriculumIterFactory,
-        iterator: Sequence[Any]
+        iterator: Sequence[Any],
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
