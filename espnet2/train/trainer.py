@@ -319,7 +319,8 @@ class Trainer:
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
 
-                    if (iepoch==1) or (trainer_options.resume)==True: 
+                    if (iepoch==1) or (trainer_options.resume)==True:
+                        logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
             
                     all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
