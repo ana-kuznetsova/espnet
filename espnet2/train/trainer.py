@@ -505,7 +505,8 @@ class Trainer:
     def train_one_epoch_curriculum(
         cls,
         model: torch.nn.Module,
-        iterator: CurriculumIterFactory,
+        #iterator: CurriculumIterFactory,
+        iterator: Sequence[Any]
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
