@@ -318,12 +318,15 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
+
+                    if (iepoch==1) or (trainer_options.resume)==True: 
+                        tasks = train_iter_factory.build_iter(iepoch)
             
-                    all_steps_are_invalid = cls.train_one_epoch_curriculum(
+                    all_steps_are_invalid, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
-                            iterator=train_iter_factory,
+                            iterator=tasks,
                             reporter=sub_reporter,
                             curriculum_generator=curriculum_generator,   
                             scaler=scaler,
@@ -537,10 +540,7 @@ class Trainer:
         iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
 
         start_time = time.perf_counter()
-
-        
-        tasks = iterator.build_iter(iepoch)
-        tasks = [iter(it) for it in tasks]
+        tasks = [iter(it) for it in iterator]
 
         iiter = 0
         #Reset the exausted tasks list
@@ -753,7 +753,7 @@ class Trainer:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
         logging.info(f"Finished epoch {iepoch}")
-        return all_steps_are_invalid
+        return all_steps_are_invalid, iterator
 
     @classmethod
     def train_one_epoch(
