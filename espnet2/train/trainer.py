@@ -320,6 +320,7 @@ class Trainer:
                 if trainer_options.use_curriculum==True:
 
                     if (iepoch==1) or (trainer_options.resume)==True:
+                        trainer_options.resume==False
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
             
