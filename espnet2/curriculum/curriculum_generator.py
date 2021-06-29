@@ -380,13 +380,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        logging.info(f"Task_ind:{k}") 
+        #logging.info(f"Task_ind:{k}") 
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
         #logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0])
         loss_after = float(losses[1])
-        logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
+        #logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
         #print("Reward:", reward)
