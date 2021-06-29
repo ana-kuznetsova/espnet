@@ -577,9 +577,9 @@ class Trainer:
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
                 if iterator_stop > 0:
                     break
-            logging.info(f"Cuda before batch {torch.cuda.memory_allocated()}")
+
             batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
-            logging.info(f"Cuda after batch {torch.cuda.memory_allocated()}")
+
             if no_forward_run:
                 all_steps_are_invalid = False
                 continue
@@ -700,7 +700,6 @@ class Trainer:
                             retval = model(**batch)
 
                             loss_after, stats, weight = retval
-                            logging.info(f"Cuda loss after {torch.cuda.memory_allocated()}")
                             optim_idx = None
 
                         stats = {k: v for k, v in stats.items() if v is not None}
