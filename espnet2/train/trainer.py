@@ -723,7 +723,7 @@ class Trainer:
                                             iiter=iiter, 
                                             k=k, 
                                             losses=(loss_before.detach().cpu().numpy()
-                                                    ,loss_after..detach().cpu().numpy()), 
+                                                    ,loss_after.detach().cpu().numpy()), 
                                             batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                                             algo=options.curriculum_algo
                                             )
