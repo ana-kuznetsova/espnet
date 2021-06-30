@@ -808,7 +808,7 @@ class Trainer:
                 iepoch=iepoch,
                 iiter=iiter, 
                 k=k, 
-                losses=(loss1.item(), loss_2.item()), 
+                losses=(loss1.item(), loss2.item()), 
                 batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                 algo=options.curriculum_algo
             )
