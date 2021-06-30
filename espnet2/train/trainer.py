@@ -636,7 +636,47 @@ class Trainer:
                 )
         return loss, all_steps_are_invalid    
 
+    @classmethod
+    def get_loss_eval_mode(
+                            cls,
+                            batch,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad):
 
+
+        model.eval()
+        with autocast(scaler is not None):
+            with torch.no_grad():
+                with reporter.measure_time("forward_time"): 
+                    retval = model(**batch)
+
+                    loss_after, stats, weight = retval
+                    optim_idx = None
+
+                stats = {k: v for k, v in stats.items() if v is not None}
+                if ngpu > 1 or distributed:
+                    # Apply weighted averaging for loss and stats
+                    loss_after = (loss_after * weight.type(loss_after.dtype)).sum()
+                    
+                    # if distributed, this method can also apply all_reduce()
+                    stats, weight = recursive_average(stats, weight, distributed)
+                    
+                    # Now weight is summation over all workers
+                    loss_after /= weight
+                if distributed:
+                    # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                    # automatically normalizes the gradient by world_size.
+                    loss_after *= torch.distributed.get_world_size()
+
+                loss_after /= accum_grad
+                loss_after = loss_after.detach()
+
+        return loss_after
 
     @classmethod
     def train_one_epoch_curriculum(
@@ -720,33 +760,7 @@ class Trainer:
                 
             #### Calculate loss after ######                
             if options.gain_type=='PG':
-                model.eval()
-                with autocast(scaler is not None):
-                    with torch.no_grad():
-                        with reporter.measure_time("forward_time"): 
-                            retval = model(**batch)
-
-                            loss_after, stats, weight = retval
-                            optim_idx = None
-
-                        stats = {k: v for k, v in stats.items() if v is not None}
-                        if ngpu > 1 or distributed:
-                            # Apply weighted averaging for loss and stats
-                            loss_after = (loss_after * weight.type(loss_after.dtype)).sum()
-                            
-                            # if distributed, this method can also apply all_reduce()
-                            stats, weight = recursive_average(stats, weight, distributed)
-                            
-                            # Now weight is summation over all workers
-                            loss_after /= weight
-                        if distributed:
-                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                            # automatically normalizes the gradient by world_size.
-                            loss_after *= torch.distributed.get_world_size()
-
-                        loss_after /= accum_grad
-                        loss_after = loss_after.detach()
-
+                
 
                         curriculum_generator.update_policy(
                             iepoch=iepoch,
