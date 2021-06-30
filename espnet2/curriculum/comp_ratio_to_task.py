@@ -1,5 +1,7 @@
 import sys
+import os
 import argparse
+from tqdm import tqdm
 ################ AUX FUNCS ################
 def read_CR(cr_file):
     '''
@@ -10,30 +12,27 @@ def read_CR(cr_file):
         cr_file (str): path to comp_ratio.txt
     '''
     with open(cr_file, 'r') as fo:
-        cr_file = fo.read().split(']')[:-1]
+        cr_file = fo.readlines()
 
     cr_dict = {}
 
     for i, line in enumerate(cr_file):
-        line = line.replace('[', '').split()
+        #line = line.replace('[', '').split()
+        line = line.split()
         cr_dict[line[0]] = 1 - float(line[1])
     return cr_dict
 
 def main(args):
     nTasks = args.k
     cr_file = args.cr_file
-    task_file = args.res_dir
-
     utt2cr = read_CR(cr_file)
-
     cr_sorted = sorted(utt2cr.items(), key=lambda k: k[1])
-
     nPerTask = len(cr_sorted) / int(nTasks)
-
-    with open(task_file, 'w') as f:
+    res_dir = os.path.join(args.res_dir, "task_file")
+    with open(res_dir, 'w') as f:
         i = 0
         task = 0
-        for ID, _ in cr_sorted:
+        for ID, _ in tqdm(cr_sorted):
             f.write(ID + " " + str(task) + "\n")
             i += 1
             if i % nPerTask == 0:
@@ -44,4 +43,6 @@ if __name__=='__main__':
     parser.add_argument("--k", required=True)
     parser.add_argument("--cr_file", required=True)
     parser.add_argument("--res_dir", required=True)
+    args = parser.parse_args()
+    main(args)
 
