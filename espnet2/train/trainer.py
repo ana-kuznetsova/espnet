@@ -322,6 +322,7 @@ class Trainer:
                 if trainer_options.use_curriculum==True:
 
                     if (iepoch==1) or (trainer_options.resume)==True:
+                        trainer_options.resume==False
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
 
@@ -596,7 +597,6 @@ class Trainer:
                     #Curriculum goes into this condition
                     loss, stats, weight = retval
                     optim_idx = None
-
                     stats = {k: v for k, v in stats.items() if v is not None}
                     if ngpu > 1 or distributed:
                         # Apply weighted averaging for loss and stats
