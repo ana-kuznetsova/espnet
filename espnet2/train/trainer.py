@@ -71,6 +71,8 @@ try:
 except ImportError:
     fairscale = None
 
+import torch
+import sys
 
 @dataclasses.dataclass
 class TrainerOptions:
@@ -323,7 +325,7 @@ class Trainer:
                         trainer_options.resume==False
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
-            
+
                     all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
@@ -338,6 +340,7 @@ class Trainer:
                             distributed_option=distributed_option,
                             iepoch=iepoch,
                         )
+
                 else:
                     all_steps_are_invalid = cls.train_one_epoch(
                         model=dp_model,
@@ -552,7 +555,7 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-    
+
             k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
@@ -570,7 +573,6 @@ class Trainer:
                         break
                     iiter -= 1
                     continue
-            
             
             assert isinstance(batch, dict), type(batch)
             if distributed:
@@ -593,26 +595,24 @@ class Trainer:
                     #   a. dict type ANAKUZNE: removed code for dict type, excessive
                     #   b. tuple or list type
                     #Curriculum goes into this condition
-                    loss_before, stats, weight = retval
+                    loss, stats, weight = retval
                     optim_idx = None
                     stats = {k: v for k, v in stats.items() if v is not None}
                     if ngpu > 1 or distributed:
                         # Apply weighted averaging for loss and stats
-                        loss_before = (loss_before * weight.type(loss_before.dtype)).sum()
+                        loss = (loss * weight.type(loss.dtype)).sum()
 
                         # if distributed, this method can also apply all_reduce()
                         stats, weight = recursive_average(stats, weight, distributed)
 
                         # Now weight is summation over all workers
-                        loss_before /= weight
+                        loss /= weight
                     if distributed:
                         # NOTE(kamo): Multiply world_size because DistributedDataParallel
                         # automatically normalizes the gradient by world_size.
-                        loss_before *= torch.distributed.get_world_size()
+                        loss *= torch.distributed.get_world_size()
 
-                    loss_before /= accum_grad
-                    loss = loss_before
-                
+                    loss /= accum_grad
                 
             with reporter.measure_time("backward_time"):
                 if scaler is not None:
@@ -624,6 +624,9 @@ class Trainer:
                     scaler.scale(loss).backward()
                 else:
                     loss.backward()
+
+            loss.detach()
+            torch.cuda.empty_cache()
 
             if iiter % accum_grad == 0:
                 if scaler is not None:
@@ -690,62 +693,8 @@ class Trainer:
                             if isinstance(scheduler, AbsBatchStepScheduler):
                                 scheduler.step()
                             optimizer.zero_grad()
-            #### Calculate loss after ######                
-            if options.gain_type=='PG':
-                with torch.no_grad():
-                    model.eval()
-                    with autocast(scaler is not None):
-                        with reporter.measure_time("forward_time"): 
-                            retval = model(**batch)
-
-                            loss_after, stats, weight = retval
-                            optim_idx = None
-
-                        stats = {k: v for k, v in stats.items() if v is not None}
-                        if ngpu > 1 or distributed:
-                            # Apply weighted averaging for loss and stats
-                            loss_after = (loss_after * weight.type(loss.dtype)).sum()
-
-                            # if distributed, this method can also apply all_reduce()
-                            stats, weight = recursive_average(stats, weight, distributed)
-
-                            # Now weight is summation over all workers
-                            loss_after /= weight
-                        if distributed:
-                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                            # automatically normalizes the gradient by world_size.
-                            loss_after *= torch.distributed.get_world_size()
-
-                        loss_after /= accum_grad
-            elif options.gain_type=='SPG':
-                #Try to sample from the current k again
-                try:
-                    _, batch = tasks[k].next()
-                except StopIteration as e:
-                    if options.refill_task==True:
-                        logging.info(f"Refilled task {k}.")
-                        tasks.pop(k)
-                        tasks.insert(k, iter(iterator.refill_task(k)))
-                        _, batch = tasks[k].next()
-
-                
-
-
-
-
-                        
-                        curriculum_generator.update_policy(
-                                            iepoch=iepoch,
-                                            iiter=iiter, 
-                                            k=k, 
-                                            losses=(loss_before.detach().cpu().numpy()
-                                                    ,loss_after.detach().cpu().numpy()), 
-                                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                            algo=options.curriculum_algo
-                                            )
 
                 reporter.register(stats, weight)
-
                 # Register lr and train/load time[sec/step],
                 # where step refers to accum_grad * mini-batch
                 reporter.register(
@@ -759,6 +708,45 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
+                
+            #### Calculate loss after ######                
+            if options.gain_type=='PG':
+                model.eval()
+                with autocast(scaler is not None):
+                    with torch.no_grad():
+                        with reporter.measure_time("forward_time"): 
+                            retval = model(**batch)
+
+                            loss_after, stats, weight = retval
+                            optim_idx = None
+
+                        stats = {k: v for k, v in stats.items() if v is not None}
+                        if ngpu > 1 or distributed:
+                            # Apply weighted averaging for loss and stats
+                            loss_after = (loss_after * weight.type(loss_after.dtype)).sum()
+                            
+                            # if distributed, this method can also apply all_reduce()
+                            stats, weight = recursive_average(stats, weight, distributed)
+                            
+                            # Now weight is summation over all workers
+                            loss_after /= weight
+                        if distributed:
+                            # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                            # automatically normalizes the gradient by world_size.
+                            loss_after *= torch.distributed.get_world_size()
+
+                        loss_after /= accum_grad
+                        loss_after = loss_after.detach()
+
+                        curriculum_generator.update_policy(
+                            iepoch=iepoch,
+                            iiter=iiter, 
+                            k=k, 
+                            losses=(loss.item(), loss_after.item()), 
+                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                            algo=options.curriculum_algo
+                        )
+
                 start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
@@ -769,6 +757,8 @@ class Trainer:
                     reporter.tensorboard_add_scalar(summary_writer, -log_interval)
                 if use_wandb:
                     reporter.wandb_log()
+
+            torch.cuda.empty_cache()            
 
         else:
             if distributed:
@@ -826,6 +816,7 @@ class Trainer:
                     break
 
             batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+
             if no_forward_run:
                 all_steps_are_invalid = False
                 continue
@@ -887,7 +878,7 @@ class Trainer:
                 loss /= accum_grad
 
             reporter.register(stats, weight)
-
+            
             with reporter.measure_time("backward_time"):
                 if scaler is not None:
                     # Scales loss.  Calls backward() on scaled loss
@@ -991,6 +982,7 @@ class Trainer:
                     reporter.tensorboard_add_scalar(summary_writer, -log_interval)
                 if use_wandb:
                     reporter.wandb_log()
+
 
         else:
             if distributed:

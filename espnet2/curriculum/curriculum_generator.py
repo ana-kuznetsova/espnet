@@ -98,7 +98,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return all(self.tasks_exhausted)
 
     def reset_exhausted(self):
-        self.tasks_exhausted = [False]*self.K
+        self.exhausted = [False for i in range(self.K)]
 
     def report_exhausted_task(self, k):
         self.tasks_exhausted[k] = True
@@ -125,8 +125,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        loss_before = float(losses[0].detach().cpu().numpy())
-        loss_after = float(losses[1].detach().cpu().numpy())
+        loss_before = float(losses[0])#.detach().cpu().numpy())
+        loss_after = float(losses[1])#.detach().cpu().numpy())
         progress_gain = loss_before - loss_after
         #progress_gain = progress_gain/np.sum(batch_lens)
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
