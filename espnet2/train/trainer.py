@@ -508,117 +508,48 @@ class Trainer:
                 nbest=keep_nbest_models,
             )
     @classmethod
-    def train_one_epoch_curriculum(
-        cls,
-        model: torch.nn.Module,
-        iterator: CurriculumIterFactory,
-        tasks: List,
-        optimizers: Sequence[torch.optim.Optimizer],
-        schedulers: Sequence[Optional[AbsScheduler]],
-        scaler: Optional[GradScaler],
-        reporter: SubReporter,
-        curriculum_generator: AbsCurriculumGenerator,
-        summary_writer: Optional[SummaryWriter],
-        options: TrainerOptions,
-        distributed_option: DistributedOption,
-        iepoch: int
-    ) -> bool:
-        assert check_argument_types()
+    def get_loss_train_mode(cls,
+                            batch,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad
+                            ):
+        model.train()
+        with autocast(scaler is not None):
+            retval = model(**batch)
+            loss, stats, weight = retval
+            optim_idx = None
+            stats = {k: v for k, v in stats.items() if v is not None}
+            if ngpu > 1 or distributed:
+                # Apply weighted averaging for loss and stats
+                loss = (loss * weight.type(loss.dtype)).sum()
 
-        grad_noise = options.grad_noise
-        accum_grad = options.accum_grad
-        grad_clip = options.grad_clip
-        grad_clip_type = options.grad_clip_type
-        log_interval = options.log_interval
-        no_forward_run = options.no_forward_run
-        ngpu = options.ngpu
-        use_wandb = options.use_wandb
-        distributed = distributed_option.distributed
+                # if distributed, this method can also apply all_reduce()
+                stats, weight = recursive_average(stats, weight, distributed)
 
-        if log_interval is None:
-            try:
-                log_interval = max(len(iterator) // 20, 10)
-            except TypeError:
-                log_interval = 100
-
-        all_steps_are_invalid = True
-        # [For distributed] Because iteration counts are not always equals between
-        # processes, send stop-flag to the other processes if iterator is finished
-        iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
-
-        start_time = time.perf_counter()
-        tasks = [iter(it) for it in tasks]
-
-        iiter = 0
-        #Reset the exausted tasks list
-        curriculum_generator.reset_exhausted()
-
-        while iiter < iterator.num_iters_per_epoch:
-            iiter+=1
-
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
-
-            try:
-                _, batch = tasks[k].next()
-            except StopIteration as e:
-                if options.refill_task==True:
-                    logging.info(f"Refilled task {k}.")
-                    tasks.pop(k)
-                    tasks.insert(k, iter(iterator.refill_task(k)))
-                    _, batch = tasks[k].next()
-                else:   
-                    curriculum_generator.report_exhausted_task(k)
-                    logging.info(f"Task {k} is exhausted.")
-                    if curriculum_generator.all_exhausted():
-                        break
-                    iiter -= 1
-                    continue
-            
-            assert isinstance(batch, dict), type(batch)
+                # Now weight is summation over all workers
+                loss /= weight
             if distributed:
-                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-                if iterator_stop > 0:
-                    break
+                # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                # automatically normalizes the gradient by world_size.
+                loss *= torch.distributed.get_world_size()
 
-            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+            loss /= accum_grad
 
-            if no_forward_run:
-                all_steps_are_invalid = False
-                continue
-
-            if options.gain_type=='PG':
-                model.train()
-                with autocast(scaler is not None):
-                    retval = model(**batch)
-                    loss, stats, weight = retval
-                    optim_idx = None
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss = (loss * weight.type(loss.dtype)).sum()
-
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
-
-                        # Now weight is summation over all workers
-                        loss /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss *= torch.distributed.get_world_size()
-
-                    loss /= accum_grad
-                
-            with reporter.measure_time("backward_time"):
-                if scaler is not None:
-                    # Scales loss.  Calls backward() on scaled loss
-                    # to create scaled gradients.
-                    # Backward passes under autocast are not recommended.
-                    # Backward ops run in the same dtype autocast chose
-                    # for corresponding forward ops.
-                    scaler.scale(loss).backward()
-                else:
-                    loss.backward()
+        with reporter.measure_time("backward_time"):
+            if scaler is not None:
+                # Scales loss.  Calls backward() on scaled loss
+                # to create scaled gradients.
+                # Backward passes under autocast are not recommended.
+                # Backward ops run in the same dtype autocast chose
+                # for corresponding forward ops.
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
 
             loss.detach()
             torch.cuda.empty_cache()
@@ -703,6 +634,89 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
+        return loss, all_steps_are_invalid    
+
+
+
+    @classmethod
+    def train_one_epoch_curriculum(
+        cls,
+        model: torch.nn.Module,
+        iterator: CurriculumIterFactory,
+        tasks: List,
+        optimizers: Sequence[torch.optim.Optimizer],
+        schedulers: Sequence[Optional[AbsScheduler]],
+        scaler: Optional[GradScaler],
+        reporter: SubReporter,
+        curriculum_generator: AbsCurriculumGenerator,
+        summary_writer: Optional[SummaryWriter],
+        options: TrainerOptions,
+        distributed_option: DistributedOption,
+        iepoch: int
+    ) -> bool:
+        assert check_argument_types()
+
+        grad_noise = options.grad_noise
+        accum_grad = options.accum_grad
+        grad_clip = options.grad_clip
+        grad_clip_type = options.grad_clip_type
+        log_interval = options.log_interval
+        no_forward_run = options.no_forward_run
+        ngpu = options.ngpu
+        use_wandb = options.use_wandb
+        distributed = distributed_option.distributed
+
+        if log_interval is None:
+            try:
+                log_interval = max(len(iterator) // 20, 10)
+            except TypeError:
+                log_interval = 100
+
+        all_steps_are_invalid = True
+        # [For distributed] Because iteration counts are not always equals between
+        # processes, send stop-flag to the other processes if iterator is finished
+        iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
+
+        start_time = time.perf_counter()
+        tasks = [iter(it) for it in tasks]
+
+        iiter = 0
+        #Reset the exausted tasks list
+        curriculum_generator.reset_exhausted()
+
+        while iiter < iterator.num_iters_per_epoch:
+            iiter+=1
+
+            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+
+            try:
+                _, batch = tasks[k].next()
+            except StopIteration as e:
+                if options.refill_task==True:
+                    logging.info(f"Refilled task {k}.")
+                    tasks.pop(k)
+                    tasks.insert(k, iter(iterator.refill_task(k)))
+                    _, batch = tasks[k].next()
+                else:   
+                    curriculum_generator.report_exhausted_task(k)
+                    logging.info(f"Task {k} is exhausted.")
+                    if curriculum_generator.all_exhausted():
+                        break
+                    iiter -= 1
+                    continue
+            
+            assert isinstance(batch, dict), type(batch)
+            if distributed:
+                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
+                if iterator_stop > 0:
+                    break
+
+            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+
+            if no_forward_run:
+                all_steps_are_invalid = False
+                continue
+
                 
             #### Calculate loss after ######                
             if options.gain_type=='PG':
