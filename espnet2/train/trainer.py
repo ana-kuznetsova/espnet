@@ -758,7 +758,7 @@ class Trainer:
 
             if options.gain_type=='PG':
                 #Calculate loss before training on the batch
-                loss_1 = cls.get_loss_eval_mode(
+                loss1 = cls.get_loss_eval_mode(
                         batch,
                         model,
                         scaler,
