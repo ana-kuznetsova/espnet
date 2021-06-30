@@ -584,7 +584,7 @@ class Trainer:
                 all_steps_are_invalid = False
                 continue
 
-            if options.gain_type=='PG':
+            if options.gain_type=='PG' or options.gain_type=='SPG':
                 model.train()
                 with autocast(scaler is not None):
                     retval = model(**batch)
@@ -717,6 +717,22 @@ class Trainer:
                             loss_after *= torch.distributed.get_world_size()
 
                         loss_after /= accum_grad
+            elif options.gain_type=='SPG':
+                #Try to sample from the current k again
+                try:
+                    _, batch = tasks[k].next()
+                except StopIteration as e:
+                    if options.refill_task==True:
+                        logging.info(f"Refilled task {k}.")
+                        tasks.pop(k)
+                        tasks.insert(k, iter(iterator.refill_task(k)))
+                        _, batch = tasks[k].next()
+
+                
+
+
+
+
                         
                         curriculum_generator.update_policy(
                                             iepoch=iepoch,
