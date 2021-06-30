@@ -517,7 +517,8 @@ class Trainer:
                         reporter,
                         iiter,
                         accum_grad,
-                        grad_noise
+                        grad_noise,
+                        grad_clip
                         ):
         model.train()
         with autocast(scaler is not None):
@@ -782,6 +783,7 @@ class Trainer:
                                             iiter,
                                             accum_grad,
                                             grad_noise,
+                                            grad_clip
                                             )
                 loss2 = cls.get_loss_eval_mode(
                         batch,
