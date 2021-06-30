@@ -823,7 +823,6 @@ class Trainer:
                             accum_grad 
                             )
 
-                logging.info(f"SPG Loss1: {loss1}")
 
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
@@ -852,8 +851,6 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
-                logging.info(f"SPG Loss 2: {loss2}")
-                
 
             curriculum_generator.update_policy(
                 iepoch=iepoch,
