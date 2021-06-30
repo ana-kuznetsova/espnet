@@ -27,7 +27,9 @@ utt2cr = read_CR(cr_file)
 
 cr_sorted = sorted(utt2cr.items(), key=lambda k: k[1])
 
-nPerTask = len(cr_sorted) / int(nTasks)
+nPerTask = int(len(cr_sorted) / int(nTasks))
+
+print(nTasks + " " + str(len(cr_sorted)) + " " + str(nPerTask))
 
 with open(task_file, 'w') as f:
     i = 0
@@ -36,5 +38,6 @@ with open(task_file, 'w') as f:
         f.write(ID + " " + str(task) + "\n")
         i += 1
         if i % nPerTask == 0:
-            task += 1
+            if task < int(nTasks) - 1:
+                task += 1
         
