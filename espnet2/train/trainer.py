@@ -800,6 +800,59 @@ class Trainer:
                         iiter,
                         accum_grad 
                         )
+            elif options.gain_type=='SPG':
+                #Sample second batch for evaluation
+                try:
+                    _, batch_eval = tasks[k].next()
+                except StopIteration as e:
+                    if options.refill_task==True:
+                        logging.info(f"Refilled task {k}.")
+                        tasks.pop(k)
+                        tasks.insert(k, iter(iterator.refill_task(k)))
+                        _, batch_eval = tasks[k].next()
+                    #Add else condition for exhaust task option
+
+                loss1 = cls.get_loss_eval_mode(
+                            batch_eval,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+
+                logging.info(f"SPG Loss1: {loss1}")
+
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
+
+                loss2 = cls.get_loss_eval_mode(
+                            batch_eval,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+                logging.info(f"SPG Loss 2: {loss2}")
                 
 
             curriculum_generator.update_policy(
