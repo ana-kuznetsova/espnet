@@ -800,7 +800,7 @@ class Trainer:
                 algo=options.curriculum_algo
             )
 
-                start_time = time.perf_counter()
+            start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
             reporter.next()
