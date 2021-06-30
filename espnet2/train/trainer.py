@@ -586,15 +586,10 @@ class Trainer:
                 all_steps_are_invalid = False
                 continue
 
-            if options.gain_type=='PG' or options.gain_type=='SPG':
+            if options.gain_type=='PG':
                 model.train()
                 with autocast(scaler is not None):
                     retval = model(**batch)
-                    # Note(kamo):
-                    # Supporting two patterns for the returned value from the model
-                    #   a. dict type ANAKUZNE: removed code for dict type, excessive
-                    #   b. tuple or list type
-                    #Curriculum goes into this condition
                     loss, stats, weight = retval
                     optim_idx = None
                     stats = {k: v for k, v in stats.items() if v is not None}
@@ -737,6 +732,7 @@ class Trainer:
 
                         loss_after /= accum_grad
                         loss_after = loss_after.detach()
+
 
                         curriculum_generator.update_policy(
                             iepoch=iepoch,
