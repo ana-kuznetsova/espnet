@@ -521,7 +521,8 @@ class Trainer:
                         grad_clip,
                         grad_clip_type,
                         optimizers, 
-                        schedulers
+                        schedulers,
+                        start_time
                         ):
         model.train()
         with autocast(scaler is not None):
@@ -789,7 +790,8 @@ class Trainer:
                                             grad_clip,
                                             grad_clip_type,
                                             optimizers,
-                                            schedulers
+                                            schedulers,
+                                            start_time
                                             )
                 loss2 = cls.get_loss_eval_mode(
                         batch,
