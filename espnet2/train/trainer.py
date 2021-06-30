@@ -508,16 +508,16 @@ class Trainer:
                 nbest=keep_nbest_models,
             )
     @classmethod
-    def get_loss_train_mode(cls,
-                            batch,
-                            model,
-                            scaler,
-                            ngpu,
-                            distributed,
-                            reporter,
-                            iiter,
-                            accum_grad
-                            ):
+    def train_one_batch(cls,
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad
+                        ):
         model.train()
         with autocast(scaler is not None):
             retval = model(**batch)
@@ -634,11 +634,10 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
-        return loss, all_steps_are_invalid    
+        return all_steps_are_invalid    
 
     @classmethod
-    def get_loss_eval_mode(
-                            cls,
+    def get_loss_eval_mode(cls,
                             batch,
                             model,
                             scaler,
@@ -655,28 +654,28 @@ class Trainer:
                 with reporter.measure_time("forward_time"): 
                     retval = model(**batch)
 
-                    loss_after, stats, weight = retval
+                    loss, stats, weight = retval
                     optim_idx = None
 
                 stats = {k: v for k, v in stats.items() if v is not None}
                 if ngpu > 1 or distributed:
                     # Apply weighted averaging for loss and stats
-                    loss_after = (loss_after * weight.type(loss_after.dtype)).sum()
+                    loss = (loss * weight.type(loss.dtype)).sum()
                     
                     # if distributed, this method can also apply all_reduce()
                     stats, weight = recursive_average(stats, weight, distributed)
                     
                     # Now weight is summation over all workers
-                    loss_after /= weight
+                    loss /= weight
                 if distributed:
                     # NOTE(kamo): Multiply world_size because DistributedDataParallel
                     # automatically normalizes the gradient by world_size.
-                    loss_after *= torch.distributed.get_world_size()
+                    loss *= torch.distributed.get_world_size()
 
-                loss_after /= accum_grad
-                loss_after = loss_after.detach()
+                loss /= accum_grad
+                loss = loss_after.detach()
 
-        return loss_after
+        return loss
 
     @classmethod
     def train_one_epoch_curriculum(
@@ -757,19 +756,49 @@ class Trainer:
                 all_steps_are_invalid = False
                 continue
 
-                
-            #### Calculate loss after ######                
             if options.gain_type=='PG':
+                #Calculate loss before training on the batch
+                loss_1 = cls.get_loss_eval_mode(
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad 
+                )
+                
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad
+                                            )
+                loss2 = cls.get_loss_eval_mode(
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad 
+                        )
                 
 
-                        curriculum_generator.update_policy(
-                            iepoch=iepoch,
-                            iiter=iiter, 
-                            k=k, 
-                            losses=(loss.item(), loss_after.item()), 
-                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                            algo=options.curriculum_algo
-                        )
+            curriculum_generator.update_policy(
+                iepoch=iepoch,
+                iiter=iiter, 
+                k=k, 
+                losses=(loss1.item(), loss_2.item()), 
+                batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                algo=options.curriculum_algo
+            )
 
                 start_time = time.perf_counter()
 
