@@ -657,10 +657,9 @@ class Trainer:
         model.eval()
         with autocast(scaler is not None):
             with torch.no_grad():
-                with reporter.measure_time("forward_time"): 
-                    retval = model(**batch)
+                retval = model(**batch)
 
-                    loss, stats, weight = retval
+                loss, stats, weight = retval
 
                 stats = {k: v for k, v in stats.items() if v is not None}
                 if ngpu > 1 or distributed:
