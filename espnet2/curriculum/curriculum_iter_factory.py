@@ -51,9 +51,9 @@ class CurriculumIterFactory(AbsIterFactory):
         else:
             kwargs = {}
 
-        loaders = []
+        self.loaders = []
         for i in range(len(self.sampler)):
-            loaders.append(
+            self.loaders.append(
                 DataLoader(
                     dataset=self.dataset,
                     batch_sampler=self.sampler[i],
@@ -62,10 +62,22 @@ class CurriculumIterFactory(AbsIterFactory):
                     **kwargs,
                 )
             )
-        self.loaders = deepcopy(loaders)
-        return loaders
+        #self.loaders = deepcopy(loaders)
+        return self.loaders
 
     def refill_task(self, k):
-        refill = self.loaders[k]
-        self.loaders[k] = deepcopy(refill)
-        return refill
+        #self.loaders[k] = deepcopy(refill)
+        if self.collate_fn is not None:
+            kwargs = dict(collate_fn=self.collate_fn)
+        else:
+            kwargs = {}
+            
+        self.loaders[k] = DataLoader(
+            dataset=self.dataset,
+            batch_sampler=self.sampler[k],
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
+            **kwargs,
+        )
+        
+        return self.loaders[k]

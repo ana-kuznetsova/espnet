@@ -71,6 +71,8 @@ try:
 except ImportError:
     fairscale = None
 
+import torch
+import sys
 
 @dataclasses.dataclass
 class TrainerOptions:
@@ -276,8 +278,8 @@ class Trainer:
 
         #### Initialise Curriculum Learning Environment #######
         if trainer_options.use_curriculum==True:
-            wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
-            wandb.watch(model)
+            #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
+            #wandb.watch(model)
         
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
@@ -286,7 +288,7 @@ class Trainer:
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             #restore=trainer_options.resume
-                                            restore=True
+                                            restore=False
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -294,7 +296,7 @@ class Trainer:
                                        hist_size=1000,
                                        log_dir=str(output_dir),
                                        lmbda=5,
-                                       #gain_type=trainer_options.gain_type,
+                                       gain_type=trainer_options.gain_type,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
@@ -318,12 +320,18 @@ class Trainer:
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
                 if trainer_options.use_curriculum==True:
-            
-                    all_steps_are_invalid = cls.train_one_epoch_curriculum(
+
+                    if (iepoch==1) or (trainer_options.resume)==True:
+                        trainer_options.resume==False
+                        logging.info(f"Loading data for iterators...") 
+                        tasks = train_iter_factory.build_iter(iepoch)
+
+                    all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
                             iterator=train_iter_factory,
+                            tasks=tasks,
                             reporter=sub_reporter,
                             curriculum_generator=curriculum_generator,   
                             scaler=scaler,
@@ -332,6 +340,7 @@ class Trainer:
                             distributed_option=distributed_option,
                             iepoch=iepoch,
                         )
+
                 else:
                     all_steps_are_invalid = cls.train_one_epoch(
                         model=dp_model,
@@ -499,127 +508,57 @@ class Trainer:
                 nbest=keep_nbest_models,
             )
     @classmethod
-    def train_one_epoch_curriculum(
-        cls,
-        model: torch.nn.Module,
-        iterator: CurriculumIterFactory,
-        optimizers: Sequence[torch.optim.Optimizer],
-        schedulers: Sequence[Optional[AbsScheduler]],
-        scaler: Optional[GradScaler],
-        reporter: SubReporter,
-        curriculum_generator: AbsCurriculumGenerator,
-        summary_writer: Optional[SummaryWriter],
-        options: TrainerOptions,
-        distributed_option: DistributedOption,
-        iepoch: int
-    ) -> bool:
-        assert check_argument_types()
+    def train_one_batch(cls,
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad,
+                        grad_noise,
+                        grad_clip,
+                        grad_clip_type,
+                        optimizers, 
+                        schedulers,
+                        start_time
+                        ):
+        model.train()
+        with autocast(scaler is not None):
+            retval = model(**batch)
+            loss, stats, weight = retval
+            optim_idx = None
+            stats = {k: v for k, v in stats.items() if v is not None}
+            if ngpu > 1 or distributed:
+                # Apply weighted averaging for loss and stats
+                loss = (loss * weight.type(loss.dtype)).sum()
 
-        grad_noise = options.grad_noise
-        accum_grad = options.accum_grad
-        grad_clip = options.grad_clip
-        grad_clip_type = options.grad_clip_type
-        log_interval = options.log_interval
-        no_forward_run = options.no_forward_run
-        ngpu = options.ngpu
-        use_wandb = options.use_wandb
-        distributed = distributed_option.distributed
+                # if distributed, this method can also apply all_reduce()
+                stats, weight = recursive_average(stats, weight, distributed)
 
-        if log_interval is None:
-            try:
-                log_interval = max(len(iterator) // 20, 10)
-            except TypeError:
-                log_interval = 100
-
-        all_steps_are_invalid = True
-        # [For distributed] Because iteration counts are not always equals between
-        # processes, send stop-flag to the other processes if iterator is finished
-        iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
-
-        start_time = time.perf_counter()
-
-        
-        tasks = iterator.build_iter(iepoch)
-        tasks = [iter(it) for it in tasks]
-
-        iiter = 0
-        #Reset the exausted tasks list
-        curriculum_generator.reset_exhausted()
-
-        while iiter < iterator.num_iters_per_epoch:
-            iiter+=1
-    
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
-
-            try:
-                _, batch = tasks[k].next()
-            except StopIteration as e:
-                if options.refill_task==True:
-                    logging.info(f"Refilled task {k}.")
-                    tasks.pop(k)
-                    tasks.insert(k, iter(iterator.refill_task(k)))
-                    _, batch = tasks[k].next()
-                else:   
-                    curriculum_generator.report_exhausted_task(k)
-                    logging.info(f"Task {k} is exhausted.")
-                    if curriculum_generator.all_exhausted():
-                        break
-                    iiter -= 1
-                    continue
-            
-            
-            assert isinstance(batch, dict), type(batch)
+                # Now weight is summation over all workers
+                loss /= weight
             if distributed:
-                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-                if iterator_stop > 0:
-                    break
+                # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                # automatically normalizes the gradient by world_size.
+                loss *= torch.distributed.get_world_size()
 
-            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
-            if no_forward_run:
-                all_steps_are_invalid = False
-                continue
+            loss /= accum_grad
 
-            if options.gain_type=='PG':
-                model.train()
-                with autocast(scaler is not None):
-                    retval = model(**batch)
-                    # Note(kamo):
-                    # Supporting two patterns for the returned value from the model
-                    #   a. dict type ANAKUZNE: removed code for dict type, excessive
-                    #   b. tuple or list type
-                    #Curriculum goes into this condition
-                    loss_before, stats, weight = retval
-                    optim_idx = None
+        with reporter.measure_time("backward_time"):
+            if scaler is not None:
+                # Scales loss.  Calls backward() on scaled loss
+                # to create scaled gradients.
+                # Backward passes under autocast are not recommended.
+                # Backward ops run in the same dtype autocast chose
+                # for corresponding forward ops.
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
 
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss_before = (loss_before * weight.type(loss.dtype)).sum()
-
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
-
-                        # Now weight is summation over all workers
-                        loss_before /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss_before *= torch.distributed.get_world_size()
-
-                    loss_before /= accum_grad
-                    loss = loss_before
-                
-                
-            with reporter.measure_time("backward_time"):
-                if scaler is not None:
-                    # Scales loss.  Calls backward() on scaled loss
-                    # to create scaled gradients.
-                    # Backward passes under autocast are not recommended.
-                    # Backward ops run in the same dtype autocast chose
-                    # for corresponding forward ops.
-                    scaler.scale(loss).backward()
-                else:
-                    loss.backward()
+            loss.detach()
+            torch.cuda.empty_cache()
 
             if iiter % accum_grad == 0:
                 if scaler is not None:
@@ -686,44 +625,8 @@ class Trainer:
                             if isinstance(scheduler, AbsBatchStepScheduler):
                                 scheduler.step()
                             optimizer.zero_grad()
-            #### Calculate loss after ######                
-            if options.gain_type=='PG':
-                model.eval()
-                with autocast(scaler is not None):
-                    with reporter.measure_time("forward_time"): 
-                        retval = model(**batch)
-
-                        loss_after, stats, weight = retval
-                        optim_idx = None
-
-                    stats = {k: v for k, v in stats.items() if v is not None}
-                    if ngpu > 1 or distributed:
-                        # Apply weighted averaging for loss and stats
-                        loss_after = (loss_after * weight.type(loss.dtype)).sum()
-
-                        # if distributed, this method can also apply all_reduce()
-                        stats, weight = recursive_average(stats, weight, distributed)
-
-                        # Now weight is summation over all workers
-                        loss_after /= weight
-                    if distributed:
-                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                        # automatically normalizes the gradient by world_size.
-                        loss_after *= torch.distributed.get_world_size()
-
-                    loss_after /= accum_grad
-                    
-                    curriculum_generator.update_policy(
-                                        iepoch=iepoch,
-                                        iiter=iiter, 
-                                        k=k, 
-                                        losses=(loss_before, loss_after), 
-                                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                                        algo=options.curriculum_algo
-                                        )
 
                 reporter.register(stats, weight)
-
                 # Register lr and train/load time[sec/step],
                 # where step refers to accum_grad * mini-batch
                 reporter.register(
@@ -737,7 +640,228 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
-                start_time = time.perf_counter()
+        return all_steps_are_invalid    
+
+    @classmethod
+    def get_loss_eval_mode(cls,
+                            batch,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad):
+
+
+        model.eval()
+        with autocast(scaler is not None):
+            with torch.no_grad():
+                retval = model(**batch)
+
+                loss, stats, weight = retval
+
+                stats = {k: v for k, v in stats.items() if v is not None}
+                if ngpu > 1 or distributed:
+                    # Apply weighted averaging for loss and stats
+                    loss = (loss * weight.type(loss.dtype)).sum()
+                    
+                    # if distributed, this method can also apply all_reduce()
+                    stats, weight = recursive_average(stats, weight, distributed)
+                    
+                    # Now weight is summation over all workers
+                    loss /= weight
+                if distributed:
+                    # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                    # automatically normalizes the gradient by world_size.
+                    loss *= torch.distributed.get_world_size()
+
+                loss /= accum_grad
+                loss = loss.detach()
+
+        return loss
+
+    @classmethod
+    def train_one_epoch_curriculum(
+        cls,
+        model: torch.nn.Module,
+        iterator: CurriculumIterFactory,
+        tasks: List,
+        optimizers: Sequence[torch.optim.Optimizer],
+        schedulers: Sequence[Optional[AbsScheduler]],
+        scaler: Optional[GradScaler],
+        reporter: SubReporter,
+        curriculum_generator: AbsCurriculumGenerator,
+        summary_writer: Optional[SummaryWriter],
+        options: TrainerOptions,
+        distributed_option: DistributedOption,
+        iepoch: int
+    ) -> bool:
+        assert check_argument_types()
+
+        grad_noise = options.grad_noise
+        accum_grad = options.accum_grad
+        grad_clip = options.grad_clip
+        grad_clip_type = options.grad_clip_type
+        log_interval = options.log_interval
+        no_forward_run = options.no_forward_run
+        ngpu = options.ngpu
+        use_wandb = options.use_wandb
+        distributed = distributed_option.distributed
+
+        if log_interval is None:
+            try:
+                log_interval = max(len(iterator) // 20, 10)
+            except TypeError:
+                log_interval = 100
+
+        all_steps_are_invalid = True
+        # [For distributed] Because iteration counts are not always equals between
+        # processes, send stop-flag to the other processes if iterator is finished
+        iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
+
+        start_time = time.perf_counter()
+        tasks = [iter(it) for it in tasks]
+
+        iiter = 0
+        #Reset the exausted tasks list
+        curriculum_generator.reset_exhausted()
+
+        while iiter < iterator.num_iters_per_epoch:
+            iiter+=1
+
+            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+
+            try:
+                _, batch = tasks[k].next()
+            except StopIteration as e:
+                if options.refill_task==True:
+                    logging.info(f"Refilled task {k}.")
+                    tasks.pop(k)
+                    tasks.insert(k, iter(iterator.refill_task(k)))
+                    _, batch = tasks[k].next()
+                else:   
+                    curriculum_generator.report_exhausted_task(k)
+                    logging.info(f"Task {k} is exhausted.")
+                    if curriculum_generator.all_exhausted():
+                        break
+                    iiter -= 1
+                    continue
+            
+            assert isinstance(batch, dict), type(batch)
+            if distributed:
+                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
+                if iterator_stop > 0:
+                    break
+
+            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+
+            if no_forward_run:
+                all_steps_are_invalid = False
+                continue
+
+            if options.gain_type=='PG':
+                #Calculate loss before training on the batch
+                loss1 = cls.get_loss_eval_mode(
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad 
+                )
+
+
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
+                loss2 = cls.get_loss_eval_mode(
+                        batch,
+                        model,
+                        scaler,
+                        ngpu,
+                        distributed,
+                        reporter,
+                        iiter,
+                        accum_grad 
+                        )
+            elif options.gain_type=='SPG':
+                #Sample second batch for evaluation
+                try:
+                    _, batch_eval = tasks[k].next()
+                except StopIteration as e:
+                    if options.refill_task==True:
+                        logging.info(f"Refilled task {k}.")
+                        tasks.pop(k)
+                        tasks.insert(k, iter(iterator.refill_task(k)))
+                        _, batch_eval = tasks[k].next()
+                    #Add else condition for exhaust task option
+
+                loss1 = cls.get_loss_eval_mode(
+                            batch_eval,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+
+
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
+
+                loss2 = cls.get_loss_eval_mode(
+                            batch_eval,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+
+            curriculum_generator.update_policy(
+                iepoch=iepoch,
+                iiter=iiter, 
+                k=k, 
+                losses=(loss1.item(), loss2.item()), 
+                batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                algo=options.curriculum_algo
+            )
+
+            start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
             reporter.next()
@@ -748,12 +872,14 @@ class Trainer:
                 if use_wandb:
                     reporter.wandb_log()
 
+            torch.cuda.empty_cache()            
+
         else:
             if distributed:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
         logging.info(f"Finished epoch {iepoch}")
-        return all_steps_are_invalid
+        return all_steps_are_invalid, iterator, tasks
 
     @classmethod
     def train_one_epoch(
@@ -804,6 +930,7 @@ class Trainer:
                     break
 
             batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+
             if no_forward_run:
                 all_steps_are_invalid = False
                 continue
@@ -865,7 +992,7 @@ class Trainer:
                 loss /= accum_grad
 
             reporter.register(stats, weight)
-
+            
             with reporter.measure_time("backward_time"):
                 if scaler is not None:
                     # Scales loss.  Calls backward() on scaled loss
@@ -969,6 +1096,7 @@ class Trainer:
                     reporter.tensorboard_add_scalar(summary_writer, -log_interval)
                 if use_wandb:
                     reporter.wandb_log()
+
 
         else:
             if distributed:
