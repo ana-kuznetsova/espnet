@@ -80,4 +80,4 @@ class CurriculumIterFactory(AbsIterFactory):
             **kwargs,
         )
         
-        return self.loaders
+        return self.loaders[k]

@@ -721,9 +721,7 @@ class Trainer:
         iterator_stop = torch.tensor(0).to("cuda" if ngpu > 0 else "cpu")
 
         start_time = time.perf_counter()
-        logging.info(f"Tasks:{tasks}")
         tasks = [iter(it) for it in tasks]
-        logging.info(f"Task k: {tasks[1]}")
 
         iiter = 0
         #Reset the exausted tasks list
