@@ -595,7 +595,6 @@ class Trainer:
                     #Curriculum goes into this condition
                     loss_before, stats, weight = retval
                     optim_idx = None
-                    logging.info(f"Cuda loss before {torch.cuda.memory_allocated()}")
                     stats = {k: v for k, v in stats.items() if v is not None}
                     if ngpu > 1 or distributed:
                         # Apply weighted averaging for loss and stats
