@@ -7,6 +7,8 @@ from espnet2.samplers.abs_sampler import AbsSampler
 
 import numpy as np
 from typeguard import check_argument_types
+import logging
+import random
 
 from espnet2.fileio.read_text import load_num_sequence_text
 
@@ -92,7 +94,9 @@ class CurriculumSampler(AbsSampler):
 
         self.task_batch_lists = []
         for k in range(self.K):
+            #Shuffle
             keys = sorted_task_keys[k]
+            random.shuffle(keys)
             # Decide batch-sizes
             batch_sizes = []
             current_batch_keys = []

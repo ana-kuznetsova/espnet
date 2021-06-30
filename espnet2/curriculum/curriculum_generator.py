@@ -28,9 +28,6 @@ class AbsCurriculumGenerator(ABC):
     def report_exhausted_task(self, k):
         raise NotImplementedError
 
-    @abstractmethod
-    def restore(self, load_dir):
-        raise NotImplementedError
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
@@ -101,7 +98,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return all(self.tasks_exhausted)
 
     def reset_exhausted(self):
-        self.tasks_exhausted = [False]*self.K
+        self.exhausted = [False for i in range(self.K)]
 
     def report_exhausted_task(self, k):
         self.tasks_exhausted[k] = True
@@ -128,8 +125,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             2. Update weigths 
             3. Update policy
         '''
-        loss_before = float(losses[0].detach().cpu().numpy())
-        loss_after = float(losses[1].detach().cpu().numpy())
+        loss_before = float(losses[0])#.detach().cpu().numpy())
+        loss_after = float(losses[1])#.detach().cpu().numpy())
         progress_gain = loss_before - loss_after
         #progress_gain = progress_gain/np.sum(batch_lens)
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
@@ -152,7 +149,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                         losses=(loss_before, loss_after),
                         weights= self.weights,
                         algo=kwargs["algo"],
-                        log_wandb=True,
+                        log_wandb=False,
                         reward_hist=self.reward_hist)
 
     def get_reward(self, progress_gain, batch_lens):
@@ -202,7 +199,16 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
     """
     Class that uses sliding window UCB to generate curriculum.
     """
-    def __init__(self, K, hist_size, log_dir='swucbstats', threshold=0.1, gamma=0.4, lmbda=12.0, slow_k=3, env_mode=None):
+    def __init__(self, 
+                 K, hist_size, 
+                 log_dir='swucbstats', 
+                 threshold=0.1, 
+                 gamma=0.4, 
+                 lmbda=12.0, 
+                 slow_k=3, 
+                 gain_type='PG',
+                 env_mode=None,
+                 log_config=True):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -221,6 +227,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
+        self.gain_type = gain_type
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -234,7 +241,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
             raise ValueError("Pass the required parameters. {}".format(e))
+        if log_config:
+            wandb.config.update = {"algo":"swucb",
+                            "threshold":self.threshold,
+                            "lambda":self.lmbda,
+                            "slow_k":self.slow_k,
+                            "gain_type":gain_type
+                            }
 
+    '''
     def restore(self, load_dir):
         """
         Function to load saved parameters in case of resume training.
@@ -260,6 +275,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             params['iepoch'] = int(val[0])
             params['iiter'] = int(val[1])
             self.policy = np.fromstring(val[2])
+    '''
 
     def set_params(self, lmbda, gamma=None, slow_k=None):
         """
@@ -364,13 +380,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        logging.info(f"Task_ind:{k}") 
+        #logging.info(f"Task_ind:{k}") 
         win_size = self.calc_sliding_window(iiter)
         #print("SW size:", win_size)
         #logging.info(f"SW size: {win_size}")
-        loss_before = float(losses[0].detach().cpu().numpy())
-        loss_after = float(losses[1].detach().cpu().numpy())
-        logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
+        loss_before = float(losses[0])
+        loss_after = float(losses[1])
+        #logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
         #print("Reward:", reward)
@@ -400,11 +416,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         iepoch=iepoch, 
                         k=k, 
                         algo=algo, 
-                        losses=losses, 
+                        losses=(loss_before, loss_after), 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
-                        log_wandb=True)
+                        log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
         """
@@ -412,7 +428,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         we simply run each arm one by one. After K iterations, we switch to running arm with 
         best policy value.
         """
-        logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
+        #logging.info(f"Iter:{kwargs['iiter']}, Epoch:{kwargs['iepoch']}")
         if kwargs['iiter']-1 < self.K and kwargs['iepoch'] <= 1:
             return kwargs['iiter']-1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
