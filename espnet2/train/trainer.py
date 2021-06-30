@@ -673,7 +673,7 @@ class Trainer:
                     loss *= torch.distributed.get_world_size()
 
                 loss /= accum_grad
-                loss = loss_after.detach()
+                loss = loss.detach()
 
         return loss
 
