@@ -661,7 +661,6 @@ class Trainer:
                     retval = model(**batch)
 
                     loss, stats, weight = retval
-                    optim_idx = None
 
                 stats = {k: v for k, v in stats.items() if v is not None}
                 if ngpu > 1 or distributed:
