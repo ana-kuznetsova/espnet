@@ -754,13 +754,12 @@ class Trainer:
                 if iterator_stop > 0:
                     break
 
-            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
-
             if no_forward_run:
                 all_steps_are_invalid = False
                 continue
 
             if options.gain_type=='PG':
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 #Calculate loss before training on the batch
                 loss1 = cls.get_loss_eval_mode(
                         batch,
@@ -812,8 +811,9 @@ class Trainer:
                         _, batch_eval = tasks[k].next()
                     #Add else condition for exhaust task option
 
+                batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
                 loss1 = cls.get_loss_eval_mode(
-                            batch_eval,
+                            batch_eval_gpu,
                             model,
                             scaler,
                             ngpu,
@@ -822,8 +822,9 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
+                del batch_eval_gpu
 
-
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
                                             model,
@@ -841,6 +842,7 @@ class Trainer:
                                             start_time
                                             )
 
+                batch_eval = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
                 loss2 = cls.get_loss_eval_mode(
                             batch_eval,
                             model,
@@ -851,7 +853,7 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
-
+                
             curriculum_generator.update_policy(
                 iepoch=iepoch,
                 iiter=iiter, 
