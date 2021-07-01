@@ -182,8 +182,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return reward
 
     def update_weights(self, iepoch, iiter, num_iters, k, reward):
-        if iiter==1 and iepoch==0:
-            t = 0.99
+        if iepoch==0:
+            if iiter==1:
+                t = 0.99
+            else:
+                t = iiter
         else:
             prev_iters = iepoch*num_iters
             t = prev_iters + iiter
