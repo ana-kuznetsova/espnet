@@ -187,7 +187,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             prev_iters = iepoch*num_iters
             t = prev_iters + iiter
-            logging.info(f"Num t {t}")
+        logging.info(f"Iter t {t}")
         alpha_t = t**-1
         r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
