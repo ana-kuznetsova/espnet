@@ -185,7 +185,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         if iiter==1 and iepoch==1:
             t = 0.99
         else:
-            prev_iters = iepoch-1*num_iters
+            prev_iters = iepoch*num_iters
             t = prev_iters + iiter
             logging.info(f"Num t {t}")
         alpha_t = t**-1
