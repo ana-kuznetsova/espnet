@@ -8,6 +8,7 @@ from copy import deepcopy
 import numpy as np
 from torch.utils.data import DataLoader
 from typeguard import check_argument_types
+import random
 
 from espnet2.iterators.abs_iter_factory import AbsIterFactory
 from espnet2.samplers.abs_sampler import AbsSampler
@@ -56,7 +57,7 @@ class CurriculumIterFactory(AbsIterFactory):
             self.loaders.append(
                 DataLoader(
                     dataset=self.dataset,
-                    batch_sampler=self.sampler[i],
+                    batch_sampler=random.shuffle(self.sampler[i]),
                     num_workers=self.num_workers,
                     pin_memory=self.pin_memory,
                     **kwargs,
