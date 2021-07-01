@@ -856,7 +856,8 @@ class Trainer:
                 
             curriculum_generator.update_policy(
                 iepoch=iepoch,
-                iiter=iiter, 
+                iiter=iiter,
+                num_iters=iterator.num_iters_per_epoch, 
                 k=k, 
                 losses=(loss1.item(), loss2.item()), 
                 batch_lens=batch['speech_lengths'].detach().cpu().numpy(),

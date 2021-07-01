@@ -113,7 +113,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def update_policy(self, 
                      iepoch, 
-                     iiter, 
+                     iiter,
+                     num_iters, 
                      k, 
                      losses,
                      batch_lens,
@@ -133,13 +134,13 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
-        self.update_weights(iiter, k, reward)
+        self.update_weights(iepoch, iiter, num_iters, k, reward)
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        logging.info(f"Pi before update:{self.policy}")
+        #logging.info(f"Pi before update:{self.policy}")
         self.policy = pi
-        logging.info(f"Pi after update:{self.policy}")
+        #logging.info(f"Pi after update:{self.policy}")
 
         ###Logging
         self.logger.log(iepoch, 
@@ -180,11 +181,16 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_hist = np.append(self.reward_hist, float(progress_gain))
         return reward
 
-    def update_weights(self, iiter, k, reward):
-        if iiter==1:
-            t = 0.99
-        else:
+    def update_weights(self, iepoch, iiter, num_iters, k, reward):
+        if iepoch==1:
+            #if iiter==1:
+            #    t = 0.99
+            #else:
             t = iiter
+        else:
+            prev_iters = iepoch*num_iters
+            t = prev_iters + iiter
+        logging.info(f"Iter t {t}")
         alpha_t = t**-1
         r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
