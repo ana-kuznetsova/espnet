@@ -54,10 +54,11 @@ class CurriculumIterFactory(AbsIterFactory):
 
         self.loaders = []
         for i in range(len(self.sampler)):
+            random.shuffle(self.sampler[i])
             self.loaders.append(
                 DataLoader(
                     dataset=self.dataset,
-                    batch_sampler=random.shuffle(self.sampler[i]),
+                    batch_sampler=self.sampler[i],
                     num_workers=self.num_workers,
                     pin_memory=self.pin_memory,
                     **kwargs,
@@ -72,7 +73,8 @@ class CurriculumIterFactory(AbsIterFactory):
             kwargs = dict(collate_fn=self.collate_fn)
         else:
             kwargs = {}
-            
+
+        random.shuffle(self.sampler[k])
         self.loaders[k] = DataLoader(
             dataset=self.dataset,
             batch_sampler=self.sampler[k],

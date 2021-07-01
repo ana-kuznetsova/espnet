@@ -28,8 +28,10 @@ def main(args):
 
     cr_sorted = sorted(utt2cr.items(), key=lambda k: k[1])
 
-    nPerTask = len(cr_sorted) / int(nTasks)
-
+    nPerTask = int(len(cr_sorted) / int(nTasks))
+    
+    print(nTasks + " " + str(len(cr_sorted)) + " " + str(nPerTask))
+    
     with open(task_file, 'w') as f:
         i = 0
         task = 0
@@ -37,7 +39,8 @@ def main(args):
             f.write(ID + " " + str(task) + "\n")
             i += 1
             if i % nPerTask == 0:
-                task += 1
+                if task < int(nTasks) - 1:
+                    task += 1
         
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
