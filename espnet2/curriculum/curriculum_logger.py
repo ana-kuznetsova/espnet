@@ -1,4 +1,5 @@
 import os
+import json
 import numpy as np
 import wandb
 
@@ -42,10 +43,17 @@ class CurriculumLogger:
                                 str(kwargs["progress_gain"]), 
                                 str(kwargs["reward"])])
                 fo.write(stats + '\n')
+        '''
         with open(self.policy_path, 'a+') as fo:
             #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
-        
+        '''
+        with open(self.policy_path, 'a+') as fo:
+            line = {'iiter':str(iiter),
+                    'iepoch':str(iepoch),
+                    'policy':np.array2string(kwargs["policy"], formatter={'float':lambda x: hex(x)})}
+            fo.write(json.dumps(line) + '\n')
+
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
                         "k":kwargs["k"],
