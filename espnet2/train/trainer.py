@@ -280,6 +280,9 @@ class Trainer:
         if trainer_options.use_curriculum==True:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
+            restore_curriculum = False
+            if start_epoch > 1:
+                restore_curriculum = True
         
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
@@ -287,8 +290,7 @@ class Trainer:
                                             init='zeros',
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
-                                            #restore=trainer_options.resume
-                                            restore=True
+                                            restore=restore_curriculum,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -296,7 +298,7 @@ class Trainer:
                                        hist_size=1000,
                                        log_dir=str(output_dir),
                                        lmbda=5,
-                                       restore=False,
+                                       restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                 )
 
@@ -326,9 +328,6 @@ class Trainer:
                         trainer_options.resume==False
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
-
-                    if iepoch > 1:
-                        curriculum_generator.restore=True
 
                     all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
