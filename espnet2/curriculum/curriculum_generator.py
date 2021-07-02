@@ -136,7 +136,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
 
-        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
+        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights)+0.000001)
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         logging.info(f"Pi before update:{self.policy}")
         logging.info(f"Weights: {self.weights}")
