@@ -63,6 +63,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
+        self.tasks_exhausted = [False]*self.K
+        
         if not restore:
             self.reward_hist = np.array([])
             if init=='ones':
@@ -77,7 +79,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 )
             #Initialize policy with uniform probs
             self.policy = np.array([1/self.K for i in range(self.K)])
-            self.tasks_exhausted = [False]*self.K
         else:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
@@ -136,11 +137,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
 
-        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights)+0.000001)
+        tmp1 = (np.exp(self.weights)+0.000001)/np.sum(np.exp(self.weights)+0.000001)
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         logging.info(f"Pi before update:{self.policy}")
         logging.info(f"Weights: {self.weights}")
-        self.policy = pi
+        if not any([np.isnan(p) for p in pi]):
+            self.policy = pi
         logging.info(f"Pi after update:{self.policy}")
 
         ###Logging

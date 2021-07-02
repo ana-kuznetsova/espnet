@@ -288,7 +288,7 @@ class Trainer:
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             #restore=trainer_options.resume
-                                            restore=False
+                                            restore=True
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -853,16 +853,17 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
-                
-            curriculum_generator.update_policy(
-                iepoch=iepoch,
-                iiter=iiter,
-                num_iters=iterator.num_iters_per_epoch, 
-                k=k, 
-                losses=(loss1.item(), loss2.item()), 
-                batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                algo=options.curriculum_algo
-            )
+
+            if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                    curriculum_generator.update_policy(
+                        iepoch=iepoch,
+                        iiter=iiter,
+                        num_iters=iterator.num_iters_per_epoch, 
+                        k=k, 
+                        losses=(loss1.item(), loss2.item()), 
+                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                        algo=options.curriculum_algo
+                    )
 
             start_time = time.perf_counter()
 
