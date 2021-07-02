@@ -36,6 +36,7 @@ class CurriculumLogger:
             log_wandb (bool): logging stats to wandb
             algo (str): EXP3S or UCB
         '''
+        '''
         with open(self.stats_path, 'a+') as fo:
                 stats = ', '.join([str(iepoch), str(iiter),\
                                 str(kwargs["k"]), str(kwargs["losses"][0]), \
@@ -43,16 +44,25 @@ class CurriculumLogger:
                                 str(kwargs["progress_gain"]), 
                                 str(kwargs["reward"])])
                 fo.write(stats + '\n')
-        '''
+        
         with open(self.policy_path, 'a+') as fo:
             #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
         '''
+        with open(self.stats_path, 'a+') as fo:
+            stats = {'iiter':str(iiter),
+                    'iepoch':str(iepoch),
+                    'k':kwargs['k'],
+                    'losses':str(kwargs['losses'][0])+' '+str(kwargs['losses'][0]),
+                    'progress_gain':str(kwargs['progress_gain']),
+                    'reward':str(kwargs['reward'])}
+            fo.write(json.dumps(stats) + '\n')
+
         with open(self.policy_path, 'a+') as fo:
-            line = {'iiter':str(iiter),
+            policy = {'iiter':str(iiter),
                     'iepoch':str(iepoch),
                     'policy':np.array2string(kwargs["policy"], formatter={'float':lambda x: hex(x)})}
-            fo.write(json.dumps(line) + '\n')
+            fo.write(json.dumps(policy) + '\n')
 
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
