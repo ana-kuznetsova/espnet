@@ -54,7 +54,7 @@ class CurriculumLogger:
                         }
             wandb.log(log_dict)
         #### Save state ####
-        if self.algo=='exp3s':
+        if (self.algo=='exp3s') and (iiter==kwargs["num_iters"]):
             self.save_state(iepoch=iepoch, 
                             iiter=iiter, 
                             algo=self.algo, 
