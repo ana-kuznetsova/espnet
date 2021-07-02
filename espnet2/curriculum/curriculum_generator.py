@@ -139,16 +139,17 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         tmp1 = (np.exp(self.weights)+0.000001)/np.sum(np.exp(self.weights)+0.000001)
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        logging.info(f"Pi before update:{self.policy}")
-        logging.info(f"Weights: {self.weights}")
+        #logging.info(f"Pi before update:{self.policy}")
+        #logging.info(f"Weights: {self.weights}")
         if not any([np.isnan(p) for p in pi]):
             self.policy = pi
-        logging.info(f"Pi after update:{self.policy}")
+        #logging.info(f"Pi after update:{self.policy}")
 
         ###Logging
         self.logger.log(iepoch, 
                         iiter, 
-                        k=k, 
+                        k=k,
+                        num_iters=num_iters, 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy, 
@@ -220,6 +221,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  slow_k=3, 
                  gain_type='PG',
                  env_mode=None,
+                 restore=False,
                  log_config=True):
         """
         K        : no. of tasks.
@@ -246,9 +248,26 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.slow_k = slow_k
 
         self.exhausted = [False for i in range(self.K)]
-        self.reward_history = np.array([])
-        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
-        self.policy = np.zeros(self.K)
+
+        if restore:
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+                                      allow_pickle=True).item()
+
+            self.policy = generator_state["policy"]
+            self.arm_rewards = generator_state["arm_rewards"]
+            self.reward_hist = generator_state["reward_hist"]
+            
+            iepoch = generator_state["iepoch"]
+            iiter = generator_state["iiter"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
+            
+        else:
+            self.reward_history = np.array([])
+            self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
+            self.policy = np.zeros(self.K)
         try:
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
@@ -437,6 +456,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
+                        reward_hist=self.reward_history,
+                        arm_rewards=self.arm_rewards,
                         log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
