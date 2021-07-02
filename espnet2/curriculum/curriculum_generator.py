@@ -138,9 +138,10 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        #logging.info(f"Pi before update:{self.policy}")
+        logging.info(f"Pi before update:{self.policy}")
+        logging.info(f"Weights: {self.weights}")
         self.policy = pi
-        #logging.info(f"Pi after update:{self.policy}")
+        logging.info(f"Pi after update:{self.policy}")
 
         ###Logging
         self.logger.log(iepoch, 
