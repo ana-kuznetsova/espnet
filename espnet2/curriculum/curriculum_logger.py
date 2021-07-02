@@ -61,6 +61,14 @@ class CurriculumLogger:
                             policy=kwargs["policy"], 
                             weights=kwargs["weights"],
                             reward_hist=kwargs['reward_hist'])
+        elif (self.algo=='swucb') and (iiter==kwargs["num_iters"]):
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
+                            policy=kwargs["policy"], 
+                            arm_rewards=kwargs["arm_rewards"],
+                            reward_hist=kwargs['reward_hist'])
+
 
     def save_state(self, **kwargs):
         state_dict = kwargs
