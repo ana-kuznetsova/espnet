@@ -9,7 +9,7 @@ from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
-    def update_policy(self, iiter, num_iters, k, progress_gain, batch_lens):
+    def update_policy(self, iepoch, iiter, num_iters, k, progress_gain, batch_lens):
         raise NotImplementedError
         
     @abstractmethod
@@ -258,7 +258,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.policy = generator_state["policy"]
             self.arm_rewards = generator_state["arm_rewards"]
             self.reward_hist = generator_state["reward_hist"]
-            
+
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
@@ -401,7 +401,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, num_iters, iepoch, k, algo, losses, batch_lens):
+    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -449,7 +449,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         #print("Policy:", self.policy)
         #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
-                        iepoch=iepoch, 
+                        iepoch=iepoch,
+                        num_iters=num_iters, 
                         k=k, 
                         algo=algo, 
                         losses=(loss_before, loss_after), 
