@@ -9,7 +9,7 @@ from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
-    def update_policy(self, iiter, k, progress_gain, batch_lens):
+    def update_policy(self, iiter, num_iters, k, progress_gain, batch_lens):
         raise NotImplementedError
         
     @abstractmethod
@@ -188,9 +188,9 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             #else:
             t = iiter
         else:
-            prev_iters = iepoch*num_iters
+            prev_iters = (iepoch-1)*num_iters
             t = prev_iters + iiter
-        logging.info(f"Iter t {t}")
+        #logging.info(f"Iter t {t}")
         alpha_t = t**-1
         r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
@@ -378,7 +378,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, iepoch, k, algo, losses, batch_lens):
+    def update_policy(self, iiter, num_iters, iepoch, k, algo, losses, batch_lens):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -388,8 +388,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        #logging.info(f"Task_ind:{k}") 
-        win_size = self.calc_sliding_window(iiter)
+        #logging.info(f"Task_ind:{k}")
+        total_iters = iiter
+        if iepoch > 1:
+            prev_iters = (iepoch-1)*num_iters
+            total_iters += prev_iters
+
+        win_size = self.calc_sliding_window(total_iters)
         #print("SW size:", win_size)
         #logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0])
@@ -414,7 +419,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         mean_rewards = self.get_mean_reward(win_size)
         #print("Mean rewards:", mean_rewards)
         #logging.info(f"Mean rewards: {mean_rewards}")
-        arm_cost = self.get_arm_cost(iiter, win_size)
+        arm_cost = self.get_arm_cost(total_iters, win_size)
         #print("Arm costs:", arm_cost)
         #logging.info(f"Arm costs: {arm_cost}")
         self.policy = mean_rewards + arm_cost
