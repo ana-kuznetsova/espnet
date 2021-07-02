@@ -200,7 +200,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         for i, w in enumerate(self.weights):
             tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
             sum_ind = [j for j in range(len(self.weights)) if j!=i]
-            tmp2 = (alpha_t/(self.K-1))*np.exp(self.weights[sum_ind]).sum()
+            tmp2 = (alpha_t/(self.K-1))*(np.exp(self.weights[sum_ind]).sum())
+            logging.info(f"Tmp1 {tmp1}, TMP2 {tmp2}, sum {tmp1+tmp2}")
             w_i = np.log(tmp1+tmp2)
             self.weights[i] = w_i
             
