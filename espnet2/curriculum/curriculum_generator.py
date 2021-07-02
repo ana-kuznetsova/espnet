@@ -442,7 +442,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         #print("Policy:", self.policy)
         #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
-                        iepoch=iepoch, 
+                        iepoch=iepoch,
+                        num_iters=num_iters, 
                         k=k, 
                         algo=algo, 
                         losses=(loss_before, loss_after), 
