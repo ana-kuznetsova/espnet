@@ -147,6 +147,8 @@ if __name__=="__main__":
     stats = read_stats(args.log_dir)
     policy = read_policy(args.log_dir, args.K)
 
+    print(len(stats), len(policy))
+
     if args.all==True:
         plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
         plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
