@@ -144,7 +144,7 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     stats = read_stats(args.log_dir)
-    policy = read_policy(args.log_dir)
+    policy = read_policy(args.log_dir, args.K)
 
     if args.all==True:
         plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
