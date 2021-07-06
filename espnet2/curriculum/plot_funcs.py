@@ -93,7 +93,7 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
     plt.savefig(os.path.join(out_dir, 'reward.png'), dpi=700)
 
 
-def plot_policy(policy,  title, out_dir, segment_size=1000):
+def plot_policy(policy,  title, out_dir, segment_size=1000, k=1):
     plt.figure(figsize=(10, 4))
     dim = policy[:,0][::1000].shape[0]
 
@@ -152,7 +152,7 @@ if __name__=="__main__":
     if args.all==True:
         plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size, args.K)
         plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
-        plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size)
+        plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size, args.K)
     else:
         if args.plot=='reward':
             plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
