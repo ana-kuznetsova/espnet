@@ -8,11 +8,11 @@ def read_stats(res_dir):
     with open(d, 'r') as fo:
         return fo.readlines()
 
-def read_policy(res_dir):
+def read_policy(res_dir, k):
     d = os.path.join(res_dir, 'policy')
     with open(d, 'r') as fo:
         p = fo.readlines()
-    return get_policy(p)
+    return get_policy(p, k)
 
 def str2arr(s):
     s = re.findall(r'\d+\.\d+', s)
@@ -139,6 +139,7 @@ if __name__=="__main__":
     parser.add_argument('--log_dir', type=str, help='Path with policy and generator_stats')
     parser.add_argument('--segment_size', type=int, help='Size of the segments to average the stats.')
     parser.add_argument('--exp', type=str, help='Name of the experiment to use as a title for the plots')
+    parser.add_argument('--K', type=int, help='Number of tasks for curriculum.')
 
     args = parser.parse_args()
 
