@@ -8,7 +8,7 @@ def read_stats(res_dir):
     with open(d, 'r') as fo:
         return fo.readlines()
 
-def read_policy_one_dir(res_dir):
+def read_policy(res_dir):
     d = os.path.join(res_dir, 'policy')
     with open(d, 'r') as fo:
         p = fo.readlines()
@@ -92,7 +92,7 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
     plt.savefig(os.path.join(out_dir, 'reward.png'), dpi=700)
 
 
-def plot_plicy(policy,  title, out_dir, segment_size=1000):
+def plot_policy(policy,  title, out_dir, segment_size=1000):
     plt.figure(figsize=(10, 4))
     dim = p[:,0][::1000].shape[0]
 
@@ -133,8 +133,28 @@ def plot_cum_reward(stats, out_dir):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_arguments('--algo', type=str, help='Name of Curriculum Learning Algorithm.')
+    parser.add_arguments('--plot', type=str, help='Type of plot (policy, reward, task, creward). NOTE: creward is only plotted for SWUCB')
     parser.add_arguments('--all', type=bool, default=False, help='Make all possible plots common for all algos')
     parser.add_arguments('--out_dir', type=str, help='Path to save plots.')
     parser.add_arguments('--log_dir', type=str, help='Path with policy and generator_stats')
     parser.add_arguments('--segment_size', type=int, help='Size of the segments to average the stats.')
+    parser.add_arguments('--exp', type=str, help='Name of the experiment to use as a title for the plots')
+
+    args = parser.parse_args()
+
+    stats = read_stats(args.log_dir)
+    policy = read_policy(args.log_dir)
+
+    if args.all==True:
+        plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
+        plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
+        plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size)
+    else:
+        if args.plot=='reward':
+            plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
+        elif args.plot=='creward':
+            plot_cum_reward(stats, out_dir)
+        elif args.plot=='policy':
+            plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size)
+        elif args.plot=='task':
+            plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
