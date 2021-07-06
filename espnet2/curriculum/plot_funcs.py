@@ -38,7 +38,7 @@ def make_segments(arr, size=1000):
     return segments
 
 
-def plot_task_count(stats, title, out_dir, segment_size=1000):
+def plot_task_count(stats, title, out_dir, segment_size=1000, k=1):
     tasks = [int(line.split(',')[2]) for line in stats]
     segs = make_segments(tasks, segment_size)
     
@@ -150,7 +150,7 @@ if __name__=="__main__":
     print(len(stats), len(policy))
 
     if args.all==True:
-        plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
+        plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size, args.K)
         plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
         plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size)
     else:
