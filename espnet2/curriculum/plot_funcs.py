@@ -134,7 +134,7 @@ def plot_cum_reward(stats, out_dir):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--plot', type=str, help='Type of plot (policy, reward, task, creward). NOTE: creward is only plotted for SWUCB')
-    parser.add_argument('--all', type=bool, default=False, help='Make all possible plots common for all algos')
+    parser.add_argument('--all', action='store_true', help='Make all possible plots common for all algos')
     parser.add_argument('--out_dir', type=str, help='Path to save plots.')
     parser.add_argument('--log_dir', type=str, help='Path with policy and generator_stats')
     parser.add_argument('--segment_size', type=int, help='Size of the segments to average the stats.')
