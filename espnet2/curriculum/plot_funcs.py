@@ -139,7 +139,7 @@ if __name__=="__main__":
     parser.add_argument('--out_dir', type=str, help='Path to save plots.')
     parser.add_argument('--log_dir', type=str, help='Path with policy and generator_stats')
     parser.add_argument('--segment_size', type=int, help='Size of the segments to average the stats.')
-    parser.add_argument('--exp', type=str, help='Name of the experiment to use as a title for the plots')
+    parser.add_argument('--exp', type=str, required=True, help='Name of the experiment to use as a title for the plots')
     parser.add_argument('--K', type=int, help='Number of tasks for curriculum.')
 
     args = parser.parse_args()
