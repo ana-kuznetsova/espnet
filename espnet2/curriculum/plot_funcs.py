@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 import re
+import argparse
 
 def read_stats(res_dir):
     d = os.path.join(res_dir, 'generator_stats')
@@ -129,3 +130,11 @@ def plot_cum_reward(stats, out_dir):
     plt.ylabel("Reward")
     plt.title("Cummulative reward")
     plt.savefig(os.path.join(out_dir, 'cum_reward.png'), dpi=700)
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_arguments('--algo', type=str, help='Name of Curriculum Learning Algorithm.')
+    parser.add_arguments('--all', type=bool, default=False, help='Make all possible plots common for all algos')
+    parser.add_arguments('--out_dir', type=str, help='Path to save plots.')
+    parser.add_arguments('--log_dir', type=str, help='Path with policy and generator_stats')
+    parser.add_arguments('--segment_size', type=int, help='Size of the segments to average the stats.')
