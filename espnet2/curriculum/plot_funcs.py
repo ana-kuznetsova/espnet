@@ -106,3 +106,26 @@ def plot_plicy(policy,  title, out_dir, segment_size=1000):
     plt.ylabel('Policy Values')
     plt.title('Policy')
     plt.savefig(os.path.join(out_dir, 'policy.png'), dpi=700)
+
+
+def calc_cumulative_r(stats):
+    rewards = []
+
+    for line in stats:
+        r = float(line.split(',')[-1])
+        rewards.append(r)
+        
+    cummulative = []
+    prev = 0
+    for r in rewards:
+        prev+=r
+        cummulative.append(prev)
+    return cummulative
+
+def plot_cum_reward(stats, out_dir):
+    rewards = calc_cumulative_r(stats)
+    plt.plot(rewards)
+    plt.xlabel("Timesteps")
+    plt.ylabel("Reward")
+    plt.title("Cummulative reward")
+    plt.savefig(os.path.join(out_dir, 'cum_reward.png'), dpi=700)
