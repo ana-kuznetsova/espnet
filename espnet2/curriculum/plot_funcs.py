@@ -147,8 +147,6 @@ if __name__=="__main__":
     stats = read_stats(args.log_dir)
     policy = read_policy(args.log_dir, args.K)
 
-    print(len(stats), len(policy))
-
     if args.all==True:
         plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size, args.K)
         plot_reward(stats, "Rewards: "+ args.exp, args.out_dir, args.segment_size)
@@ -159,6 +157,6 @@ if __name__=="__main__":
         elif args.plot=='creward':
             plot_cum_reward(stats, out_dir)
         elif args.plot=='policy':
-            plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size)
+            plot_policy(policy, "Policy: "+ args.exp, args.out_dir, args.segment_size, args.K)
         elif args.plot=='task':
-            plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size)
+            plot_task_count(stats, "Task count: "+ args.exp, args.out_dir, args.segment_size, args.K)
