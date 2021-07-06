@@ -51,6 +51,10 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
         r_stats['max'][i] = max(s)
         r_stats['avg'][i] = float(np.array(s).mean())
         
+    gains = [float(line.split(',')[-2]) for line in stats]
+    segs = make_segments(gains, segment_size)
+    progress_gains = [float(np.array(s).mean()) for s in segs]
+        
     labels = ['0k'] + [str((i+1))+'k' for i in range(len(r_stats['min']))]
     ticks = [i for i in range(len(r_stats['min']))][::20]
     plt.figure(figsize=(10, 4))
@@ -58,6 +62,7 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
     plt.plot(r_stats['min'], label='min r')
     plt.plot(r_stats['max'], label='max r')
     plt.plot(r_stats['avg'], label='avg r')
+    plt.plot(progress_gains, label='avg gain')
     plt.xticks(ticks, labels[::20])
     plt.legend()
     plt.xlabel('Timesteps')
