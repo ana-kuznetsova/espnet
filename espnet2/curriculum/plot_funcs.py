@@ -95,13 +95,13 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
 
 def plot_policy(policy,  title, out_dir, segment_size=1000):
     plt.figure(figsize=(10, 4))
-    dim = p[:,0][::1000].shape[0]
+    dim = policy[:,0][::1000].shape[0]
 
     labels = [str((i+1))+'k' for i in range(dim)][::20]
     ticks = [i for i in range(dim)][::20]
 
     for i in range(k):
-        plt.plot(p[:,i][::1000], label='k='+str(i))
+        plt.plot(policy[:,i][::1000], label='k='+str(i))
         plt.xticks(ticks, labels)
         plt.legend()
     plt.xlabel('Timesteps')
