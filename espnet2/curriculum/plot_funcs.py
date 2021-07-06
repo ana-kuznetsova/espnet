@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import re
 import argparse
+import numpy as np
 
 def read_stats(res_dir):
     d = os.path.join(res_dir, 'generator_stats')
