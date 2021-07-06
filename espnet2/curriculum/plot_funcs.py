@@ -1,10 +1,30 @@
 import matplotlib.pyplot as plt
 import os
+import re
 
 def read_stats(res_dir):
     d = os.path.join(res_dir, 'generator_stats')
     with open(d, 'r') as fo:
         return fo.readlines()
+
+def read_policy_one_dir(res_dir):
+    d = os.path.join(res_dir, 'policy')
+    with open(d, 'r') as fo:
+        p = fo.readlines()
+    return get_policy(p)
+
+def str2arr(s):
+    s = re.findall(r'\d+\.\d+', s)
+    return np.array([float(i) for i in s])
+    
+def get_policy(p, k):   
+    policy = []
+    for line in p:
+        line = line.split(',')[-1].strip()
+        line = str2arr(line)
+        if len(line)==k:
+            policy.append(line)
+    return np.asarray(policy)
     
 def make_segments(arr, size=1000):
     segments = []
@@ -69,3 +89,20 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
     plt.ylabel('Reward')
     plt.title(title)
     plt.savefig(os.path.join(out_dir, 'reward.png'), dpi=700)
+
+
+def plot_plicy(policy,  title, out_dir, segment_size=1000):
+    plt.figure(figsize=(10, 4))
+    dim = p[:,0][::1000].shape[0]
+
+    labels = [str((i+1))+'k' for i in range(dim)][::20]
+    ticks = [i for i in range(dim)][::20]
+
+    for i in range(k):
+        plt.plot(p[:,i][::1000], label='k='+str(i))
+        plt.xticks(ticks, labels)
+        plt.legend()
+    plt.xlabel('Timesteps')
+    plt.ylabel('Policy Values')
+    plt.title('Policy')
+    plt.savefig(os.path.join(out_dir, 'policy.png'), dpi=700)
