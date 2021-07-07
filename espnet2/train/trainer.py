@@ -280,6 +280,9 @@ class Trainer:
         if trainer_options.use_curriculum==True:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
+            restore_curriculum = False
+            if start_epoch > 1:
+                restore_curriculum = True
         
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
@@ -287,8 +290,7 @@ class Trainer:
                                             init='zeros',
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
-                                            #restore=trainer_options.resume
-                                            restore=False
+                                            restore=restore_curriculum,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -296,6 +298,7 @@ class Trainer:
                                        hist_size=1000,
                                        log_dir=str(output_dir),
                                        lmbda=5,
+                                       restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                 )
 
@@ -754,13 +757,12 @@ class Trainer:
                 if iterator_stop > 0:
                     break
 
-            batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
-
             if no_forward_run:
                 all_steps_are_invalid = False
                 continue
 
             if options.gain_type=='PG':
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 #Calculate loss before training on the batch
                 loss1 = cls.get_loss_eval_mode(
                         batch,
@@ -812,8 +814,9 @@ class Trainer:
                         _, batch_eval = tasks[k].next()
                     #Add else condition for exhaust task option
 
+                batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
                 loss1 = cls.get_loss_eval_mode(
-                            batch_eval,
+                            batch_eval_gpu,
                             model,
                             scaler,
                             ngpu,
@@ -822,8 +825,9 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
+                del batch_eval_gpu
 
-
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
                                             model,
@@ -841,6 +845,7 @@ class Trainer:
                                             start_time
                                             )
 
+                batch_eval = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
                 loss2 = cls.get_loss_eval_mode(
                             batch_eval,
                             model,
@@ -852,14 +857,16 @@ class Trainer:
                             accum_grad 
                             )
 
-            curriculum_generator.update_policy(
-                iepoch=iepoch,
-                iiter=iiter, 
-                k=k, 
-                losses=(loss1.item(), loss2.item()), 
-                batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                algo=options.curriculum_algo
-            )
+            if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                    curriculum_generator.update_policy(
+                        iepoch=iepoch,
+                        iiter=iiter,
+                        num_iters=iterator.num_iters_per_epoch, 
+                        k=k, 
+                        losses=(loss1.item(), loss2.item()), 
+                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                        algo=options.curriculum_algo
+                    )
 
             start_time = time.perf_counter()
 
@@ -1096,6 +1103,7 @@ class Trainer:
                     reporter.tensorboard_add_scalar(summary_writer, -log_interval)
                 if use_wandb:
                     reporter.wandb_log()
+            torch.cuda.empty_cache()            
 
 
         else:

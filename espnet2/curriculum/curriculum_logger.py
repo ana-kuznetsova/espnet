@@ -15,14 +15,14 @@ class CurriculumLogger:
 
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
-        '''
-        if not restore:
+        
+        if restore==False:
             if os.path.exists(self.stats_path):
                 os.remove(self.stats_path)
             if os.path.exists(self.policy_path):
                 os.remove(self.policy_path)
-                #os.remove(os.path.join(self.log_dir, "generator_state.npy"))
-        '''
+                os.remove(os.path.join(self.log_dir, "generator_state.npy"))
+        
 
     def log(self, iepoch, iiter, **kwargs):
         '''
@@ -72,13 +72,21 @@ class CurriculumLogger:
                         }
             wandb.log(log_dict)
         #### Save state ####
-        #if self.algo=='exp3s':
-        self.save_state(iepoch=iepoch, 
-                        iiter=iiter, 
-                        algo=self.algo, 
-                        policy=kwargs["policy"], 
-                        weights=kwargs["weights"],
-                        reward_hist=kwargs['reward_hist'])
+        if (self.algo=='exp3s') and (iiter==kwargs["num_iters"]):
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
+                            policy=kwargs["policy"], 
+                            weights=kwargs["weights"],
+                            reward_hist=kwargs['reward_hist'])
+        elif (self.algo=='swucb') and (iiter==kwargs["num_iters"]):
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
+                            policy=kwargs["policy"], 
+                            arm_rewards=kwargs["arm_rewards"],
+                            reward_hist=kwargs['reward_hist'])
+
 
     def save_state(self, **kwargs):
         state_dict = {}

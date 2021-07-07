@@ -36,7 +36,8 @@ def main(args):
             f.write(ID + " " + str(task) + "\n")
             i += 1
             if i % nPerTask == 0:
-                task += 1
+                if task < int(nTasks) - 1:
+                    task += 1
         
 if __name__=='__main__':
     parser = argparse.ArgumentParser()

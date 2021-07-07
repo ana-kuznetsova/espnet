@@ -9,7 +9,7 @@ from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
-    def update_policy(self, iiter, k, progress_gain, batch_lens):
+    def update_policy(self, iepoch, iiter, num_iters, k, progress_gain, batch_lens):
         raise NotImplementedError
         
     @abstractmethod
@@ -63,6 +63,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
+        self.tasks_exhausted = [False]*self.K
+        
         if not restore:
             self.reward_hist = np.array([])
             if init=='ones':
@@ -77,7 +79,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 )
             #Initialize policy with uniform probs
             self.policy = np.array([1/self.K for i in range(self.K)])
-            self.tasks_exhausted = [False]*self.K
         else:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
@@ -113,7 +114,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
     def update_policy(self, 
                      iepoch, 
-                     iiter, 
+                     iiter,
+                     num_iters, 
                      k, 
                      losses,
                      batch_lens,
@@ -133,16 +135,21 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
-        self.update_weights(iiter, k, reward)
+        self.update_weights(iepoch, iiter, num_iters, k, reward)
 
-        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
+        tmp1 = (np.exp(self.weights)+0.000001)/np.sum(np.exp(self.weights)+0.000001)
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        self.policy = pi
+        #logging.info(f"Pi before update:{self.policy}")
+        #logging.info(f"Weights: {self.weights}")
+        if not any([np.isnan(p) for p in pi]):
+            self.policy = pi
+        #logging.info(f"Pi after update:{self.policy}")
 
         ###Logging
         self.logger.log(iepoch, 
                         iiter, 
-                        k=k, 
+                        k=k,
+                        num_iters=num_iters, 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy, 
@@ -178,11 +185,16 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_hist = np.append(self.reward_hist, float(progress_gain))
         return reward
 
-    def update_weights(self, iiter, k, reward):
-        if iiter==1:
-            t = 0.99
-        else:
+    def update_weights(self, iepoch, iiter, num_iters, k, reward):
+        if iepoch==1:
+            #if iiter==1:
+            #    t = 0.99
+            #else:
             t = iiter
+        else:
+            prev_iters = (iepoch-1)*num_iters
+            t = prev_iters + iiter
+        #logging.info(f"Iter t {t}")
         alpha_t = t**-1
         r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
@@ -191,7 +203,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         for i, w in enumerate(self.weights):
             tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
             sum_ind = [j for j in range(len(self.weights)) if j!=i]
-            tmp2 = (alpha_t/(self.K-1))*np.exp(self.weights[sum_ind]).sum()
+            tmp2 = (alpha_t/(self.K-1))*(np.exp(self.weights[sum_ind]).sum())
+            #logging.info(f"Tmp1 {tmp1}, TMP2 {tmp2}, sum {tmp1+tmp2}")
             w_i = np.log(tmp1+tmp2)
             self.weights[i] = w_i
             
@@ -208,6 +221,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  slow_k=3, 
                  gain_type='PG',
                  env_mode=None,
+                 restore=False,
                  log_config=True):
         """
         K        : no. of tasks.
@@ -234,9 +248,26 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.slow_k = slow_k
 
         self.exhausted = [False for i in range(self.K)]
-        self.reward_history = np.array([])
-        self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
-        self.policy = np.zeros(self.K)
+
+        if restore:
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+                                      allow_pickle=True).item()
+
+            self.policy = generator_state["policy"]
+            self.arm_rewards = generator_state["arm_rewards"]
+            self.reward_hist = generator_state["reward_hist"]
+
+            iepoch = generator_state["iepoch"]
+            iiter = generator_state["iiter"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
+            
+        else:
+            self.reward_history = np.array([])
+            self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
+            self.policy = np.zeros(self.K)
         try:
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
@@ -342,7 +373,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iiter, iepoch, k, algo, losses, batch_lens):
+    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -352,8 +383,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        #logging.info(f"Task_ind:{k}") 
-        win_size = self.calc_sliding_window(iiter)
+        #logging.info(f"Task_ind:{k}")
+        total_iters = iiter
+        if iepoch > 1:
+            prev_iters = (iepoch-1)*num_iters
+            total_iters += prev_iters
+
+        win_size = self.calc_sliding_window(total_iters)
         #print("SW size:", win_size)
         #logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0])
@@ -378,20 +414,23 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         mean_rewards = self.get_mean_reward(win_size)
         #print("Mean rewards:", mean_rewards)
         #logging.info(f"Mean rewards: {mean_rewards}")
-        arm_cost = self.get_arm_cost(iiter, win_size)
+        arm_cost = self.get_arm_cost(total_iters, win_size)
         #print("Arm costs:", arm_cost)
         #logging.info(f"Arm costs: {arm_cost}")
         self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
         #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
-                        iepoch=iepoch, 
+                        iepoch=iepoch,
+                        num_iters=num_iters, 
                         k=k, 
                         algo=algo, 
                         losses=(loss_before, loss_after), 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy,
+                        reward_hist=self.reward_history,
+                        arm_rewards=self.arm_rewards,
                         log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
