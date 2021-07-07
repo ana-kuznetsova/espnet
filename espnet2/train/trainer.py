@@ -330,7 +330,7 @@ class Trainer:
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
 
-                    if trainer_options.gain_type='VPG':
+                    if trainer_options.gain_type=='VPG':
 
                         all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
