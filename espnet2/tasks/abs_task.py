@@ -1464,11 +1464,14 @@ class AbsTask(ABC):
 ############### Curriculum Learning ###################
         elif args.iterator_type == "curriculum":
             if mode=='train':
-                return cls.build_curriculum_iter_factory(
-                    args=args,
-                    iter_options=iter_options,
-                    mode=mode,
-                )
+                return [cls.build_curriculum_iter_factory(
+                        args=args,
+                        iter_options=iter_options,
+                        mode=mode), 
+                        cls.build_curriculum_iter_factory(
+                        args=args,
+                        iter_options=iter_options,
+                        mode='valid')]
             else:
                 return cls.build_sequence_iter_factory(
                 args=args,

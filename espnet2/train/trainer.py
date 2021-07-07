@@ -357,7 +357,7 @@ class Trainer:
                         distributed_option=distributed_option,
                     )
 
-
+            
             with reporter.observe("valid") as sub_reporter:
                 cls.validate_one_epoch(
                     model=dp_model,
@@ -689,7 +689,9 @@ class Trainer:
         cls,
         model: torch.nn.Module,
         iterator: CurriculumIterFactory,
+        val_iterator: CurriculumIterFactory,
         tasks: List,
+        val_tasks: List,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
