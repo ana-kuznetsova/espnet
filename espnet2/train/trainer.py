@@ -751,6 +751,10 @@ class Trainer:
         start_time = time.perf_counter()
         tasks = [iter(it) for it in tasks]
 
+        if options.gain_type=='VPG':
+            valid_iterator = kwargs["valid_iterator"]
+            valid_tasks = [iter(it) for it in kwargs["valid_tasks"]]
+
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted()
@@ -827,6 +831,60 @@ class Trainer:
                         iiter,
                         accum_grad 
                         )
+            
+            elif options.gain_type=='VPG':
+                try:
+                    _, batch_valid = valid_tasks[k].next()
+                except StopIteration as e:
+                    if options.refill_task==True:
+                        logging.info(f"Refilled task {k}.")
+                        valid_tasks.pop(k)
+                        valid_tasks.insert(k, iter(valid_iterator.refill_task(k)))
+                        _, batch_valid = valid_tasks[k].next()
+
+                batch_valid_gpu = to_device(batch_valid, "cuda" if ngpu > 0 else "cpu")
+                loss1 = cls.get_loss_eval_mode(
+                            batch_valid_gpu,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+                del batch_valid_gpu
+
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
+
+                batch_valid = to_device(batch_valid, "cuda" if ngpu > 0 else "cpu")
+                loss2 = cls.get_loss_eval_mode(
+                            batch_valid,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+
             elif options.gain_type=='SPG':
                 #Sample second batch for evaluation
                 try:
