@@ -280,6 +280,9 @@ class Trainer:
         if trainer_options.use_curriculum==True:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
+            train_iter_factory = train_iter_factory[0]
+            valid_iter_factory = train_iter_factory[1]
+
             restore_curriculum = False
             if start_epoch > 1:
                 restore_curriculum = True
@@ -329,7 +332,10 @@ class Trainer:
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
 
-                    all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
+                    if trainer_options.gain_type='VPG':
+                        valid_tasks = valid_iter_factory.build_iter(iepoch)
+
+                        all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
@@ -342,7 +348,25 @@ class Trainer:
                             options=trainer_options,
                             distributed_option=distributed_option,
                             iepoch=iepoch,
+                            valid_iterator=valid_iter_factory,
+                            valid_tasks=valid_tasks,
                         )
+                    else:    
+
+                        all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
+                                model=dp_model,
+                                optimizers=optimizers,
+                                schedulers=schedulers,
+                                iterator=train_iter_factory,
+                                tasks=tasks,
+                                reporter=sub_reporter,
+                                curriculum_generator=curriculum_generator,   
+                                scaler=scaler,
+                                summary_writer=summary_writer,
+                                options=trainer_options,
+                                distributed_option=distributed_option,
+                                iepoch=iepoch,
+                            )
 
                 else:
                     all_steps_are_invalid = cls.train_one_epoch(
@@ -689,9 +713,7 @@ class Trainer:
         cls,
         model: torch.nn.Module,
         iterator: CurriculumIterFactory,
-        val_iterator: CurriculumIterFactory,
         tasks: List,
-        val_tasks: List,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         scaler: Optional[GradScaler],
@@ -700,7 +722,8 @@ class Trainer:
         summary_writer: Optional[SummaryWriter],
         options: TrainerOptions,
         distributed_option: DistributedOption,
-        iepoch: int
+        iepoch: int,
+        **kwargs,
     ) -> bool:
         assert check_argument_types()
 
