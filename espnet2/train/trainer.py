@@ -964,7 +964,7 @@ class Trainer:
         logging.info(f"Finished epoch {iepoch}")
 
         if options.gain_type=="VPG":
-            return all_steps_are_invalid, iterator, valid_iterator, tasks, valid_tasks
+            return all_steps_are_invalid, iterator, valid_iterator, tasks
         return all_steps_are_invalid, iterator, tasks
 
     @classmethod
