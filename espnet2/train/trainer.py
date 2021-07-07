@@ -335,7 +335,7 @@ class Trainer:
                     if trainer_options.gain_type='VPG':
                         valid_tasks = valid_iter_factory.build_iter(iepoch)
 
-                        all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
+                        all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks, valid_tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
