@@ -877,6 +877,7 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
+                logging.info(f"VPG losses: {loss1}, {loss2}")
 
             elif options.gain_type=='SPG':
                 #Sample second batch for evaluation
