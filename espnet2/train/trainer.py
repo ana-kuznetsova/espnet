@@ -280,8 +280,6 @@ class Trainer:
         if trainer_options.use_curriculum==True:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
-            train_iter_factory = train_iter_factory[0]
-            valid_iter_factory = train_iter_factory[1]
 
             restore_curriculum = False
             if start_epoch > 1:
@@ -333,9 +331,8 @@ class Trainer:
                         tasks = train_iter_factory.build_iter(iepoch)
 
                     if trainer_options.gain_type='VPG':
-                        valid_tasks = valid_iter_factory.build_iter(iepoch)
 
-                        all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks, valid_tasks = cls.train_one_epoch_curriculum(
+                        all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
@@ -349,7 +346,6 @@ class Trainer:
                             distributed_option=distributed_option,
                             iepoch=iepoch,
                             valid_iterator=valid_iter_factory,
-                            valid_tasks=valid_tasks,
                         )
                     else:    
 
@@ -753,7 +749,7 @@ class Trainer:
 
         if options.gain_type=='VPG':
             valid_iterator = kwargs["valid_iterator"]
-            valid_tasks = [iter(it) for it in kwargs["valid_tasks"]]
+            valid_task = iter(valid_iterator.build_iter(iepoch))
 
         iiter = 0
         #Reset the exausted tasks list
@@ -834,13 +830,10 @@ class Trainer:
             
             elif options.gain_type=='VPG':
                 try:
-                    _, batch_valid = valid_tasks[k].next()
+                    _, batch_valid = valid_task.next()
                 except StopIteration as e:
-                    if options.refill_task==True:
-                        logging.info(f"Refilled task {k}.")
-                        valid_tasks.pop(k)
-                        valid_tasks.insert(k, iter(valid_iterator.refill_task(k)))
-                        _, batch_valid = valid_tasks[k].next()
+                    valid_task = iter(valid_iterator.build_iter(iepoch))
+                    _, batch_valid = valid_task.next()
 
                 batch_valid_gpu = to_device(batch_valid, "cuda" if ngpu > 0 else "cpu")
                 loss1 = cls.get_loss_eval_mode(
