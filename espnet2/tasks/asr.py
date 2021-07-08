@@ -192,6 +192,7 @@ class ASRTask(AbsTask):
             help="The keyword arguments for model class.",
         )
 
+        '''
         group.add_argument(
             "--use_curriculum",
             type=str,
@@ -222,6 +223,7 @@ class ASRTask(AbsTask):
                             type=str,
                             default='curriculum_log',
                             help="Directory to store curriculum generator logs")
+        '''
 
         group = parser.add_argument_group(description="Preprocess related")
         group.add_argument(
