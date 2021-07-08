@@ -14,6 +14,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
+from typing import Any
 
 import humanfriendly
 import numpy as np
@@ -99,7 +100,7 @@ class TrainerOptions:
     val_scheduler_criterion: Sequence[str]
     unused_parameters: bool
     use_curriculum: bool
-    curriculum_algo: Sequence[str]
+    curriculum_algo: Any
     gain_type: Sequence[str]
     refill_task: bool
     gen_log_dir: Sequence[str]
