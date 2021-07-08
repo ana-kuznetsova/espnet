@@ -695,6 +695,13 @@ class AbsTask(ABC):
                            default=1,
                            help="Number of tasks for curriculum learning")
 
+        group.add_argument(
+            "--curriculum_algo",
+            type=str,
+            default=None,
+            help="Curriculum learning algorithm",
+        )
+
         group = parser.add_argument_group("Sequence iterator related")
         _batch_type_help = ""
         for key, value in BATCH_TYPES.items():
