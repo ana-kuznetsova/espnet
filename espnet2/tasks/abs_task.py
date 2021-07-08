@@ -702,6 +702,13 @@ class AbsTask(ABC):
             help="Curriculum learning algorithm",
         )
 
+        group.add_argument(
+            "--gain_type",
+            type=str,
+            default=None,
+            help="PG, SPG, VPG",
+        )
+
         group = parser.add_argument_group("Sequence iterator related")
         _batch_type_help = ""
         for key, value in BATCH_TYPES.items():

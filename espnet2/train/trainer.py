@@ -101,7 +101,7 @@ class TrainerOptions:
     unused_parameters: bool
     use_curriculum: bool
     curriculum_algo: Any
-    gain_type: Sequence[str]
+    gain_type: Any
     refill_task: bool
     gen_log_dir: Sequence[str]
     wandb_model_log_interval: int
