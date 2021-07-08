@@ -709,6 +709,13 @@ class AbsTask(ABC):
             help="PG, SPG, VPG",
         )
 
+        group.add_argument(
+            "--refill_task",
+            type=bool,
+            default=True,
+            help="Refill or exhaust task",
+        )
+
         group = parser.add_argument_group("Sequence iterator related")
         _batch_type_help = ""
         for key, value in BATCH_TYPES.items():
