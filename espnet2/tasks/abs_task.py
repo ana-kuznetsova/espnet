@@ -710,6 +710,13 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--gen_log_dir",
+            type=str,
+            default=None,
+            help="Where to log generator stats",
+        )
+
+        group.add_argument(
             "--refill_task",
             type=bool,
             default=True,
