@@ -683,6 +683,13 @@ class AbsTask(ABC):
             default=None,
             help="Path to task assignment file",
         )
+
+        group.add_argument(
+            "--use_curriculum",
+            type=bool,
+            default=False,
+            help="True/False",
+        )
         group.add_argument("--K", 
                            type=int, 
                            default=1,
