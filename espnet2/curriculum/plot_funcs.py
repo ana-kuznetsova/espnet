@@ -106,7 +106,7 @@ def plot_policy(policy,  title, out_dir, segment_size=1000, k=1):
         plt.legend()
     plt.xlabel('Timesteps')
     plt.ylabel('Policy Values')
-    plt.title('Policy')
+    plt.title(title)
     plt.savefig(os.path.join(out_dir, 'policy.png'), dpi=700)
 
 

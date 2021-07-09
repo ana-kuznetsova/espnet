@@ -14,6 +14,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
+from typing import Any
 
 import humanfriendly
 import numpy as np
@@ -99,10 +100,10 @@ class TrainerOptions:
     val_scheduler_criterion: Sequence[str]
     unused_parameters: bool
     use_curriculum: bool
-    curriculum_algo: Sequence[str]
-    gain_type: Sequence[str]
-    refill_task: bool
-    gen_log_dir: Sequence[str]
+    curriculum_algo: Any
+    gain_type: Any
+    refill_task: Any
+    gen_log_dir: Any
     wandb_model_log_interval: int
 
 
@@ -280,6 +281,7 @@ class Trainer:
         if trainer_options.use_curriculum==True:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
+
             restore_curriculum = False
             if start_epoch > 1:
                 restore_curriculum = True
@@ -329,7 +331,9 @@ class Trainer:
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
 
-                    all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
+                    if trainer_options.gain_type=='VPG':
+
+                        all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks = cls.train_one_epoch_curriculum(
                             model=dp_model,
                             optimizers=optimizers,
                             schedulers=schedulers,
@@ -342,7 +346,24 @@ class Trainer:
                             options=trainer_options,
                             distributed_option=distributed_option,
                             iepoch=iepoch,
+                            valid_iterator=valid_iter_factory,
                         )
+                    else:    
+
+                        all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
+                                model=dp_model,
+                                optimizers=optimizers,
+                                schedulers=schedulers,
+                                iterator=train_iter_factory,
+                                tasks=tasks,
+                                reporter=sub_reporter,
+                                curriculum_generator=curriculum_generator,   
+                                scaler=scaler,
+                                summary_writer=summary_writer,
+                                options=trainer_options,
+                                distributed_option=distributed_option,
+                                iepoch=iepoch,
+                            )
 
                 else:
                     all_steps_are_invalid = cls.train_one_epoch(
@@ -357,7 +378,7 @@ class Trainer:
                         distributed_option=distributed_option,
                     )
 
-
+            
             with reporter.observe("valid") as sub_reporter:
                 cls.validate_one_epoch(
                     model=dp_model,
@@ -698,7 +719,8 @@ class Trainer:
         summary_writer: Optional[SummaryWriter],
         options: TrainerOptions,
         distributed_option: DistributedOption,
-        iepoch: int
+        iepoch: int,
+        **kwargs,
     ) -> bool:
         assert check_argument_types()
 
@@ -725,6 +747,10 @@ class Trainer:
 
         start_time = time.perf_counter()
         tasks = [iter(it) for it in tasks]
+
+        if options.gain_type=='VPG':
+            valid_iterator = kwargs["valid_iterator"]
+            valid_task = iter(valid_iterator.build_iter(iepoch))
 
         iiter = 0
         #Reset the exausted tasks list
@@ -802,6 +828,57 @@ class Trainer:
                         iiter,
                         accum_grad 
                         )
+            
+            elif options.gain_type=='VPG':
+                try:
+                    _, batch_valid = valid_task.next()
+                except StopIteration as e:
+                    valid_task = iter(valid_iterator.build_iter(iepoch))
+                    _, batch_valid = valid_task.next()
+
+                batch_valid_gpu = to_device(batch_valid, "cuda" if ngpu > 0 else "cpu")
+                loss1 = cls.get_loss_eval_mode(
+                            batch_valid_gpu,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+                del batch_valid_gpu
+
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
+
+                batch_valid = to_device(batch_valid, "cuda" if ngpu > 0 else "cpu")
+                loss2 = cls.get_loss_eval_mode(
+                            batch_valid,
+                            model,
+                            scaler,
+                            ngpu,
+                            distributed,
+                            reporter,
+                            iiter,
+                            accum_grad 
+                            )
+
             elif options.gain_type=='SPG':
                 #Sample second batch for evaluation
                 try:
@@ -886,6 +963,9 @@ class Trainer:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
         logging.info(f"Finished epoch {iepoch}")
+
+        if options.gain_type=="VPG":
+            return all_steps_are_invalid, iterator, valid_iterator, tasks
         return all_steps_are_invalid, iterator, tasks
 
     @classmethod
