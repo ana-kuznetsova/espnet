@@ -52,6 +52,23 @@ class NumElementsBatchSampler(AbsSampler):
                     f"keys are mismatched between {s} != {shape_files[0]}"
                 )
 
+        #JD - fix nan grad issue by filtering utterances where the length of the text in tokens
+        # is less than the length of the audio, downsampled by a factor of 4
+        tmp_utt2shapes_0 = dict()
+        tmp_utt2shapes_1 = dict()
+        
+        for k in first_utt2shape:
+            # assuming that the first shape file is speech shape, second is text shape
+            # this order is hard-coded into asr.sh in the TEMPLATE experiment
+            if utt2shapes[1][k][0]+1 < utt2shapes[0][k][0]//5:
+                tmp_utt2shapes_0[k] = utt2shapes[0][k]
+                tmp_utt2shapes_1[k] = utt2shapes[1][k]
+                
+        num_filtered = len(first_utt2shape) - len(tmp_utt2shapes_0)
+        print("filtered " + str(num_filtered) + " utterances out of " + str(len(first_utt2shape)), flush=True)
+        utt2shapes = [tmp_utt2shapes_0, tmp_utt2shapes_1]
+        first_utt2shape = tmp_utt2shapes_0
+
         # Sort samples in ascending order
         # (shape order should be like (Length, Dim))
         keys = sorted(first_utt2shape, key=lambda k: first_utt2shape[k][0])

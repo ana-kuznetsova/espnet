@@ -137,10 +137,10 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
 
-        tmp1 = (np.exp(self.weights)+0.000001)/np.sum(np.exp(self.weights)+0.000001)
+        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
         pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
         #logging.info(f"Pi before update:{self.policy}")
-        #logging.info(f"Weights: {self.weights}")
+        #logging.info(f"Weights: {iiter}, {self.weights}")
         if not any([np.isnan(p) for p in pi]):
             self.policy = pi
         #logging.info(f"Pi after update:{self.policy}")
@@ -236,7 +236,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
-        self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb")
+        self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb", restore=restore)
         self.env_mode = env_mode
         self.lmbda = lmbda
         self.gamma = gamma
@@ -257,12 +257,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
             self.policy = generator_state["policy"]
             self.arm_rewards = generator_state["arm_rewards"]
-            self.reward_hist = generator_state["reward_hist"]
-
+            self.reward_history = generator_state["reward_hist"]
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
-            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
+            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
             
         else:
             self.reward_history = np.array([])
