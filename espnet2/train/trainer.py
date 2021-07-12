@@ -774,8 +774,13 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-            
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            # For pretraining select task from a uniform distribution
+            if (options.start_curriculum != None) and (iepoch < options.start_curriculum):
+                arr = np.arange(curriculum_generator.K)
+                probs = np.ones(curriculum_generator.K)/len(arr)
+                k = int(np.random.choice(arr, size=1, p=probs))
+            else:
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
                 _, batch = tasks[k].next()
