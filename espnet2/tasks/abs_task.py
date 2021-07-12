@@ -716,6 +716,11 @@ class AbsTask(ABC):
             help="Where to log generator stats",
         )
 
+        group.add_argument("--start_curriculum",
+                           type=int,
+                           default=None,
+                           help='Number of epcochs to pretrain before starting curriculum')
+
         group.add_argument(
             "--refill_task",
             type=bool,

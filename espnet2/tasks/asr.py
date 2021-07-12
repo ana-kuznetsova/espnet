@@ -192,39 +192,6 @@ class ASRTask(AbsTask):
             help="The keyword arguments for model class.",
         )
 
-        '''
-        group.add_argument(
-            "--use_curriculum",
-            type=str,
-            default=False,
-            help="Use curriculum learning algorithms.",
-        )
-
-        group.add_argument(
-            "--curriculum_algo",
-            type=str,
-            default="exp3s",
-            help="MAB algorithm to use for curriculum learning",
-        )
-
-        group.add_argument(
-            "--gain_type",
-            type=str,
-            default="PG",
-            help="Loss-based gain for Curriculum Learning. Prediction Gain (PG) or Self-Prediction Gain (SPG)",
-        )
-
-        group.add_argument("--refill_task", 
-                           type=bool, 
-                           default=1,
-                           help="Refill task after the task is exhausted")
-
-        group.add_argument("--gen_log_dir",
-                            type=str,
-                            default='curriculum_log',
-                            help="Directory to store curriculum generator logs")
-        '''
-
         group = parser.add_argument_group(description="Preprocess related")
         group.add_argument(
             "--use_preprocessor",

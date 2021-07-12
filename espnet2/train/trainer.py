@@ -101,9 +101,10 @@ class TrainerOptions:
     unused_parameters: bool
     use_curriculum: bool
     curriculum_algo: Any
-    gain_type: Any
-    refill_task: Any
-    gen_log_dir: Any
+    gain_type: Optional[str]
+    refill_task: Optional[bool]
+    gen_log_dir: Optional[str]
+    start_curriculum: Optional[int]
     wandb_model_log_interval: int
 
 
