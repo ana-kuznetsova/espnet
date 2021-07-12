@@ -440,6 +440,21 @@ class Trainer:
                     output_dir / "checkpoint.pth",
                 )
 
+                if iepoch%5==0:
+                    torch.save(
+                    {
+                        "model": model.state_dict(),
+                        "reporter": reporter.state_dict(),
+                        "optimizers": [o.state_dict() for o in optimizers],
+                        "schedulers": [
+                            s.state_dict() if s is not None else None
+                            for s in schedulers
+                        ],
+                        "scaler": scaler.state_dict() if scaler is not None else None,
+                    },
+                    output_dir / "checkpoint_"+str(iepoch)+".pth",
+                )
+
                 # 5. Save and log the model and update the link to the best model
                 torch.save(model.state_dict(), output_dir / f"{iepoch}epoch.pth")
 
@@ -759,7 +774,7 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-
+            
             k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
