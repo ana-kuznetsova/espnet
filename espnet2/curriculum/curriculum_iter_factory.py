@@ -14,6 +14,33 @@ from espnet2.iterators.abs_iter_factory import AbsIterFactory
 from espnet2.samplers.abs_sampler import AbsSampler
 from espnet2.curriculum.curriculum_sampler import CurriculumSampler
 
+from torch.utils.data.dataloader import default_collate
+
+
+class TaskDataLoader:
+
+    def __init__(
+        self,
+        dataset,
+        batch_sampler,
+        collate_fn = default_collate,
+    ):
+        self.dataset = dataset
+        self.batch_sampler = batch_sampler
+        self.collate_fn = collate_fn
+        self.batch_iter = iter(batch_sampler)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return len(self.batch_sampler)
+
+    def __next__(self):
+        batch = next(self.batch_iter)
+        return self.collate_fn([self.dataset[i] for i in batch])
+
+    next = __next__
 
 
 class CurriculumIterFactory(AbsIterFactory):
@@ -56,30 +83,24 @@ class CurriculumIterFactory(AbsIterFactory):
         for i in range(len(self.sampler)):
             random.shuffle(self.sampler[i])
             self.loaders.append(
-                DataLoader(
-                    dataset=self.dataset,
-                    batch_sampler=self.sampler[i],
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    **kwargs,
-                )
-            )
-        #self.loaders = deepcopy(loaders)
+               TaskDataLoader(
+                   dataset=self.dataset,
+                   batch_sampler=self.sampler[i],
+                   **kwargs,
+               )
+           )
         return self.loaders
 
     def refill_task(self, k):
-        #self.loaders[k] = deepcopy(refill)
         if self.collate_fn is not None:
             kwargs = dict(collate_fn=self.collate_fn)
         else:
             kwargs = {}
 
         random.shuffle(self.sampler[k])
-        self.loaders[k] = DataLoader(
+        self.loaders[k] = TaskDataLoader(
             dataset=self.dataset,
-            batch_sampler=self.sampler[k],
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
+            batch_sampler=self.sampler[i],
             **kwargs,
         )
         

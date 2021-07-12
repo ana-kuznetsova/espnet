@@ -64,14 +64,15 @@ class CurriculumSampler(AbsSampler):
         tasks = load_num_sequence_text(task_file, loader_type="text_int")
 
         first_utt2shape = utt2shapes[0]
+        first_keys = set(first_utt2shape)
         for s, d in zip(shape_files, utt2shapes):
-            if set(d) != set(first_utt2shape):
+            if set(d) != first_keys:
                 raise RuntimeError(
                     f"keys are mismatched between {s} != {shape_files[0]}"
                 )
         
         #Check if keys match in task file and shape files
-        if set(tasks) != set(first_utt2shape):
+        if set(tasks) != first_keys:
             raise RuntimeError(
                 f"keys are mismatched between {shape_files[0]} != {self.task_file}"
             )
@@ -80,8 +81,7 @@ class CurriculumSampler(AbsSampler):
         for id in tasks:
             task_keys[tasks[id][0]].append(id)
             
-        # Sort samples in descending order
-        sorted_task_keys = [sorted(t, key=lambda k: first_utt2shape[k][0]) for t in task_keys]
+        sorted_task_keys = task_keys
 
         if len(first_utt2shape) == 0:
             raise RuntimeError(f"0 lines found: {shape_files[0]}")
@@ -150,32 +150,12 @@ class CurriculumSampler(AbsSampler):
             for key in keys:
                 minibatch_keys.append(key)
                 if len(minibatch_keys) == bs:
-                    if sort_in_batch == "descending":
-                        minibatch_keys.reverse()
-                    elif sort_in_batch == "ascending":
-                        # Key are already sorted in ascending
-                        pass
-                    else:
-                        raise ValueError(
-                            "sort_in_batch must be ascending"
-                            f" or descending: {sort_in_batch}"
-                        )
-
                     batch_list.append(tuple(minibatch_keys))
                     minibatch_keys = []
                     try:
                         bs = next(iter_bs)
                     except StopIteration:
                         break
-
-            if sort_batch == "ascending":
-                pass
-            elif sort_batch == "descending":
-                batch_list.reverse()
-            else:
-                raise ValueError(
-                    f"sort_batch must be ascending or descending: {sort_batch}"
-                )
 
             self.task_batch_lists.append(batch_list)
 
