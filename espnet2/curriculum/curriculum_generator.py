@@ -220,7 +220,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  env_mode=None,
                  restore=False,
                  log_config=True, 
-                 kwargs**):
+                 **kwargs):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
