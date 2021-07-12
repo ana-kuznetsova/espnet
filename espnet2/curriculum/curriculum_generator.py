@@ -136,14 +136,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
-
-        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
-        pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        #logging.info(f"Pi before update:{self.policy}")
-        #logging.info(f"Weights: {iiter}, {self.weights}")
-        if not any([np.isnan(p) for p in pi]):
-            self.policy = pi
-        #logging.info(f"Pi after update:{self.policy}")
+        if iepoch > kwargs['start_curriculum']:
+            tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
+            pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
+            if not any([np.isnan(p) for p in pi]):
+                self.policy = pi
 
         ###Logging
         self.logger.log(iepoch, 

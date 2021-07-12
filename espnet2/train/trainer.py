@@ -775,7 +775,7 @@ class Trainer:
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
             # For pretraining select task from a uniform distribution
-            if (options.start_curriculum != None) and (iepoch < options.start_curriculum):
+            if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))
@@ -953,22 +953,19 @@ class Trainer:
                             reporter,
                             iiter,
                             accum_grad 
-                            )
-            if (options.start_curriculum is not None) and (iepoch < options.start_curriculum):
-                pass
-                logging.info(f"Not updating policy, pretraining stage at epoch {iepoch}")
-            else:
-                logging.info(f"Preatraining finished, update policy.")
-                if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                        curriculum_generator.update_policy(
-                            iepoch=iepoch,
-                            iiter=iiter,
-                            num_iters=iterator.num_iters_per_epoch, 
-                            k=k, 
-                            losses=(loss1.item(), loss2.item()), 
-                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                            algo=options.curriculum_algo
-                        )
+                            ) 
+
+            if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                curriculum_generator.update_policy(
+                    iepoch=iepoch,
+                    iiter=iiter,
+                    num_iters=iterator.num_iters_per_epoch, 
+                    k=k, 
+                    losses=(loss1.item(), loss2.item()), 
+                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                    algo=options.curriculum_algo,
+                    start_curriculum=options.start_curriculum,
+                )
             
 
 

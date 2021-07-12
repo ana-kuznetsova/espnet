@@ -718,7 +718,7 @@ class AbsTask(ABC):
 
         group.add_argument("--start_curriculum",
                            type=int,
-                           default=None,
+                           default=0,
                            help='Number of epcochs to pretrain before starting curriculum')
 
         group.add_argument(
