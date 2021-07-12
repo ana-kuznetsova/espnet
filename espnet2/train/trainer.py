@@ -956,7 +956,9 @@ class Trainer:
                             )
             if (options.start_curriculum is not None) and (iepoch < options.start_curriculum):
                 pass
+                logging.info(f"Not updating policy, pretraining stage at epoch {iepoch}")
             else:
+                logging.info(f"Preatraining finished, update policy.")
                  if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                         curriculum_generator.update_policy(
                             iepoch=iepoch,
