@@ -82,7 +82,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+kwargs['iepoch']+".npy"),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
