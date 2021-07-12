@@ -84,5 +84,5 @@ class CurriculumLogger:
     def save_state(self, **kwargs):
         state_dict = kwargs
         np.save(os.path.join(self.log_dir, 
-                             "generator_state_", 
-                              str(state_dict['iepoch']), ".npy"), state_dict)
+                             "generator_state_"+ 
+                              str(state_dict['iepoch'])+".npy"), state_dict)
