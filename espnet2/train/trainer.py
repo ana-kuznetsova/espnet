@@ -294,7 +294,7 @@ class Trainer:
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
-                                            iepoch=iepoch,
+                                            iepoch=start_epoch,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -304,7 +304,7 @@ class Trainer:
                                        lmbda=5,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
-                                       iepoch=iepoch,
+                                       iepoch=start_epoch,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
