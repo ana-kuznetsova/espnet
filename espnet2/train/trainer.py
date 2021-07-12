@@ -954,17 +954,22 @@ class Trainer:
                             iiter,
                             accum_grad 
                             )
+            #if not (options.start_curriculum != None) and (iepoch < options.start_curriculum):
+            if ((options.start_curriculum is not None) and (iepoch < options.start_curriculum)):
+                pass
+            else:
+                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                        curriculum_generator.update_policy(
+                            iepoch=iepoch,
+                            iiter=iiter,
+                            num_iters=iterator.num_iters_per_epoch, 
+                            k=k, 
+                            losses=(loss1.item(), loss2.item()), 
+                            batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                            algo=options.curriculum_algo
+                        )
+            
 
-            if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                    curriculum_generator.update_policy(
-                        iepoch=iepoch,
-                        iiter=iiter,
-                        num_iters=iterator.num_iters_per_epoch, 
-                        k=k, 
-                        losses=(loss1.item(), loss2.item()), 
-                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                        algo=options.curriculum_algo
-                    )
 
             start_time = time.perf_counter()
 
