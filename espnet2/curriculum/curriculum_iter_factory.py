@@ -100,7 +100,7 @@ class CurriculumIterFactory(AbsIterFactory):
         random.shuffle(self.sampler[k])
         self.loaders[k] = TaskDataLoader(
             dataset=self.dataset,
-            batch_sampler=self.sampler[i],
+            batch_sampler=self.sampler[k],
             **kwargs,
         )
         
