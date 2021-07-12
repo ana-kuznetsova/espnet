@@ -955,7 +955,7 @@ class Trainer:
                             accum_grad 
                             )
             #if not (options.start_curriculum != None) and (iepoch < options.start_curriculum):
-            if ((options.start_curriculum is not None) and (iepoch < options.start_curriculum)):
+            if (options.start_curriculum is not None) and (iepoch < options.start_curriculum):
                 pass
             else:
                  if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
