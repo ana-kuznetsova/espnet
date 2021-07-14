@@ -949,7 +949,8 @@ class Trainer:
                         k=k, 
                         losses=(loss1.item(), loss2.item()), 
                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                        algo=options.curriculum_algo
+                        algo=options.curriculum_algo,
+                        start_curriculum=options.start_curriculum,
                     )
 
             start_time = time.perf_counter()
