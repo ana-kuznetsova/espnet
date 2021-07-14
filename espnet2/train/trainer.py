@@ -246,7 +246,7 @@ class Trainer:
 
             logging.info(f"Loaded general checkpoint.")
 
-        start_epoch = reporter.get_epoch() + 1
+        start_epoch = reporter.get_epoch() #+ 1
         if start_epoch == trainer_options.max_epoch + 1:
             logging.warning(
                 f"The training has already reached at max_epoch: {start_epoch}"
