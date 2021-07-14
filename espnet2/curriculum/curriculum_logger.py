@@ -15,13 +15,17 @@ class CurriculumLogger:
 
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
-        
+        self.weights_path = os.path.join(self.log_dir, "weights")
+
         if restore==False:
             if os.path.exists(self.stats_path):
                 os.remove(self.stats_path)
             if os.path.exists(self.policy_path):
                 os.remove(self.policy_path)
+            if os.path.exists(os.path.join(self.log_dir, "generator_state.npy")):
                 os.remove(os.path.join(self.log_dir, "generator_state.npy"))
+            if os.path.exists(self.weights_path):
+                os.remove(self.weights_path)
         
 
     def log(self, iepoch, iiter, **kwargs):
@@ -36,7 +40,6 @@ class CurriculumLogger:
             log_wandb (bool): logging stats to wandb
             algo (str): EXP3S or UCB
         '''
-        '''
         with open(self.stats_path, 'a+') as fo:
                 stats = ', '.join([str(iepoch), str(iiter),\
                                 str(kwargs["k"]), str(kwargs["losses"][0]), \
@@ -48,21 +51,13 @@ class CurriculumLogger:
         with open(self.policy_path, 'a+') as fo:
             #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
-        '''
-        with open(self.stats_path, 'a+') as fo:
-            stats = {'iiter':str(iiter),
-                    'iepoch':str(iepoch),
-                    'k':kwargs['k'],
-                    'losses':str(kwargs['losses'][0])+' '+str(kwargs['losses'][0]),
-                    'progress_gain':str(kwargs['progress_gain']),
-                    'reward':str(kwargs['reward'])}
-            fo.write(json.dumps(stats) + '\n')
 
-        with open(self.policy_path, 'a+') as fo:
-            policy = {'iiter':str(iiter),
-                    'iepoch':str(iepoch),
-                    'policy':np.array2string(kwargs["policy"], formatter={'float':lambda x: hex(x)})}
-            fo.write(json.dumps(policy) + '\n')
+        try:
+            with open(self.weights_path, 'a+') as fo:
+                #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
+                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
+        except:
+            pass
 
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
