@@ -710,6 +710,13 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--start_curriculum",
+            type=int,
+            default=0,
+            help="Epochs of pretraining before the curriculum starts.",
+        )
+
+        group.add_argument(
             "--gen_log_dir",
             type=str,
             default=None,
