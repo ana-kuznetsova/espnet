@@ -138,7 +138,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         
         #Only update if pretraining phase is finished
         if iepoch > kwargs['start_curriculum']:
-            logging.info(f"Start updating policy at epoch {iepoch}")
             self.update_weights(iepoch, iiter, num_iters, k, reward)
 
             tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
@@ -146,8 +145,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             
             if not any([np.isnan(p) for p in pi]):
                 self.policy = pi
-        else:
-            logging.info(f"Policy not updated until epoch {kwargs['start_curriculum']}")
 
         ###Logging
         self.logger.log(iepoch, 
