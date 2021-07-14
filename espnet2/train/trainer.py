@@ -219,6 +219,22 @@ class Trainer:
         else:
             scaler = None
 
+        #Handle curriculum pretraining
+        if (trainer_options.start_curriculum > 0) and (output_dir / f"checkpoint_{trainer_options.start_curriculum}.pth").exists():
+            cls.resume(
+                checkpoint=output_dir / f"checkpoint_{trainer_options.start_curriculum}.pth",
+                model=model,
+                optimizers=optimizers,
+                schedulers=schedulers,
+                reporter=reporter,
+                scaler=scaler,
+                ngpu=trainer_options.ngpu,
+            )
+
+
+
+
+
         if trainer_options.resume and (output_dir / "checkpoint.pth").exists():
             cls.resume(
                 checkpoint=output_dir / "checkpoint.pth",
@@ -294,6 +310,7 @@ class Trainer:
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
+                                            iepoch=start_epoch,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -303,6 +320,7 @@ class Trainer:
                                        lmbda=5,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
+                                       iepoch=start_epoch,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
