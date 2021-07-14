@@ -230,7 +230,6 @@ class Trainer:
                 scaler=scaler,
                 ngpu=trainer_options.ngpu,
             )
-            logging.info(f"Loaded curriculum ckpt {trainer_options.start_curriculum}")
 
 
         if trainer_options.resume and (output_dir / "checkpoint.pth").exists() and (trainer_options.start_curriculum==0):
@@ -243,8 +242,6 @@ class Trainer:
                 scaler=scaler,
                 ngpu=trainer_options.ngpu,
             )
-
-            logging.info(f"Loaded general checkpoint.")
         
         start_epoch = reporter.get_epoch() + 1
 

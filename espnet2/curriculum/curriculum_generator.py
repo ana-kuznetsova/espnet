@@ -252,8 +252,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
         if restore:
             self.log_dir = log_dir
-            #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+            generator_file = "generator_state_"+str(kwargs['iepoch']-1)+".npy"
+            generator_state = np.load(os.path.join(self.log_dir, generator_file),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
@@ -383,43 +383,33 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        #logging.info(f"Task_ind:{k}")
         total_iters = iiter
         if iepoch > 1:
             prev_iters = (iepoch-1)*num_iters
             total_iters += prev_iters
 
         win_size = self.calc_sliding_window(total_iters)
-        #print("SW size:", win_size)
-        #logging.info(f"SW size: {win_size}")
         loss_before = float(losses[0])
         loss_after = float(losses[1])
-        #logging.info(f"loss_after: {loss_after}, loss_before:{loss_before}")
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
-        #print("Reward:", reward)
-        #logging.info(f"Reward: {reward}")
-        self.update_arm_reward(k, reward)
-        if len(self.reward_history) <= self.K:
-            return
-        #Change mode based on reward history.
-        std_dev = np.std(self.reward_history)
-        if std_dev < self.threshold:
-            self.env_mode = 0
-            try:
-                self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
-            except AssertionError as e:
-                raise ValueError("Pass the required parameters. {}".format(e))
+        if iepoch > kwargs['start_curriculum']:
+            self.update_arm_reward(k, reward)
+            if len(self.reward_history) <= self.K:
+                return
+            #Change mode based on reward history.
+            std_dev = np.std(self.reward_history)
+            if std_dev < self.threshold:
+                self.env_mode = 0
+                try:
+                    self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
+                except AssertionError as e:
+                    raise ValueError("Pass the required parameters. {}".format(e))
 
-        mean_rewards = self.get_mean_reward(win_size)
-        #print("Mean rewards:", mean_rewards)
-        #logging.info(f"Mean rewards: {mean_rewards}")
-        arm_cost = self.get_arm_cost(total_iters, win_size)
-        #print("Arm costs:", arm_cost)
-        #logging.info(f"Arm costs: {arm_cost}")
-        self.policy = mean_rewards + arm_cost
-        #print("Policy:", self.policy)
-        #logging.info(f"Policy: {self.policy}")
+            mean_rewards = self.get_mean_reward(win_size)
+            arm_cost = self.get_arm_cost(total_iters, win_size)
+    
+            self.policy = mean_rewards + arm_cost
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 
