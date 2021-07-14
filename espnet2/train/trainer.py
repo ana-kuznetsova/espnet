@@ -761,7 +761,7 @@ class Trainer:
             iiter+=1
 
             # For pretraining select task from a uniform distribution
-            if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
+            if (options.start_curriculum > 0) and (iepoch <= options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))

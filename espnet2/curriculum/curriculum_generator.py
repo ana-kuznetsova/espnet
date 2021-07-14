@@ -145,7 +145,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             
             if not any([np.isnan(p) for p in pi]):
                 self.policy = pi
-        logging.info(f"Policy not updated until epoch {kwargs['start_curriculum']}")
+        else:
+            logging.info(f"Policy not updated until epoch {kwargs['start_curriculum']}")
 
         ###Logging
         self.logger.log(iepoch, 
