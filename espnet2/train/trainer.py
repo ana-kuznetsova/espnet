@@ -232,10 +232,7 @@ class Trainer:
             )
 
 
-
-
-
-        if trainer_options.resume and (output_dir / "checkpoint.pth").exists():
+        if trainer_options.resume and (output_dir / "checkpoint.pth").exists() and (trainer_options.start_curriculum==0):
             cls.resume(
                 checkpoint=output_dir / "checkpoint.pth",
                 model=model,
