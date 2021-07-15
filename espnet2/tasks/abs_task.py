@@ -683,10 +683,45 @@ class AbsTask(ABC):
             default=None,
             help="Path to task assignment file",
         )
+
+        group.add_argument(
+            "--use_curriculum",
+            type=bool,
+            default=False,
+            help="True/False",
+        )
         group.add_argument("--K", 
                            type=int, 
                            default=1,
                            help="Number of tasks for curriculum learning")
+
+        group.add_argument(
+            "--curriculum_algo",
+            type=str,
+            default=None,
+            help="Curriculum learning algorithm",
+        )
+
+        group.add_argument(
+            "--gain_type",
+            type=str,
+            default=None,
+            help="PG, SPG, VPG",
+        )
+
+        group.add_argument(
+            "--gen_log_dir",
+            type=str,
+            default=None,
+            help="Where to log generator stats",
+        )
+
+        group.add_argument(
+            "--refill_task",
+            type=bool,
+            default=True,
+            help="Refill or exhaust task",
+        )
 
         group = parser.add_argument_group("Sequence iterator related")
         _batch_type_help = ""
@@ -1464,11 +1499,10 @@ class AbsTask(ABC):
 ############### Curriculum Learning ###################
         elif args.iterator_type == "curriculum":
             if mode=='train':
-                return cls.build_curriculum_iter_factory(
-                    args=args,
-                    iter_options=iter_options,
-                    mode=mode,
-                )
+                return  cls.build_curriculum_iter_factory(
+                        args=args,
+                        iter_options=iter_options,
+                        mode=mode)
             else:
                 return cls.build_sequence_iter_factory(
                 args=args,

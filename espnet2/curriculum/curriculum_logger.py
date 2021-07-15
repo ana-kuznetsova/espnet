@@ -14,13 +14,17 @@ class CurriculumLogger:
 
         self.stats_path = os.path.join(self.log_dir, "generator_stats")
         self.policy_path = os.path.join(self.log_dir, "policy")
-        
+        self.weights_path = os.path.join(self.log_dir, "weights")
+
         if restore==False:
             if os.path.exists(self.stats_path):
                 os.remove(self.stats_path)
             if os.path.exists(self.policy_path):
                 os.remove(self.policy_path)
-                #os.remove(os.path.join(self.log_dir, "generator_state.npy"))
+            if os.path.exists(os.path.join(self.log_dir, "generator_state.npy")):
+                os.remove(os.path.join(self.log_dir, "generator_state.npy"))
+            if os.path.exists(self.weights_path):
+                os.remove(self.weights_path)
         
 
     def log(self, iepoch, iiter, **kwargs):
@@ -45,7 +49,14 @@ class CurriculumLogger:
         with open(self.policy_path, 'a+') as fo:
             #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
             fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["policy"])+'\n')
-        
+
+        try:
+            with open(self.weights_path, 'a+') as fo:
+                #fo.write(str(iepoch)+', '+str(iiter)+', '+policy.tostring()+'\n')
+                fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
+        except:
+            pass
+
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
                         "k":kwargs["k"],
