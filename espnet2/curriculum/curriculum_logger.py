@@ -20,7 +20,7 @@ class CurriculumLogger:
                 os.remove(self.stats_path)
             if os.path.exists(self.policy_path):
                 os.remove(self.policy_path)
-                os.remove(os.path.join(self.log_dir, "generator_state.npy"))
+                #os.remove(os.path.join(self.log_dir, "generator_state.npy"))
         
 
     def log(self, iepoch, iiter, **kwargs):
