@@ -708,6 +708,13 @@ class AbsTask(ABC):
             default=None,
             help="PG, SPG, VPG",
         )
+    
+        group.add_argument(
+            "--hist_size",
+            type=int,
+            default=10000,
+            help="length of reward history for exp3s curriculum learning",
+        )
 
         group.add_argument(
             "--gen_log_dir",

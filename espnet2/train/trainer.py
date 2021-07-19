@@ -291,6 +291,7 @@ class Trainer:
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
                                             init='zeros',
+                                            hist_size=trainer_options.hist_size,
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
