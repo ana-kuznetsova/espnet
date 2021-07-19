@@ -102,6 +102,7 @@ class TrainerOptions:
     use_curriculum: bool
     curriculum_algo: Any
     gain_type: Optional[str]
+    hist_size: Optional[int]
     refill_task: Optional[bool]
     gen_log_dir: Optional[str]
     start_curriculum: Optional[int]
