@@ -456,7 +456,7 @@ class Trainer:
                         ],
                         "scaler": scaler.state_dict() if scaler is not None else None,
                     },
-                    output_dir / "checkpoint_"+str(iepoch)+".pth",
+                    output_dir / f"checkpoint_{iepoch}.pth",
                 )
 
                 # 5. Save and log the model and update the link to the best model
