@@ -708,6 +708,13 @@ class AbsTask(ABC):
             default=None,
             help="PG, SPG, VPG",
         )
+    
+        group.add_argument(
+            "--hist_size",
+            type=int,
+            default=10000,
+            help="length of reward history for exp3s curriculum learning",
+        )
 
         group.add_argument(
             "--gen_log_dir",
@@ -715,6 +722,11 @@ class AbsTask(ABC):
             default=None,
             help="Where to log generator stats",
         )
+
+        group.add_argument("--start_curriculum",
+                           type=int,
+                           default=0,
+                           help='Number of epcochs to pretrain before starting curriculum')
 
         group.add_argument(
             "--refill_task",
@@ -1536,18 +1548,32 @@ class AbsTask(ABC):
                 drop_last=False,
                 min_batch_size=1
                 )
-
         logging.info(f"BATCH SAMPLER: {batch_sampler}")
 
-        #batches = batch_sampler.get_tasks()
-        batches = list(batch_sampler)
+        tasks = list(batch_sampler)
 
         logging.info(f"[{mode}] dataset:\n{dataset}")
         logging.info(f"[{mode}] Batch sampler: {batch_sampler}")
 
+        if iter_options.distributed:
+            world_size = torch.distributed.get_world_size()
+            rank = torch.distributed.get_rank()
+            split_tasks = []
+            for batches in tasks:
+                filtered_batches = 0
+                local_batches = []
+                for batch in batches:
+                    if len(batch) < world_size:
+                        filtered_batches += 1
+                        continue
+                    local_batches.append(batch[rank::world_size])
+                logging.warning(f"{filtered_batches} batches less than world size removed")
+                split_tasks.append(local_batches)
+            tasks = split_tasks
+
         return CurriculumIterFactory(
             dataset=dataset,
-            batches=batches,
+            batches=tasks,
             seed=args.seed,
             num_iters_per_epoch=iter_options.num_iters_per_epoch,
             shuffle=iter_options.train,

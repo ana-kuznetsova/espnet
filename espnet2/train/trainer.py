@@ -298,9 +298,11 @@ class Trainer:
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
                                             init='zeros',
+                                            hist_size=trainer_options.hist_size,
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
+                                            iepoch=start_epoch,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -310,6 +312,7 @@ class Trainer:
                                        lmbda=5,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
+                                       iepoch=start_epoch,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
@@ -445,6 +448,21 @@ class Trainer:
                         "scaler": scaler.state_dict() if scaler is not None else None,
                     },
                     output_dir / "checkpoint.pth",
+                )
+
+                if iepoch%5==0:
+                    torch.save(
+                    {
+                        "model": model.state_dict(),
+                        "reporter": reporter.state_dict(),
+                        "optimizers": [o.state_dict() for o in optimizers],
+                        "schedulers": [
+                            s.state_dict() if s is not None else None
+                            for s in schedulers
+                        ],
+                        "scaler": scaler.state_dict() if scaler is not None else None,
+                    },
+                    output_dir / "checkpoint_"+str(iepoch)+".pth",
                 )
 
                 # 5. Save and log the model and update the link to the best model
@@ -766,8 +784,13 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            # For pretraining select task from a uniform distribution
+            if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
+                arr = np.arange(curriculum_generator.K)
+                probs = np.ones(curriculum_generator.K)/len(arr)
+                k = int(np.random.choice(arr, size=1, p=probs))
+            else:
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
                 _, batch = tasks[k].next()
@@ -940,18 +963,21 @@ class Trainer:
                             reporter,
                             iiter,
                             accum_grad 
-                            )
+                            ) 
 
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                    curriculum_generator.update_policy(
-                        iepoch=iepoch,
-                        iiter=iiter,
-                        num_iters=iterator.num_iters_per_epoch, 
-                        k=k, 
-                        losses=(loss1.item(), loss2.item()), 
-                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                        algo=options.curriculum_algo
-                    )
+                curriculum_generator.update_policy(
+                    iepoch=iepoch,
+                    iiter=iiter,
+                    num_iters=iterator.num_iters_per_epoch, 
+                    k=k, 
+                    losses=(loss1.item(), loss2.item()), 
+                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                    algo=options.curriculum_algo,
+                    start_curriculum=options.start_curriculum,
+                )
+            
+
 
             start_time = time.perf_counter()
 

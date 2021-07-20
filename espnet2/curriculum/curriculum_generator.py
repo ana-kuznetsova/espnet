@@ -82,7 +82,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         else:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch'])+".npy"),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
@@ -136,14 +136,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
-
-        tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
-        pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-        #logging.info(f"Pi before update:{self.policy}")
-        #logging.info(f"Weights: {iiter}, {self.weights}")
-        if not any([np.isnan(p) for p in pi]):
-            self.policy = pi
-        #logging.info(f"Pi after update:{self.policy}")
+        if iepoch > kwargs['start_curriculum']:
+            tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
+            pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
+            if not any([np.isnan(p) for p in pi]):
+                self.policy = pi
 
         ###Logging
         self.logger.log(iepoch, 
@@ -222,7 +219,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  gain_type='PG',
                  env_mode=None,
                  restore=False,
-                 log_config=True):
+                 log_config=True, 
+                 **kwargs):
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -252,7 +250,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if restore:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state.npy"),
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch'])+".npy"),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
@@ -400,7 +398,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens):
+    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -444,7 +442,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         arm_cost = self.get_arm_cost(total_iters, win_size)
         #print("Arm costs:", arm_cost)
         #logging.info(f"Arm costs: {arm_cost}")
-        self.policy = mean_rewards + arm_cost
+        if iepoch > kwargs['start_curriculum']:
+            self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
         #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
