@@ -100,12 +100,18 @@ class TrainerOptions:
     val_scheduler_criterion: Sequence[str]
     unused_parameters: bool
     use_curriculum: bool
-    curriculum_algo: Any
+    curriculum_algo: Optional[str]
     gain_type: Optional[str]
-    hist_size: Optional[int]
     refill_task: Optional[bool]
     gen_log_dir: Optional[str]
-    start_curriculum: Optional[int]
+    hist_size: Optional[int]
+    threshold: Optional[float]
+    gamma: Optional[float]
+    lmbda: Optional[float]
+    slow_k: Optional[float]
+    epsilon: Optional[float]
+    eta: Optional[float]
+    beta: Optional[float]
     wandb_model_log_interval: int
 
 
@@ -297,13 +303,19 @@ class Trainer:
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
                                             iepoch=start_epoch,
+                                            epsilon=trainer_options.epsilon,
+                                            eta=trainer_options.eta,
+                                            beta=trainer_options.beta,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
                                        K=train_iter_factory.K,
-                                       hist_size=1000,
+                                       hist_size=trainer_options.hist_size,
                                        log_dir=str(output_dir),
-                                       lmbda=5,
+                                       lmbda=trainer_options.lmbda,
+                                       threshold=trainer_options.threshold,
+                                       gamma=trainer_options.gamma,
+                                       slow_k=trainer_options.slow_k,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
