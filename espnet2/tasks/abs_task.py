@@ -746,6 +746,30 @@ class AbsTask(ABC):
 
 
         group.add_argument(
+            "--epsilon",
+            type=float,
+            default=0,
+            help="Epsilon parameter for EXP3 algorithm",
+        )
+
+        group.add_argument(
+            "--eta",
+            type=float,
+            default=0,
+            help="Eta parameter for EXP3 algorithm",
+        )
+
+        group.add_argument(
+            "--eta",
+            type=float,
+            default=1,
+            help="Eta parameter for EXP3 algorithm",
+        )
+
+
+
+
+        group.add_argument(
             "--gen_log_dir",
             type=str,
             default=None,
