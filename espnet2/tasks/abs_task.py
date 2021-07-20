@@ -717,6 +717,35 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--threshold",
+            type=float,
+            default=0.1,
+            help="STD threshold for SWUCB algorithm",
+        )
+
+        group.add_argument(
+            "--gamma",
+            type=float,
+            default=1,
+            help="Gamma parameter for SWUCB algorithm",
+        )
+
+        group.add_argument(
+            "--lmbda",
+            type=float,
+            default=0,
+            help="Lambda parameter for SWUCB algorithm",
+        )
+
+        group.add_argument(
+            "--slow_k",
+            type=float,
+            default=0,
+            help="Slow_k parameter for SWUCB algorithm to adjust the number of breakpoints.",
+        )
+
+
+        group.add_argument(
             "--gen_log_dir",
             type=str,
             default=None,
