@@ -726,21 +726,21 @@ class AbsTask(ABC):
         group.add_argument(
             "--gamma",
             type=float,
-            default=1,
+            default=0.4,
             help="Gamma parameter for SWUCB algorithm",
         )
 
         group.add_argument(
             "--lmbda",
             type=float,
-            default=0,
+            default=12,
             help="Lambda parameter for SWUCB algorithm",
         )
 
         group.add_argument(
             "--slow_k",
             type=float,
-            default=0,
+            default=3,
             help="Slow_k parameter for SWUCB algorithm to adjust the number of breakpoints.",
         )
 
@@ -748,26 +748,23 @@ class AbsTask(ABC):
         group.add_argument(
             "--epsilon",
             type=float,
-            default=0,
+            default=0.05,
             help="Epsilon parameter for EXP3 algorithm",
         )
 
         group.add_argument(
             "--eta",
             type=float,
-            default=0,
+            default=0.01,
             help="Eta parameter for EXP3 algorithm",
         )
 
         group.add_argument(
-            "--eta",
+            "--beta",
             type=float,
             default=1,
-            help="Eta parameter for EXP3 algorithm",
+            help="Beta parameter for EXP3 algorithm",
         )
-
-
-
 
         group.add_argument(
             "--gen_log_dir",

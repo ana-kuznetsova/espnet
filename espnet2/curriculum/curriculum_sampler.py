@@ -92,7 +92,7 @@ class CurriculumSampler(AbsSampler):
         tasks = tmp_tasks
         
         #Check if keys match in task file and shape files
-        if set(tasks) != first_keys:
+        if set(tasks) != set(first_utt2shape):
             raise RuntimeError(
                 f"keys are mismatched between {shape_files[0]} != {self.task_file}"
             )
