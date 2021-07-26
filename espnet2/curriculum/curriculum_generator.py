@@ -214,7 +214,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  log_dir='swucbstats', 
                  threshold=0.1, 
                  gamma=0.4, 
-                 lmbda=12.0, 
+                 lmbda_fast=12.3,
+                 lmbda_slow=4.3, 
                  slow_k=0.8, 
                  gain_type='PG',
                  env_mode=None,
@@ -236,7 +237,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.threshold = threshold
         self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb", restore=restore)
         self.env_mode = env_mode
-        self.lmbda = lmbda
         self.gamma = gamma
         self.slow_k = slow_k
         self.gain_type = gain_type
@@ -244,6 +244,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.env_mode = 1
         else:
             self.slow_k = slow_k
+
+        if self.env_mode==1:
+            self.lmbda = lmbda_fast
+        else:
+            self.lmbda = lmbda_slow
 
         self.exhausted = [False for i in range(self.K)]
 
