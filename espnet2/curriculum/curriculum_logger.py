@@ -191,7 +191,8 @@ class CurriculumLogger:
                             algo=self.algo, 
                             policy=kwargs["policy"], 
                             arm_rewards=kwargs["arm_rewards"],
-                            reward_hist=kwargs['reward_hist'])
+                            reward_hist=kwargs['reward_hist'],
+                            env_mode=kwargs['env_mode'])
 
 
     def save_state(self, **kwargs):
