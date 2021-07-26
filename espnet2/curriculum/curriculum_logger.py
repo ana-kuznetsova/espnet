@@ -161,7 +161,7 @@ class CurriculumLogger:
                      }
             fo.write(json.dumps(policy)+'\n')
 
-        if kwargs["weights"]:
+        if "weights" in kwargs:
             with open(self.weights_path, 'a+') as fo:
                 weights = {'iepoch':iepoch,
                            'iiter':iiter,
