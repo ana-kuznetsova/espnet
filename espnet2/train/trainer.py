@@ -485,11 +485,7 @@ class Trainer:
                         ],
                         "scaler": scaler.state_dict() if scaler is not None else None,
                     },
-<<<<<<< HEAD
-                    output_dir / f"checkpoint_{iepoch}.pth"
-=======
                     output_dir / f"checkpoint_{iepoch}.pth",
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                 )
 
                 # 5. Save and log the model and update the link to the best model
@@ -811,14 +807,8 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-<<<<<<< HEAD
-
-            # For pretraining select task from a uniform distribution
-            if (options.start_curriculum > 0) and (iepoch <= options.start_curriculum):
-=======
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                 arr = np.arange(curriculum_generator.K)
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))
@@ -999,18 +989,6 @@ class Trainer:
                             ) 
 
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-<<<<<<< HEAD
-                    curriculum_generator.update_policy(
-                        iepoch=iepoch,
-                        iiter=iiter,
-                        num_iters=iterator.num_iters_per_epoch, 
-                        k=k, 
-                        losses=(loss1.item(), loss2.item()), 
-                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                        algo=options.curriculum_algo,
-                        start_curriculum=options.start_curriculum,
-                    )
-=======
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
@@ -1023,7 +1001,6 @@ class Trainer:
                 )
             
 
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
 
             start_time = time.perf_counter()
 
