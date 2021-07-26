@@ -3,6 +3,7 @@ import os
 import re
 import argparse
 import numpy as np
+import json
 
 def read_stats(res_dir):
     d = os.path.join(res_dir, 'generator_stats')
