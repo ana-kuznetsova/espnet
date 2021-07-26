@@ -157,7 +157,7 @@ class CurriculumLogger:
         with open(self.policy_path, 'a+') as fo:
             policy = {'iepoch':iepoch,
                       'iiter':iiter,
-                      'policy':kwargs["policy"]
+                      'policy':str(kwargs["policy"])
                      }
             fo.write(json.dumps(policy)+'\n')
 
@@ -165,7 +165,7 @@ class CurriculumLogger:
             with open(self.weights_path, 'a+') as fo:
                 weights = {'iepoch':iepoch,
                            'iiter':iiter,
-                           'weights':kwargs["weights"]
+                           'weights':str(kwargs["weights"])
                           }
                 fo.write(json.dumps(weights)+'\n')
 
