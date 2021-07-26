@@ -22,8 +22,14 @@ def str2arr(s):
 def get_policy(p, k):   
     policy = []
     for line in p:
-        line = line.split(',')[-1].strip()
-        line = str2arr(line)
+        #line = line.split(',')[-1].strip()
+        line = json.loads(line)
+        line = line['policy']
+        line = str2arr(policy)
+        """
+        Better to have an assertion error here. Instead of checking length and adding policy,
+        return an assertion error saying a policy value does not have k values.
+        """
         if len(line)==k:
             policy.append(line)
     return np.asarray(policy)
@@ -39,11 +45,14 @@ def make_segments(arr, size=1000):
 
 
 def plot_task_count(stats, title, out_dir, segment_size=1000, k=1):
-    tasks = [int(line.split(',')[2]) for line in stats]
+    #tasks = [int(line.split(',')[2]) for line in stats]
+    tasks = []
+    for stat in stats:
+        stat = json.loads(stat)
+        tasks.append(int(stat['k']))
+    
     segs = make_segments(tasks, segment_size)
-    
     task_count = {i:[0]*len(segs) for i in range(5)}
-    
     for i, s in enumerate(segs):
         for t in s:
             task_count[t][i]+=1
@@ -65,7 +74,16 @@ def plot_task_count(stats, title, out_dir, segment_size=1000, k=1):
 
 
 def plot_reward(stats, title, out_dir, segment_size=1000):
-    rewards = [float(line.split(',')[-1]) for line in stats]
+    #rewards = [float(line.split(',')[-1]) for line in stats]
+    rewards = []
+    gains = []
+    for stat in stats:
+        stat = json.loads(stat)
+        reward = float(stat['reward'])
+        gain = float(stat['progress_gain'])
+        rewards.append(reward)
+        gains.append(gain)
+
     segs = make_segments(rewards, segment_size)
     r_stats = {i:[0]*len(segs) for i in ['min', 'max', 'avg']}
     for i, s in enumerate(segs):
@@ -73,7 +91,8 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
         r_stats['max'][i] = max(s)
         r_stats['avg'][i] = float(np.array(s).mean())
         
-    gains = [float(line.split(',')[-2]) for line in stats]
+    #gains = [float(line.split(',')[-2]) for line in stats]
+
     segs = make_segments(gains, segment_size)
     progress_gains = [float(np.array(s).mean()) for s in segs]
         
@@ -114,8 +133,9 @@ def calc_cumulative_r(stats):
     rewards = []
 
     for line in stats:
-        r = float(line.split(',')[-1])
-        rewards.append(r)
+        #r = float(line.split(',')[-1])
+        line = json.loads(line)
+        rewards.append(line['reward'])
         
     cummulative = []
     prev = 0

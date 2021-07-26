@@ -134,22 +134,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
         reward = float(self.get_reward(progress_gain, batch_lens))
-<<<<<<< HEAD
-        
-        #Only update if pretraining phase is finished
-        if iepoch > kwargs['start_curriculum']:
-            self.update_weights(iepoch, iiter, num_iters, k, reward)
-
-            tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
-            pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
-            
-=======
         #logging.info(f"Reward: {reward}")
         self.update_weights(iepoch, iiter, num_iters, k, reward)
         if iepoch > kwargs['start_curriculum']:
             tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
             pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
             if not any([np.isnan(p) for p in pi]):
                 self.policy = pi
 
@@ -231,11 +220,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  env_mode=None,
                  restore=False,
                  log_config=True, 
-<<<<<<< HEAD
-                 **kwargs,):
-=======
                  **kwargs):
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
         """
         K        : no. of tasks.
         gamma    : parameter that estimates no. of breakpoints in the course of train 
@@ -264,13 +249,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
         if restore:
             self.log_dir = log_dir
-<<<<<<< HEAD
-            generator_file = "generator_state_"+str(kwargs['iepoch']-1)+".npy"
-            generator_state = np.load(os.path.join(self.log_dir, generator_file),
-=======
             #Read history files, restore the last iter from iepoch
             generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch'])+".npy"),
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
@@ -390,16 +370,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-<<<<<<< HEAD
-    def update_policy(self, 
-                     iepoch, 
-                     iiter, 
-                     num_iters, k, algo, 
-                     losses, batch_lens,
-                     **kwargs):
-=======
     def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -419,25 +390,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
-<<<<<<< HEAD
-        if iepoch > kwargs['start_curriculum']:
-            self.update_arm_reward(k, reward)
-            if len(self.reward_history) <= self.K:
-                return
-            #Change mode based on reward history.
-            std_dev = np.std(self.reward_history)
-            if std_dev < self.threshold:
-                self.env_mode = 0
-                try:
-                    self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
-                except AssertionError as e:
-                    raise ValueError("Pass the required parameters. {}".format(e))
-
-            mean_rewards = self.get_mean_reward(win_size)
-            arm_cost = self.get_arm_cost(total_iters, win_size)
-    
-            self.policy = mean_rewards + arm_cost
-=======
         #print("Reward:", reward)
         #logging.info(f"Reward: {reward}")
         self.update_arm_reward(k, reward)
@@ -462,7 +414,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.policy = mean_rewards + arm_cost
         #print("Policy:", self.policy)
         #logging.info(f"Policy: {self.policy}")
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 
