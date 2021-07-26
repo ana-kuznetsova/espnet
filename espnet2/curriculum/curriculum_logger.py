@@ -131,6 +131,7 @@ class CurriculumLogger:
             log_wandb (bool): logging stats to wandb
             algo (str): EXP3S or UCB
         '''
+        """
         with open(self.stats_path, 'a+') as fo:
                 stats = ', '.join([str(iepoch), str(iiter),\
                                 str(kwargs["k"]), str(kwargs["losses"][0]), \
@@ -146,6 +147,27 @@ class CurriculumLogger:
                 fo.write(str(iepoch)+', '+str(iiter)+', '+str(kwargs["weights"])+'\n')
         except:
             pass
+        """
+        with open(self.stats_path, 'a+') as fo:
+            stats = {k:kwargs[k] for k in kwargs if k not in ['policy', 'weights']}
+            stats['iepoch'] = iepoch
+            stats['iiter'] = iiter
+            fo.write(json.dumps(stats) + '\n')
+
+        with open(self.policy_path, 'a+') as fo:
+            policy = {'iepoch':iepoch,
+                      'iiter':iiter,
+                      'policy':kwargs["policy"]
+                     }
+            fo.write(json.dumps(policy)+'\n')
+
+        if kwargs["weights"]:
+            with open(self.weights_path, 'a+') as fo:
+                weights = {'iepoch':iepoch,
+                           'iiter':iiter,
+                           'weights':kwargs["weights"]
+                          }
+                fo.write(json.dumps(weights)+'\n')
 
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
