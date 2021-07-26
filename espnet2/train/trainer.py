@@ -319,12 +319,9 @@ class Trainer:
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
                                             iepoch=start_epoch,
-<<<<<<< HEAD
-=======
                                             epsilon=trainer_options.epsilon,
                                             eta=trainer_options.eta,
                                             beta=trainer_options.beta,
->>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
