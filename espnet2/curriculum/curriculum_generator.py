@@ -450,8 +450,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Arm costs: {arm_cost}")
         if iepoch > kwargs['start_curriculum']:
             self.policy = mean_rewards + arm_cost
-        #print("Policy:", self.policy)
-        #logging.info(f"Policy: {self.policy}")
+    
+        logging.info(f"Policy: {self.policy}, env_mode: {self.env_mode}")
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 
