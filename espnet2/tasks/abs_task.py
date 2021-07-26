@@ -731,10 +731,17 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
-            "--lmbda",
+            "--lmbda_slow",
             type=float,
-            default=12,
-            help="Lambda parameter for SWUCB algorithm",
+            default=4.3,
+            help="Lambda parameter for SWUCB algorithm (slowly changing env)",
+        )
+
+        group.add_argument(
+            "--lmbda_fast",
+            type=float,
+            default=12.3,
+            help="Lambda parameter for SWUCB algorithm (abruptly changing env)",
         )
 
         group.add_argument(

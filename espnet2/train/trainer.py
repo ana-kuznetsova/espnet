@@ -107,7 +107,8 @@ class TrainerOptions:
     hist_size: Optional[int]
     threshold: Optional[float]
     gamma: Optional[float]
-    lmbda: Optional[float]
+    lmbda_slow: Optional[float]
+    lmbda_fast: Optional[float]
     slow_k: Optional[float]
     epsilon: Optional[float]
     eta: Optional[float]
@@ -313,7 +314,8 @@ class Trainer:
                                        K=train_iter_factory.K,
                                        hist_size=trainer_options.hist_size,
                                        log_dir=str(output_dir),
-                                       lmbda=trainer_options.lmbda,
+                                       lmbda_slow=trainer_options.lmbda_slow,
+                                       lmbda_fast=trainer_options.lmbda_fast,
                                        threshold=trainer_options.threshold,
                                        gamma=trainer_options.gamma,
                                        slow_k=trainer_options.slow_k,
