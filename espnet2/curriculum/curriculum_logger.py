@@ -149,7 +149,7 @@ class CurriculumLogger:
             pass
         """
         with open(self.stats_path, 'a+') as fo:
-            stats = {k:str(kwargs[k]) for k in kwargs if k not in ['policy', 'weights']}
+            stats = {k:str(kwargs[k]) for k in kwargs if k not in ['policy', 'weights','arm_rewards', 'reward_hist']}
             stats['iepoch'] = iepoch
             stats['iiter'] = iiter
             fo.write(json.dumps(stats) + '\n')
