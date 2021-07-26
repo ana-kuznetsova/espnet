@@ -215,7 +215,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  threshold=0.1, 
                  gamma=0.4, 
                  lmbda=12.0, 
-                 slow_k=3, 
+                 slow_k=0.8, 
                  gain_type='PG',
                  env_mode=None,
                  restore=False,
