@@ -25,7 +25,7 @@ def get_policy(p, k):
         #line = line.split(',')[-1].strip()
         line = json.loads(line)
         line = line['policy']
-        line = str2arr(policy)
+        line = str2arr(line)
         """
         Better to have an assertion error here. Instead of checking length and adding policy,
         return an assertion error saying a policy value does not have k values.
