@@ -425,7 +425,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         policy=self.policy,
                         reward_hist=self.reward_history,
                         arm_rewards=self.arm_rewards,
-                        env = self.env_mode,
+                        env_mode = self.env_mode,
                         window_length = win_size,
                         log_wandb=False)
 
