@@ -64,8 +64,9 @@ class CurriculumSampler(AbsSampler):
         tasks = load_num_sequence_text(task_file, loader_type="text_int")
 
         first_utt2shape = utt2shapes[0]
+        first_keys = set(first_utt2shape)
         for s, d in zip(shape_files, utt2shapes):
-            if set(d) != set(first_utt2shape):
+            if set(d) != first_keys:
                 raise RuntimeError(
                     f"keys are mismatched between {s} != {shape_files[0]}"
                 )
@@ -99,10 +100,20 @@ class CurriculumSampler(AbsSampler):
         task_keys = [[] for k in range(self.K)]
         for id in tasks:
             task_keys[tasks[id][0]].append(id)
-            
-        # Sort samples in descending order
-        sorted_task_keys = [sorted(t, key=lambda k: first_utt2shape[k][0]) for t in task_keys]
+        first_utt2shape_tasks = []
+        for task in range(self.K):
+            f_u2s = dict()
+            for key in task_keys[task]:
+                f_u2s[key] = first_utt2shape[key]
+            first_utt2shape_tasks.append(f_u2s)
 
+        sort_task_keys = True
+        if sort_task_keys:
+            sorted_task_keys = [sorted(f_u2s, key=lambda k: f_u2s[k][0]) for f_u2s in first_utt2shape_tasks]
+            print("task keys sorted before minibatch creation", flush=True)
+        else:
+            sorted_task_keys = task_keys
+        
         if len(first_utt2shape) == 0:
             raise RuntimeError(f"0 lines found: {shape_files[0]}")
         if padding:
@@ -170,17 +181,6 @@ class CurriculumSampler(AbsSampler):
             for key in keys:
                 minibatch_keys.append(key)
                 if len(minibatch_keys) == bs:
-                    if sort_in_batch == "descending":
-                        minibatch_keys.reverse()
-                    elif sort_in_batch == "ascending":
-                        # Key are already sorted in ascending
-                        pass
-                    else:
-                        raise ValueError(
-                            "sort_in_batch must be ascending"
-                            f" or descending: {sort_in_batch}"
-                        )
-
                     batch_list.append(tuple(minibatch_keys))
                     minibatch_keys = []
                     try:
@@ -188,21 +188,14 @@ class CurriculumSampler(AbsSampler):
                     except StopIteration:
                         break
 
-            if sort_batch == "ascending":
-                pass
-            elif sort_batch == "descending":
-                batch_list.reverse()
-            else:
-                raise ValueError(
-                    f"sort_batch must be ascending or descending: {sort_batch}"
-                )
-
             self.task_batch_lists.append(batch_list)
+        self.task_batch_nums = [len(bl) for bl in self.task_batch_lists]
 
     def __repr__(self):
         return (
             f"{self.__class__.__name__}("
             f"N-tasks={self.K}, "
+            f"N-batch={self.task_batch_nums}, "
             f"batch_bins={self.batch_bins}, "
             f"sort_in_batch={self.sort_in_batch}, "
             f"sort_batch={self.sort_batch})"

@@ -115,8 +115,8 @@ class CurriculumLogger:
                 os.remove(self.policy_path)
             if os.path.exists(os.path.join(self.log_dir, "generator_state.npy")):
                 os.remove(os.path.join(self.log_dir, "generator_state.npy"))
-            if os.path.exists(self.weights_path):
-                os.remove(self.weights_path)
+            #if os.path.exists(self.weights_path):
+            #    os.remove(self.weights_path)
         
 
     def log(self, iepoch, iiter, **kwargs):
@@ -197,4 +197,6 @@ class CurriculumLogger:
     def save_state(self, **kwargs):
         iepoch = kwargs["iepoch"]
         state_dict = kwargs
-        np.save(os.path.join(self.log_dir, "generator_state_"+str(iepoch)+".npy"), state_dict)
+        np.save(os.path.join(self.log_dir, 
+                             "generator_state_"+ 
+                              str(state_dict['iepoch'])+".npy"), state_dict)

@@ -104,6 +104,14 @@ class TrainerOptions:
     gain_type: Optional[str]
     refill_task: Optional[bool]
     gen_log_dir: Optional[str]
+    hist_size: Optional[int]
+    threshold: Optional[float]
+    gamma: Optional[float]
+    lmbda: Optional[float]
+    slow_k: Optional[float]
+    epsilon: Optional[float]
+    eta: Optional[float]
+    beta: Optional[float]
     start_curriculum: Optional[int]
     wandb_model_log_interval: int
 
@@ -305,17 +313,27 @@ class Trainer:
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
                                             init='zeros',
+                                            hist_size=trainer_options.hist_size,
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
                                             iepoch=start_epoch,
+<<<<<<< HEAD
+=======
+                                            epsilon=trainer_options.epsilon,
+                                            eta=trainer_options.eta,
+                                            beta=trainer_options.beta,
+>>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
                                        K=train_iter_factory.K,
-                                       hist_size=1000,
+                                       hist_size=trainer_options.hist_size,
                                        log_dir=str(output_dir),
-                                       lmbda=5,
+                                       lmbda=trainer_options.lmbda,
+                                       threshold=trainer_options.threshold,
+                                       gamma=trainer_options.gamma,
+                                       slow_k=trainer_options.slow_k,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
@@ -468,7 +486,11 @@ class Trainer:
                         ],
                         "scaler": scaler.state_dict() if scaler is not None else None,
                     },
+<<<<<<< HEAD
                     output_dir / f"checkpoint_{iepoch}.pth"
+=======
+                    output_dir / f"checkpoint_{iepoch}.pth",
+>>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                 )
 
                 # 5. Save and log the model and update the link to the best model
@@ -790,9 +812,14 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
+<<<<<<< HEAD
 
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch <= options.start_curriculum):
+=======
+            # For pretraining select task from a uniform distribution
+            if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
+>>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
                 arr = np.arange(curriculum_generator.K)
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))
@@ -970,9 +997,10 @@ class Trainer:
                             reporter,
                             iiter,
                             accum_grad 
-                            )
+                            ) 
 
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+<<<<<<< HEAD
                     curriculum_generator.update_policy(
                         iepoch=iepoch,
                         iiter=iiter,
@@ -983,6 +1011,20 @@ class Trainer:
                         algo=options.curriculum_algo,
                         start_curriculum=options.start_curriculum,
                     )
+=======
+                curriculum_generator.update_policy(
+                    iepoch=iepoch,
+                    iiter=iiter,
+                    num_iters=iterator.num_iters_per_epoch, 
+                    k=k, 
+                    losses=(loss1.item(), loss2.item()), 
+                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                    algo=options.curriculum_algo,
+                    start_curriculum=options.start_curriculum,
+                )
+            
+
+>>>>>>> 21489f33c2b02702160e28c750640ca77cc90b9d
 
             start_time = time.perf_counter()
 
