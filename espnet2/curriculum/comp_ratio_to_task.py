@@ -33,13 +33,11 @@ def main(args):
         i = 0
         task = 0
         for ID, _ in tqdm(cr_sorted):
+            task = i//nPerTask
             f.write(ID + " " + str(task) + "\n")
             f.write("sp0.9-" + ID + " " + str(task) + "\n")
             f.write("sp1.1-" + ID + " " + str(task) + "\n")    
             i += 1
-            if i % nPerTask == 0:
-                if task < int(nTasks) - 1:
-                    task += 1
         
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
