@@ -33,7 +33,7 @@ def main(args):
         i = 0
         task = 0
         for ID, _ in tqdm(cr_sorted):
-            task = i//nPerTask
+            task = int(i//nPerTask)
             f.write(ID + " " + str(task) + "\n")
             f.write("sp0.9-" + ID + " " + str(task) + "\n")
             f.write("sp1.1-" + ID + " " + str(task) + "\n")    
