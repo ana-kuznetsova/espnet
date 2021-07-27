@@ -42,7 +42,8 @@ def calc_CR(data_dir, res_dir):
     #data = pd.read_csv(train_csv, sep='\t')['path']
     data = pd.read_csv(train_csv, sep='\t')
     with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
-        for ind, row in tqdm(data.iterrows()):
+        for x in tqdm(data.iterrows()):
+            ind, row = x
             fname = row['path']
             client = row['client_id']
             fname_in = os.path.join(p, fname)
