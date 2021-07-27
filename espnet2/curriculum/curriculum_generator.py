@@ -215,7 +215,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  threshold=0.1, 
                  gamma=0.4, 
                  lmbda=12.0, 
-                 slow_k=3, 
+                 slow_k=0.8, 
                  gain_type='PG',
                  env_mode=None,
                  restore=False,
@@ -348,9 +348,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            #logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
-            #print("Count:",self.arm_rewards[arm]['count'])
-            #logging.info(f"Count: {self.arm_rewards[arm]['count']}")
             if arm_count < 1:
                 mean_rewards.append(9999999)
             else:
@@ -390,8 +387,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
-        #print("Reward:", reward)
-        #logging.info(f"Reward: {reward}")
         self.update_arm_reward(k, reward)
         if len(self.reward_history) <= self.K:
             return
@@ -405,15 +400,10 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 raise ValueError("Pass the required parameters. {}".format(e))
 
         mean_rewards = self.get_mean_reward(win_size)
-        #print("Mean rewards:", mean_rewards)
-        #logging.info(f"Mean rewards: {mean_rewards}")
         arm_cost = self.get_arm_cost(total_iters, win_size)
-        #print("Arm costs:", arm_cost)
-        #logging.info(f"Arm costs: {arm_cost}")
+
         if iepoch > kwargs['start_curriculum']:
             self.policy = mean_rewards + arm_cost
-        #print("Policy:", self.policy)
-        #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 

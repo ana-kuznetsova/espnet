@@ -37,12 +37,16 @@ def calc_CR(wav_scp, data_dir, res_dir):
             fo.write(fname+' '+str(CR)+"\n")
 """
 def calc_CR(data_dir, res_dir):
-    p = data_dir+'/clips/'
-    train_csv = data_dir+'/train.tsv'
-    data = pd.read_csv(train_csv, sep='\t')['path']
+    p = os.path.join(data_dir,'clips')
+    train_csv = os.path.join(data_dir, 'train.tsv')
+    #data = pd.read_csv(train_csv, sep='\t')['path']
+    data = pd.read_csv(train_csv, sep='\t')
     with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
-        for fname in tqdm(data):
+        for ind, row in tqdm(data.iterrows()):
+            fname = row['path']
+            client = row['client_id']
             fname_in = os.path.join(p, fname)
+            print(fname_in)
             temp = subprocess.run(["gzip", "-k", fname_in])
             fsize = subprocess.run(["du", fname_in], stdout=subprocess.PIPE, 
                                                 text=True, check=True)
@@ -52,7 +56,10 @@ def calc_CR(data_dir, res_dir):
             fsize_comp = int(fsize_comp.stdout.split('\t')[0])
             temp = subprocess.run(["rm", fname_in+".gz"])
             CR = 1 - (fsize_comp/fsize)
-            fo.write(fname+' '+"["+str(CR)+"]\n")
+            fo.write(client+'-'+fname.split('.')[0]+' '+"["+str(CR)+"]\n")
+            fo.write('sp0.9-'+client+'-'+fname.split('.')[0]+' '+"["+str(CR)+"]\n")
+            fo.write('sp1.1-'+client+'-'+fname.split('.')[0]+' '+"["+str(CR)+"]\n")
+            
 
 
 
