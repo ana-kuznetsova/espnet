@@ -46,7 +46,6 @@ def calc_CR(data_dir, res_dir):
             fname = row['path']
             client = row['client_id']
             fname_in = os.path.join(p, fname)
-            print(fname_in)
             temp = subprocess.run(["gzip", "-k", fname_in])
             fsize = subprocess.run(["du", fname_in], stdout=subprocess.PIPE, 
                                                 text=True, check=True)
