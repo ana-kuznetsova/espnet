@@ -731,10 +731,17 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
-            "--lmbda",
+            "--lmbda_slow",
             type=float,
-            default=12,
-            help="Lambda parameter for SWUCB algorithm",
+            default=4.3,
+            help="Lambda parameter for SWUCB algorithm (slowly changing env)",
+        )
+
+        group.add_argument(
+            "--lmbda_fast",
+            type=float,
+            default=12.3,
+            help="Lambda parameter for SWUCB algorithm (abruptly changing env)",
         )
 
         group.add_argument(
@@ -764,13 +771,6 @@ class AbsTask(ABC):
             type=float,
             default=1,
             help="Beta parameter for EXP3 algorithm",
-        )
-
-        group.add_argument(
-            "--start_curriculum",
-            type=int,
-            default=0,
-            help="Epochs of pretraining before the curriculum starts.",
         )
 
         group.add_argument(

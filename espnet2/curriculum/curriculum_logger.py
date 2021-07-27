@@ -149,7 +149,7 @@ class CurriculumLogger:
             pass
         """
         with open(self.stats_path, 'a+') as fo:
-            stats = {k:kwargs[k] for k in kwargs if k not in ['policy', 'weights']}
+            stats = {k:str(kwargs[k]) for k in kwargs if k not in ['policy', 'weights']}
             stats['iepoch'] = iepoch
             stats['iiter'] = iiter
             fo.write(json.dumps(stats) + '\n')
@@ -157,15 +157,15 @@ class CurriculumLogger:
         with open(self.policy_path, 'a+') as fo:
             policy = {'iepoch':iepoch,
                       'iiter':iiter,
-                      'policy':kwargs["policy"]
+                      'policy':str(kwargs["policy"])
                      }
             fo.write(json.dumps(policy)+'\n')
 
-        if kwargs["weights"]:
+        if "weights" in kwargs:
             with open(self.weights_path, 'a+') as fo:
                 weights = {'iepoch':iepoch,
                            'iiter':iiter,
-                           'weights':kwargs["weights"]
+                           'weights':str(kwargs["weights"])
                           }
                 fo.write(json.dumps(weights)+'\n')
 
@@ -191,7 +191,8 @@ class CurriculumLogger:
                             algo=self.algo, 
                             policy=kwargs["policy"], 
                             arm_rewards=kwargs["arm_rewards"],
-                            reward_hist=kwargs['reward_hist'])
+                            reward_hist=kwargs['reward_hist'],
+                            env_mode=kwargs['env_mode'])
 
 
     def save_state(self, **kwargs):
