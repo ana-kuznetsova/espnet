@@ -969,7 +969,7 @@ class Trainer:
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
-                    ngpu=options.ngpu,
+                    ngpu=options.total_ngpu,
                 )
             
 
