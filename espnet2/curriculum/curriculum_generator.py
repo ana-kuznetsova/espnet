@@ -390,6 +390,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         logging.info(f"Collect updates: {self.collect_updates}")
 
         if len(self.collect_updates) == kwargs['ngpu']:  
+            logging.info(f"Saving logs.")
             total_iters = iiter
             if iepoch > 1:
                 prev_iters = (iepoch-1)*num_iters
@@ -416,7 +417,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
             if iepoch > kwargs['start_curriculum']:
                 self.policy = mean_rewards + arm_cost
-
             self.logger.log(iiter=iiter, 
                             iepoch=iepoch,
                             num_iters=num_iters, 
