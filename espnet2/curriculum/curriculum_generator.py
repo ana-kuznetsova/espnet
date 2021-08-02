@@ -264,7 +264,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
-        #self.collect_updates = []
+        self.collect_updates = []
 
     def restore_curriculum(self, iepoch):
         self.log_dir = log_dir
@@ -385,7 +385,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_before = float(losses[0])
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
-        #self.collect_updates.append(progress_gain)
+        self.collect_updates.append(progress_gain)
 
         #if len(self.collect_updates) == kwargs['ngpu']:  
         total_iters = iiter

@@ -1159,6 +1159,22 @@ class AbsTask(ABC):
             error_queues = []
             processes = []
             mp = torch.multiprocessing.get_context("spawn")
+
+            # Initialize curriculum generators
+        
+            if args.curriculum_algo=='swucb':
+                curriculum_generator = SWUCBCurriculumGenerator(
+                                        K=args.K,
+                                        hist_size=args.hist_size,
+                                        log_dir=args.output_dir,
+                                        lmbda_slow=args.lmbda_slow,
+                                        lmbda_fast=args.lmbda_fast,
+                                        threshold=args.threshold,
+                                        gamma=args.gamma,
+                                        slow_k=args.slow_k,
+                                        gain_type=args.gain_type,
+                )
+
             for i in range(args.ngpu):
                 # Copy args
                 local_args = argparse.Namespace(**vars(args))
@@ -1169,7 +1185,7 @@ class AbsTask(ABC):
                 local_args.total_ngpu = args.ngpu
                 process = mp.Process(
                     target=cls.main_worker,
-                    args=(local_args,),
+                    args=(local_args, curriculum_generator),
                     daemon=False,
                 )
                 process.start()
@@ -1180,8 +1196,10 @@ class AbsTask(ABC):
                 pass
 
     @classmethod
-    def main_worker(cls, args: argparse.Namespace):
+    def main_worker(cls, args: argparse.Namespace, curriculum_generator):
         assert check_argument_types()
+
+        logging.info(f"Got curriculum generator: {curriculum_generator}")
 
         # 0. Init distributed process
         distributed_option = build_dataclass(DistributedOption, args)
@@ -1227,31 +1245,6 @@ class AbsTask(ABC):
             logging.info("Invoking torch.autograd.set_detect_anomaly(True)")
             torch.autograd.set_detect_anomaly(args.detect_anomaly)
         
-        # 1a. Initialize curriculum generators
-        if args.curriculum_algo=='exp3s':
-            curriculum_generator = EXP3SCurriculumGenerator(
-                                        K=args.K,
-                                        init='zeros',
-                                        hist_size=args.hist_size,
-                                        log_dir=args.output_dir,
-                                        gain_type=args.gain_type,
-                                        epsilon=args.epsilon,
-                                        eta=args.eta,
-                                        beta=args.beta,
-                                        )
-        elif args.curriculum_algo=='swucb':
-            curriculum_generator = SWUCBCurriculumGenerator(
-                                    K=args.K,
-                                    hist_size=args.hist_size,
-                                    log_dir=args.output_dir,
-                                    lmbda_slow=args.lmbda_slow,
-                                    lmbda_fast=args.lmbda_fast,
-                                    threshold=args.threshold,
-                                    gamma=args.gamma,
-                                    slow_k=args.slow_k,
-                                    gain_type=args.gain_type,
-            )
-
         # 2. Build model
         model = cls.build_model(args=args)
         if not isinstance(model, AbsESPnetModel):
