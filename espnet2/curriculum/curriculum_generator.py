@@ -380,7 +380,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             3. Calculate arm count.
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
-        """   
+        """
+        logging.info(f"Policy before:{self.policy}")   
         total_iters = iiter
         if iepoch > 1:
             prev_iters = (iepoch-1)*num_iters
@@ -413,8 +414,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         #logging.info(f"Arm costs: {arm_cost}")
         if iepoch > kwargs['start_curriculum']:
             self.policy = mean_rewards + arm_cost
-        #print("Policy:", self.policy)
-        #logging.info(f"Policy: {self.policy}")
+
+        logging.info(f"Policy after: {self.policy}")
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 
