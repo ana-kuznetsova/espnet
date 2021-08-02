@@ -957,7 +957,7 @@ class Trainer:
                             iiter,
                             accum_grad 
                             ) 
-            logging.info(f"ARGS ngpu:{options.ngpu}")                
+            logging.info(f"ARGS ngpu:{options.total_ngpu}")                
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
