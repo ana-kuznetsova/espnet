@@ -1231,7 +1231,7 @@ class AbsTask(ABC):
                                         eta=args.eta,
                                         beta=args.beta,
                                         )
-        elif trainer_options.curriculum_algo=='swucb':
+        elif args.curriculum_algo=='swucb':
             curriculum_generator = SWUCBCurriculumGenerator(
                                     K=args.K,
                                     hist_size=args.hist_size,
