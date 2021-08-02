@@ -1221,28 +1221,28 @@ class AbsTask(ABC):
         
         # 1a. Initialize curriculum generators
         if args.curriculum_algo=='exp3s':
-                curriculum_generator = EXP3SCurriculumGenerator(
-                                            K=args.K,
-                                            init='zeros',
-                                            hist_size=args.hist_size,
-                                            log_dir=args.output_dir,
-                                            gain_type=args.gain_type,
-                                            epsilon=args.epsilon,
-                                            eta=args.eta,
-                                            beta=args.beta,
-                                            )
-            elif trainer_options.curriculum_algo=='swucb':
-                curriculum_generator = SWUCBCurriculumGenerator(
-                                       K=args.K,
-                                       hist_size=args.hist_size,
-                                       log_dir=args.output_dir,
-                                       lmbda_slow=args.lmbda_slow,
-                                       lmbda_fast=args.lmbda_fast,
-                                       threshold=args.threshold,
-                                       gamma=args.gamma,
-                                       slow_k=args.slow_k,
-                                       gain_type=args.gain_type,
-                )
+            curriculum_generator = EXP3SCurriculumGenerator(
+                                        K=args.K,
+                                        init='zeros',
+                                        hist_size=args.hist_size,
+                                        log_dir=args.output_dir,
+                                        gain_type=args.gain_type,
+                                        epsilon=args.epsilon,
+                                        eta=args.eta,
+                                        beta=args.beta,
+                                        )
+        elif trainer_options.curriculum_algo=='swucb':
+            curriculum_generator = SWUCBCurriculumGenerator(
+                                    K=args.K,
+                                    hist_size=args.hist_size,
+                                    log_dir=args.output_dir,
+                                    lmbda_slow=args.lmbda_slow,
+                                    lmbda_fast=args.lmbda_fast,
+                                    threshold=args.threshold,
+                                    gamma=args.gamma,
+                                    slow_k=args.slow_k,
+                                    gain_type=args.gain_type,
+            )
 
         # 2. Build model
         model = cls.build_model(args=args)
