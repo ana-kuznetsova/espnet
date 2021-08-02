@@ -264,7 +264,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
-        self.collect_updates = []
+        #self.collect_updates = []
 
     def restore_curriculum(self, iepoch):
         self.log_dir = log_dir
@@ -385,50 +385,50 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_before = float(losses[0])
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
-        self.collect_updates.append(progress_gain)
+        #self.collect_updates.append(progress_gain)
 
-        if len(self.collect_updates) == kwargs['ngpu']:  
-            total_iters = iiter
-            if iepoch > 1:
-                prev_iters = (iepoch-1)*num_iters
-                total_iters += prev_iters
+        #if len(self.collect_updates) == kwargs['ngpu']:  
+        total_iters = iiter
+        if iepoch > 1:
+            prev_iters = (iepoch-1)*num_iters
+            total_iters += prev_iters
 
-            win_size = self.calc_sliding_window(total_iters)
-            progress_gain = sum(self.collect_updates)/len(collect_updates)
-            self.collect_updates = []
-            reward = self.get_reward(progress_gain, batch_lens)
-            self.update_arm_reward(k, reward)
-            if len(self.reward_history) <= self.K:
-                return
-            #Change mode based on reward history.
-            std_dev = np.std(self.reward_history)
-            if std_dev < self.threshold:
-                self.env_mode = 0
-                try:
-                    self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
-                except AssertionError as e:
-                    raise ValueError("Pass the required parameters. {}".format(e))
+        win_size = self.calc_sliding_window(total_iters)
+        #progress_gain = sum(self.collect_updates)/len(collect_updates)
+        #self.collect_updates = []
+        reward = self.get_reward(progress_gain, batch_lens)
+        self.update_arm_reward(k, reward)
+        if len(self.reward_history) <= self.K:
+            return
+        #Change mode based on reward history.
+        std_dev = np.std(self.reward_history)
+        if std_dev < self.threshold:
+            self.env_mode = 0
+            try:
+                self.set_params(lmbda=self.lmbda, slow_k=self.slow_k)
+            except AssertionError as e:
+                raise ValueError("Pass the required parameters. {}".format(e))
 
-            mean_rewards = self.get_mean_reward(win_size)
-            arm_cost = self.get_arm_cost(total_iters, win_size)
+        mean_rewards = self.get_mean_reward(win_size)
+        arm_cost = self.get_arm_cost(total_iters, win_size)
 
-            if iepoch > kwargs['start_curriculum']:
-                self.policy = mean_rewards + arm_cost
+        if iepoch > kwargs['start_curriculum']:
+            self.policy = mean_rewards + arm_cost
 
-            self.logger.log(iiter=iiter, 
-                            iepoch=iepoch,
-                            num_iters=num_iters, 
-                            k=k, 
-                            algo=algo, 
-                            losses=(loss_before, loss_after), 
-                            progress_gain=progress_gain, 
-                            reward=reward, 
-                            policy=self.policy,
-                            reward_hist=self.reward_history,
-                            arm_rewards=self.arm_rewards,
-                            env_mode = self.env_mode,
-                            window_length = win_size,
-                            log_wandb=False)
+        self.logger.log(iiter=iiter, 
+                        iepoch=iepoch,
+                        num_iters=num_iters, 
+                        k=k, 
+                        algo=algo, 
+                        losses=(loss_before, loss_after), 
+                        progress_gain=progress_gain, 
+                        reward=reward, 
+                        policy=self.policy,
+                        reward_hist=self.reward_history,
+                        arm_rewards=self.arm_rewards,
+                        env_mode = self.env_mode,
+                        window_length = win_size,
+                        log_wandb=False)
 
     def get_next_task_ind(self, **kwargs):
         """
