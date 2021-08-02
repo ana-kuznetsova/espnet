@@ -72,6 +72,8 @@ from espnet2.utils.types import str2triple_str
 from espnet2.utils.types import str_or_int
 from espnet2.utils.types import str_or_none
 from espnet2.utils.yaml_no_alias_safe_dump import yaml_no_alias_safe_dump
+from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
+from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator, SWUCBCurriculumGenerator
 
 if LooseVersion(torch.__version__) >= LooseVersion("1.5.0"):
     from torch.multiprocessing.spawn import ProcessContext
@@ -1216,6 +1218,31 @@ class AbsTask(ABC):
         if args.detect_anomaly:
             logging.info("Invoking torch.autograd.set_detect_anomaly(True)")
             torch.autograd.set_detect_anomaly(args.detect_anomaly)
+        
+        # 1a. Initialize curriculum generators
+        if args.curriculum_algo=='exp3s':
+                curriculum_generator = EXP3SCurriculumGenerator(
+                                            K=args.K,
+                                            init='zeros',
+                                            hist_size=args.hist_size,
+                                            log_dir=args.output_dir,
+                                            gain_type=args.gain_type,
+                                            epsilon=args.epsilon,
+                                            eta=args.eta,
+                                            beta=args.beta,
+                                            )
+            elif trainer_options.curriculum_algo=='swucb':
+                curriculum_generator = SWUCBCurriculumGenerator(
+                                       K=args.K,
+                                       hist_size=args.hist_size,
+                                       log_dir=args.output_dir,
+                                       lmbda_slow=args.lmbda_slow,
+                                       lmbda_fast=args.lmbda_fast,
+                                       threshold=args.threshold,
+                                       gamma=args.gamma,
+                                       slow_k=args.slow_k,
+                                       gain_type=args.gain_type,
+                )
 
         # 2. Build model
         model = cls.build_model(args=args)
@@ -1408,6 +1435,7 @@ class AbsTask(ABC):
             trainer_options = cls.trainer.build_options(args)
             cls.trainer.run(
                 model=model,
+                curriculum_generator=curriculum_generator,
                 optimizers=optimizers,
                 schedulers=schedulers,
                 train_iter_factory=train_iter_factory,

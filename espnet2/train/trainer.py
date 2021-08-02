@@ -187,6 +187,7 @@ class Trainer:
     def run(
         cls,
         model: AbsESPnetModel,
+        curriculum_generator: AbsCurriculumGenerator,
         optimizers: Sequence[torch.optim.Optimizer],
         schedulers: Sequence[Optional[AbsScheduler]],
         train_iter_factory: AbsIterFactory,
@@ -300,44 +301,12 @@ class Trainer:
             summary_writer = None
 
         start_time = time.perf_counter()
-
-        #### Initialise Curriculum Learning Environment #######
-        if trainer_options.use_curriculum==True:
-            #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
-            #wandb.watch(model)
-
-            restore_curriculum = False
-            if start_epoch > 1:
-                restore_curriculum = True
         
-            if trainer_options.curriculum_algo=='exp3s':
-                curriculum_generator = EXP3SCurriculumGenerator(
-                                            K=train_iter_factory.K,
-                                            init='zeros',
-                                            hist_size=trainer_options.hist_size,
-                                            log_dir=str(output_dir),
-                                            gain_type=trainer_options.gain_type,
-                                            restore=restore_curriculum,
-                                            iepoch=start_epoch,
-                                            epsilon=trainer_options.epsilon,
-                                            eta=trainer_options.eta,
-                                            beta=trainer_options.beta,
-                                            )
-            elif trainer_options.curriculum_algo=='swucb':
-                curriculum_generator = SWUCBCurriculumGenerator(
-                                       K=train_iter_factory.K,
-                                       hist_size=trainer_options.hist_size,
-                                       log_dir=str(output_dir),
-                                       lmbda_slow=trainer_options.lmbda_slow,
-                                       lmbda_fast=trainer_options.lmbda_fast,
-                                       threshold=trainer_options.threshold,
-                                       gamma=trainer_options.gamma,
-                                       slow_k=trainer_options.slow_k,
-                                       restore=restore_curriculum,
-                                       gain_type=trainer_options.gain_type,
-                                       iepoch=start_epoch,
-                )
-
+        ## Restore curriculum
+        if trainer_options.use_curriculum==True:
+            if start_epoch > 1:
+                curriculum_generator.restore_curriculum(start_epoch)
+        
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
                 logging.info(
@@ -988,7 +957,7 @@ class Trainer:
                             iiter,
                             accum_grad 
                             ) 
-
+            logging.info(f"ARGS ngpu:{options.ngpu}")                
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
@@ -999,6 +968,7 @@ class Trainer:
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
+                    ngpu=options.ngpu,
                 )
             
 
