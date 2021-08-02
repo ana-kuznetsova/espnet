@@ -776,6 +776,14 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--total_ngpu",
+            type=int,
+            default=0,
+            help="Total number of gpus used for distributed trainng",
+        )
+
+
+        group.add_argument(
             "--gen_log_dir",
             type=str,
             default=None,
@@ -1158,6 +1166,7 @@ class AbsTask(ABC):
                 local_args.local_rank = i
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
+                local_args.total_ngpu = args.ngpu
 
                 process = mp.Process(
                     target=cls.main_worker,
