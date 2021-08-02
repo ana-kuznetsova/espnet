@@ -52,7 +52,7 @@ def calc_CR(data_dir, res_dir):
             fsize_comp = int(fsize_comp.stdout.split('\t')[0])
             temp = subprocess.run(["rm", fname_in+".gz"])
             CR = 1 - (fsize_comp/fsize)
-            fo.write(fname+' '+str(CR)+"\n")
+            fo.write(fname+' '+"["+str(CR)+"]\n")
 
 
 

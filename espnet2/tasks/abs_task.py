@@ -708,6 +708,70 @@ class AbsTask(ABC):
             default=None,
             help="PG, SPG, VPG",
         )
+    
+        group.add_argument(
+            "--hist_size",
+            type=int,
+            default=10000,
+            help="length of reward history for exp3s curriculum learning",
+        )
+
+        group.add_argument(
+            "--threshold",
+            type=float,
+            default=0.1,
+            help="STD threshold for SWUCB algorithm",
+        )
+
+        group.add_argument(
+            "--gamma",
+            type=float,
+            default=0.4,
+            help="Gamma parameter for SWUCB algorithm",
+        )
+
+        group.add_argument(
+            "--lmbda_slow",
+            type=float,
+            default=4.3,
+            help="Lambda parameter for SWUCB algorithm (slowly changing env)",
+        )
+
+        group.add_argument(
+            "--lmbda_fast",
+            type=float,
+            default=12.3,
+            help="Lambda parameter for SWUCB algorithm (abruptly changing env)",
+        )
+
+        group.add_argument(
+            "--slow_k",
+            type=float,
+            default=0.8,
+            help="Slow_k parameter for SWUCB algorithm to adjust the number of breakpoints.",
+        )
+
+
+        group.add_argument(
+            "--epsilon",
+            type=float,
+            default=0.05,
+            help="Epsilon parameter for EXP3 algorithm",
+        )
+
+        group.add_argument(
+            "--eta",
+            type=float,
+            default=0.001,
+            help="Eta parameter for EXP3 algorithm",
+        )
+
+        group.add_argument(
+            "--beta",
+            type=float,
+            default=0,
+            help="Beta parameter for EXP3 algorithm",
+        )
 
         group.add_argument(
             "--gen_log_dir",
@@ -715,6 +779,11 @@ class AbsTask(ABC):
             default=None,
             help="Where to log generator stats",
         )
+
+        group.add_argument("--start_curriculum",
+                           type=int,
+                           default=0,
+                           help='Number of epcochs to pretrain before starting curriculum')
 
         group.add_argument(
             "--refill_task",

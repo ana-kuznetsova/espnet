@@ -92,7 +92,7 @@ class CurriculumSampler(AbsSampler):
         tasks = tmp_tasks
         
         #Check if keys match in task file and shape files
-        if set(tasks) != first_keys:
+        if set(tasks) != set(first_utt2shape):
             raise RuntimeError(
                 f"keys are mismatched between {shape_files[0]} != {self.task_file}"
             )
@@ -100,9 +100,20 @@ class CurriculumSampler(AbsSampler):
         task_keys = [[] for k in range(self.K)]
         for id in tasks:
             task_keys[tasks[id][0]].append(id)
-            
-        sorted_task_keys = task_keys
+        first_utt2shape_tasks = []
+        for task in range(self.K):
+            f_u2s = dict()
+            for key in task_keys[task]:
+                f_u2s[key] = first_utt2shape[key]
+            first_utt2shape_tasks.append(f_u2s)
 
+        sort_task_keys = True
+        if sort_task_keys:
+            sorted_task_keys = [sorted(f_u2s, key=lambda k: f_u2s[k][0]) for f_u2s in first_utt2shape_tasks]
+            print("task keys sorted before minibatch creation", flush=True)
+        else:
+            sorted_task_keys = task_keys
+        
         if len(first_utt2shape) == 0:
             raise RuntimeError(f"0 lines found: {shape_files[0]}")
         if padding:
@@ -178,11 +189,13 @@ class CurriculumSampler(AbsSampler):
                         break
 
             self.task_batch_lists.append(batch_list)
+        self.task_batch_nums = [len(bl) for bl in self.task_batch_lists]
 
     def __repr__(self):
         return (
             f"{self.__class__.__name__}("
             f"N-tasks={self.K}, "
+            f"N-batch={self.task_batch_nums}, "
             f"batch_bins={self.batch_bins}, "
             f"sort_in_batch={self.sort_in_batch}, "
             f"sort_batch={self.sort_batch})"

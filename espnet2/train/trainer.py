@@ -100,10 +100,20 @@ class TrainerOptions:
     val_scheduler_criterion: Sequence[str]
     unused_parameters: bool
     use_curriculum: bool
-    curriculum_algo: Any
-    gain_type: Any
-    refill_task: Any
-    gen_log_dir: Any
+    curriculum_algo: Optional[str]
+    gain_type: Optional[str]
+    refill_task: Optional[bool]
+    gen_log_dir: Optional[str]
+    hist_size: Optional[int]
+    threshold: Optional[float]
+    gamma: Optional[float]
+    lmbda_slow: Optional[float]
+    lmbda_fast: Optional[float]
+    slow_k: Optional[float]
+    epsilon: Optional[float]
+    eta: Optional[float]
+    beta: Optional[float]
+    start_curriculum: Optional[int]
     wandb_model_log_interval: int
 
 
@@ -218,7 +228,20 @@ class Trainer:
         else:
             scaler = None
 
-        if trainer_options.resume and (output_dir / "checkpoint.pth").exists():
+        #Handle curriculum pretraining
+        if (trainer_options.start_curriculum > 0) and (output_dir / f"checkpoint_{trainer_options.start_curriculum}.pth").exists():
+            cls.resume(
+                checkpoint=output_dir / f"checkpoint_{trainer_options.start_curriculum}.pth",
+                model=model,
+                optimizers=optimizers,
+                schedulers=schedulers,
+                reporter=reporter,
+                scaler=scaler,
+                ngpu=trainer_options.ngpu,
+            )
+
+
+        if trainer_options.resume and (output_dir / "checkpoint.pth").exists() and (trainer_options.start_curriculum==0):
             cls.resume(
                 checkpoint=output_dir / "checkpoint.pth",
                 model=model,
@@ -228,8 +251,9 @@ class Trainer:
                 scaler=scaler,
                 ngpu=trainer_options.ngpu,
             )
-
+        
         start_epoch = reporter.get_epoch() + 1
+
         if start_epoch == trainer_options.max_epoch + 1:
             logging.warning(
                 f"The training has already reached at max_epoch: {start_epoch}"
@@ -290,18 +314,28 @@ class Trainer:
                 curriculum_generator = EXP3SCurriculumGenerator(
                                             K=train_iter_factory.K,
                                             init='zeros',
+                                            hist_size=trainer_options.hist_size,
                                             log_dir=str(output_dir),
                                             gain_type=trainer_options.gain_type,
                                             restore=restore_curriculum,
+                                            iepoch=start_epoch,
+                                            epsilon=trainer_options.epsilon,
+                                            eta=trainer_options.eta,
+                                            beta=trainer_options.beta,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
                                        K=train_iter_factory.K,
-                                       hist_size=1000,
+                                       hist_size=trainer_options.hist_size,
                                        log_dir=str(output_dir),
-                                       lmbda=5,
+                                       lmbda_slow=trainer_options.lmbda_slow,
+                                       lmbda_fast=trainer_options.lmbda_fast,
+                                       threshold=trainer_options.threshold,
+                                       gamma=trainer_options.gamma,
+                                       slow_k=trainer_options.slow_k,
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
+                                       iepoch=start_epoch,
                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
@@ -328,7 +362,7 @@ class Trainer:
                 if trainer_options.use_curriculum==True:
 
                     if (iepoch==1) or (trainer_options.resume)==True:
-                        trainer_options.resume==False
+                        trainer_options.resume=False
                         logging.info(f"Loading data for iterators...") 
                         tasks = train_iter_factory.build_iter(iepoch)
 
@@ -438,6 +472,21 @@ class Trainer:
                         "scaler": scaler.state_dict() if scaler is not None else None,
                     },
                     output_dir / "checkpoint.pth",
+                )
+
+                if iepoch%5==0:
+                    torch.save(
+                    {
+                        "model": model.state_dict(),
+                        "reporter": reporter.state_dict(),
+                        "optimizers": [o.state_dict() for o in optimizers],
+                        "schedulers": [
+                            s.state_dict() if s is not None else None
+                            for s in schedulers
+                        ],
+                        "scaler": scaler.state_dict() if scaler is not None else None,
+                    },
+                    output_dir / f"checkpoint_{iepoch}.pth",
                 )
 
                 # 5. Save and log the model and update the link to the best model
@@ -759,8 +808,13 @@ class Trainer:
 
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
-
-            k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            # For pretraining select task from a uniform distribution
+            if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
+                arr = np.arange(curriculum_generator.K)
+                probs = np.ones(curriculum_generator.K)/len(arr)
+                k = int(np.random.choice(arr, size=1, p=probs))
+            else:
+                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
                 _, batch = tasks[k].next()
@@ -933,18 +987,21 @@ class Trainer:
                             reporter,
                             iiter,
                             accum_grad 
-                            )
+                            ) 
 
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                    curriculum_generator.update_policy(
-                        iepoch=iepoch,
-                        iiter=iiter,
-                        num_iters=iterator.num_iters_per_epoch, 
-                        k=k, 
-                        losses=(loss1.item(), loss2.item()), 
-                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                        algo=options.curriculum_algo
-                    )
+                curriculum_generator.update_policy(
+                    iepoch=iepoch,
+                    iiter=iiter,
+                    num_iters=iterator.num_iters_per_epoch, 
+                    k=k, 
+                    losses=(loss1.item(), loss2.item()), 
+                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                    algo=options.curriculum_algo,
+                    start_curriculum=options.start_curriculum,
+                )
+            
+
 
             start_time = time.perf_counter()
 
