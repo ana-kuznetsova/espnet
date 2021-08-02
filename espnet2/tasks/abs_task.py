@@ -1199,8 +1199,6 @@ class AbsTask(ABC):
     def main_worker(cls, args: argparse.Namespace, curriculum_generator):
         assert check_argument_types()
 
-        logging.info(f"Got curriculum generator: {curriculum_generator}")
-
         # 0. Init distributed process
         distributed_option = build_dataclass(DistributedOption, args)
         # Setting distributed_option.dist_rank, etc.
@@ -1235,6 +1233,8 @@ class AbsTask(ABC):
             )
         # Invoking torch.distributed.init_process_group
         distributed_option.init_torch_distributed()
+
+        logging.info(f"Got curriculum generator: {curriculum_generator}")
 
         # 1. Set random-seed
         set_all_random_seed(args.seed)
