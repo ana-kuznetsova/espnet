@@ -397,6 +397,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
             win_size = self.calc_sliding_window(total_iters)
             progress_gain = sum(self.collect_updates)/len(self.collect_updates)
+            logging.info(f"Progress gain: {progress_gain}")
             self.collect_updates = []
             reward = self.get_reward(progress_gain, batch_lens)
             self.update_arm_reward(k, reward)
