@@ -28,6 +28,10 @@ class AbsCurriculumGenerator(ABC):
     def report_exhausted_task(self, k):
         raise NotImplementedError
 
+    @abstractmethod
+    def restore_curriculum(self):
+        raise NotImplementedError
+
 
 class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def __init__(self, 
@@ -79,21 +83,20 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 )
             #Initialize policy with uniform probs
             self.policy = np.array([1/self.K for i in range(self.K)])
-        else:
-            self.log_dir = log_dir
-            #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
-                                      allow_pickle=True).item()
-
-            self.policy = generator_state["policy"]
-            self.weights = generator_state["weights"]
-            self.reward_hist = generator_state["reward_hist"]
-            iepoch = generator_state["iepoch"]
-            iiter = generator_state["iiter"]
-
-            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
 
 
+    def restore_curriculum(self, iepoch):
+        self.log_dir = log_dir
+        #Read history files, restore the last iter from iepoch
+        generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(iepoch-1)+".npy"),
+                                    allow_pickle=True).item()
+
+        self.policy = generator_state["policy"]
+        self.weights = generator_state["weights"]
+        self.reward_hist = generator_state["reward_hist"]
+        iepoch = generator_state["iepoch"]
+        iiter = generator_state["iiter"]
+        logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
 
     def all_exhausted(self):
         return all(self.tasks_exhausted)
