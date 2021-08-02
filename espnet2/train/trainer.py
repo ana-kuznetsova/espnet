@@ -114,6 +114,7 @@ class TrainerOptions:
     eta: Optional[float]
     beta: Optional[float]
     start_curriculum: Optional[int]
+    total_ngpu: Optional[int] 
     wandb_model_log_interval: int
 
 

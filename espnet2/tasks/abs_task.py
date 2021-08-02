@@ -1167,7 +1167,6 @@ class AbsTask(ABC):
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
                 local_args.total_ngpu = args.ngpu
-                logging.info(f"Local args: {local_args.total_ngpu}")
                 process = mp.Process(
                     target=cls.main_worker,
                     args=(local_args,),
