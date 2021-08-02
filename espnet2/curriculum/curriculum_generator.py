@@ -382,10 +382,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """
+        logging.info(f"Policy before: {self.policy}")
         loss_before = float(losses[0])
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
-        self.collect_updates.append(progress_gain)
+        #self.collect_updates.append(progress_gain)
 
         #if len(self.collect_updates) == kwargs['ngpu']:  
         total_iters = iiter
@@ -429,6 +430,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                         env_mode = self.env_mode,
                         window_length = win_size,
                         log_wandb=False)
+        logging.info(f"Policy after: {self.policy}")
 
     def get_next_task_ind(self, **kwargs):
         """
