@@ -387,10 +387,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
         self.collect_updates.append(progress_gain)
-        logging.info(f"Collect updates: {self.collect_updates}")
 
         if len(self.collect_updates) == kwargs['ngpu']:  
-            logging.info(f"Saving logs.")
             logging.info(f"policy before: {self.policy}")
             total_iters = iiter
             if iepoch > 1:
