@@ -339,7 +339,10 @@ class Trainer:
                 )
             elif trainer_options.curriculum_algo=='manual':
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
-                                                                 max_epoch=trainer_options.max_epoch)
+                                                                 max_epoch=trainer_options.max_epoch,
+                                                                 log_dir=str(output_dir),
+                                                                 restore=restore_curriculum
+                                                                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
@@ -1020,7 +1023,7 @@ class Trainer:
                     start_curriculum=options.start_curriculum,
                 )
             else:
-                curriculum_generator.update_policy(iepoch)
+                curriculum_generator.update_policy(iepoch, algo='manual', k=k)
             
 
 

@@ -437,11 +437,26 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     """
     Curriculum based on moving uniform distribution over K tasks.
     """
-    def __init__(self, K, max_epoch):
+    def __init__(self, K, max_epoch, log_dir, restore):
         self.K = K
         self.max_epoch = max_epoch
         self.policy = None
         self.mean=0
+        self.logger = CurriculumLogger(log_dir=log_dir,
+                                        algo="manual",
+                                        restore=restore)
+        if restore:
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
+                                      allow_pickle=True).item()
+
+            self.policy = generator_state["policy"]
+            self.mean = generator_state["mean"]
+            iepoch = generator_state["iepoch"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch}. {self.policy}")
+
 
     def gaussian(self, mean, std, max_points=1000):
         """
@@ -451,7 +466,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
         return gaus
 
-    def update_policy(self, iepoch, **kwargs):
+    def update_policy(self, iepoch, iiter, **kwargs):
         """
         Steps to update the policy:
             1. Update the mean by a factor of K/max_epochs.
@@ -462,7 +477,12 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         probs = self.gaussian(mean=self.mean, std=1, max_points=self.K)
         self.policy = [probs[i] for i in range(self.K)]
         self.policy[-1] += 1-sum(self.policy)
-        logging.info(f"Policy:{self.policy}")
+        self.logger.log(iepoch, 
+                        policy=self.policy, 
+                        mean=self.mean,
+                        algo=kwargs["algo"],
+                        k=kwargs["k"]
+                        )
 
     def get_next_task_ind(self, **kwargs):
         task_ind = np.random.choice(self.K, size=1, p=self.policy)
