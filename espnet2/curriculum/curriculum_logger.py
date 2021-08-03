@@ -168,7 +168,7 @@ class CurriculumLogger:
                            'weights':str(kwargs["weights"])
                           }
                 fo.write(json.dumps(weights)+'\n')
-
+        '''
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
                         "k":kwargs["k"],
@@ -176,6 +176,7 @@ class CurriculumLogger:
                         "reward":kwargs["reward"]
                         }
             wandb.log(log_dict)
+        '''
 
         #### Save state ####
         if (self.algo=='exp3s') and (iiter==kwargs["num_iters"]):
