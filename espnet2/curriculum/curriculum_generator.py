@@ -462,6 +462,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         probs = self.gaussian(mean=self.mean, std=1, max_points=self.K)
         self.policy = [probs[i] for i in range(self.K)]
         self.policy[-1] += 1-sum(self.policy)
+        logging.info(f"Policy:{self.policy}")
 
     def get_next_task_ind(self, **kwargs):
         task_ind = np.random.choice(self.K, size=1, p=self.policy)
