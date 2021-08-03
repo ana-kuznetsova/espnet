@@ -1023,7 +1023,7 @@ class Trainer:
                     start_curriculum=options.start_curriculum,
                 )
             else:
-                curriculum_generator.update_policy(iepoch, algo='manual', k=k)
+                curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
 
 

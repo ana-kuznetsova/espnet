@@ -466,7 +466,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
         return gaus
 
-    def update_policy(self, iepoch,**kwargs):
+    def update_policy(self, iepoch, iiter, **kwargs):
         """
         Steps to update the policy:
             1. Update the mean by a factor of K/max_epochs.
@@ -478,6 +478,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         self.policy = [probs[i] for i in range(self.K)]
         self.policy[-1] += 1-sum(self.policy)
         self.logger.log(iepoch, 
+                        iiter,
                         policy=self.policy, 
                         mean=self.mean,
                         algo=kwargs["algo"],
