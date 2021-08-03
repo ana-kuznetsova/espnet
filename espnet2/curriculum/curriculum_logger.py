@@ -194,6 +194,13 @@ class CurriculumLogger:
                             arm_rewards=kwargs["arm_rewards"],
                             reward_hist=kwargs['reward_hist'],
                             env_mode=kwargs['env_mode'])
+        elif self.algo=='manual':
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
+                            policy=kwargs["policy"], 
+                            mean=kwargs['mean'])
+
 
 
     def save_state(self, **kwargs):
