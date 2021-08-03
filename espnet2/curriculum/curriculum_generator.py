@@ -497,7 +497,3 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
 
     def report_exhausted_task(self, k):
         pass
-        
-        
-            
-            
