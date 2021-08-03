@@ -338,7 +338,7 @@ class Trainer:
                                        iepoch=start_epoch,
                 )
             elif trainer_options.curriculum_algo=='manual':
-                curriculum_generator = ManualCurriculumGenerator(K=trainer_options.K,
+                curriculum_generator = ManualCurriculumGenerator(K=ttrain_iter_factory.K,
                                                                  max_epoch=trainer_options.max_epoch)
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
