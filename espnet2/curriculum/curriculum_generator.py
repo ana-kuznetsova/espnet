@@ -431,7 +431,41 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
         #logging.info("Policy:{}")
         return max(policy.items(), key=lambda x:x[1])[0]
-        
+
+
+class ManualCurriculumGenerator(AbsCurriculumGenerator):
+    """
+    Curriculum based on moving uniform distribution over K tasks.
+    """
+    def __init__(self, K, max_epoch):
+        self.K = K
+        self.max_epoch = max_epoch
+        self.policy = None
+        self.mean=0
+
+    def gaussian(self, mean, std, max_points=1000):
+        """
+        Function to get the gaussian pdf with the given mean and std.
+        """
+        x = np.arange(0, self.K, self.K/max_points)
+        gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
+        return gaus
+
+    def update_policy(self, iepoch):
+        """
+        Steps to update the policy:
+            1. Update the mean by a factor of K/max_epochs.
+            2. Get the new probabilistic distribution.
+            3. Return the next task index.
+        """
+        self.mean += self.K/self.max_epoch
+        probs = self.gaussian(mean=self.mean, std=1, max_points=self.K)
+        self.policy = [probs[i] for i in range(self.K)]
+        self.policy[-1] += 1-sum(self.policy)
+
+    def get_next_task_ind(self, **kwargs):
+        task_ind = np.random.choice(self.K, size=1, p=self.policy)
+        return int(task_ind)
         
         
             
