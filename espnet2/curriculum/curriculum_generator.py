@@ -437,7 +437,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     """
     Curriculum based on moving uniform distribution over K tasks.
     """
-    def __init__(self, K, max_epoch, log_dir, restore):
+    def __init__(self, K, max_epoch, log_dir, restore, **kwargs):
         self.K = K
         self.max_epoch = max_epoch
         self.policy = None
