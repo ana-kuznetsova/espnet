@@ -250,7 +250,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if restore:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch'])+".npy"),
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
