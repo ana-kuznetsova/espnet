@@ -338,8 +338,8 @@ class Trainer:
                                        iepoch=start_epoch,
                 )
             elif trainer_options.curriculum_algo=='manual':
-                curriculum_generator = ManualCurriculumGenerator(K=options.K,
-                                                                 max_epoch=options.max_epoch)
+                curriculum_generator = ManualCurriculumGenerator(K=trainer_options.K,
+                                                                 max_epoch=trainer_options.max_epoch)
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
@@ -1007,7 +1007,7 @@ class Trainer:
                                             schedulers,
                                             start_time
                                             )
-                                            
+
             if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
