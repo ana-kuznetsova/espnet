@@ -451,7 +451,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
         return gaus
 
-    def update_policy(self, iepoch):
+    def update_policy(self, iepoch, **kwargs):
         """
         Steps to update the policy:
             1. Update the mean by a factor of K/max_epochs.
@@ -466,6 +466,15 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     def get_next_task_ind(self, **kwargs):
         task_ind = np.random.choice(self.K, size=1, p=self.policy)
         return int(task_ind)
+
+    def all_exhausted(self):
+        pass
+
+    def reset_exhausted(self):
+        pass
+
+    def report_exhausted_task(self, k):
+        pass
         
         
             
