@@ -747,7 +747,7 @@ class AbsTask(ABC):
         group.add_argument(
             "--slow_k",
             type=float,
-            default=3,
+            default=0.8,
             help="Slow_k parameter for SWUCB algorithm to adjust the number of breakpoints.",
         )
 
@@ -762,14 +762,14 @@ class AbsTask(ABC):
         group.add_argument(
             "--eta",
             type=float,
-            default=0.01,
+            default=0.001,
             help="Eta parameter for EXP3 algorithm",
         )
 
         group.add_argument(
             "--beta",
             type=float,
-            default=1,
+            default=0,
             help="Beta parameter for EXP3 algorithm",
         )
 
