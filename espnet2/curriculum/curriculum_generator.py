@@ -466,7 +466,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
         return gaus
 
-    def update_policy(self, iepoch, iiter, **kwargs):
+    def update_policy(self, iepoch,**kwargs):
         """
         Steps to update the policy:
             1. Update the mean by a factor of K/max_epochs.
