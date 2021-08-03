@@ -341,7 +341,8 @@ class Trainer:
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
                                                                  max_epoch=trainer_options.max_epoch,
                                                                  log_dir=str(output_dir),
-                                                                 restore=restore_curriculum
+                                                                 restore=restore_curriculum,
+                                                                 iepoch=start_epoch,
                                                                  )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
