@@ -758,7 +758,6 @@ class Trainer:
 
                 loss /= accum_grad
                 loss = loss.detach()
-
         return loss
 
     @classmethod
