@@ -1012,6 +1012,7 @@ class Trainer:
                                             )
 
             if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                logging.info(f"STATS: {loss1}, { loss2}, {iiter}, {iepoch}")
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
