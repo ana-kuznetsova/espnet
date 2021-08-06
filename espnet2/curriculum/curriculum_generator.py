@@ -215,7 +215,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  threshold=0.1, 
                  gamma=0.4, 
                  lmbda=12.0, 
-                 slow_k=3, 
+                 slow_k=0.8, 
                  gain_type='PG',
                  env_mode=None,
                  restore=False,
@@ -250,7 +250,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         if restore:
             self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch'])+".npy"),
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
                                       allow_pickle=True).item()
 
             self.policy = generator_state["policy"]
@@ -348,9 +348,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
-            #logging.info(f"ARM_reward:{rewards_sum}, count:{arm_count}")
-            #print("Count:",self.arm_rewards[arm]['count'])
-            #logging.info(f"Count: {self.arm_rewards[arm]['count']}")
             if arm_count < 1:
                 mean_rewards.append(9999999)
             else:
@@ -390,8 +387,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
         reward = self.get_reward(progress_gain, batch_lens)
-        #print("Reward:", reward)
-        #logging.info(f"Reward: {reward}")
         self.update_arm_reward(k, reward)
         if len(self.reward_history) <= self.K:
             return
@@ -405,15 +400,10 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 raise ValueError("Pass the required parameters. {}".format(e))
 
         mean_rewards = self.get_mean_reward(win_size)
-        #print("Mean rewards:", mean_rewards)
-        #logging.info(f"Mean rewards: {mean_rewards}")
         arm_cost = self.get_arm_cost(total_iters, win_size)
-        #print("Arm costs:", arm_cost)
-        #logging.info(f"Arm costs: {arm_cost}")
+
         if iepoch > kwargs['start_curriculum']:
             self.policy = mean_rewards + arm_cost
-        #print("Policy:", self.policy)
-        #logging.info(f"Policy: {self.policy}")
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
                         num_iters=num_iters, 
@@ -441,8 +431,69 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
         #logging.info("Policy:{}")
         return max(policy.items(), key=lambda x:x[1])[0]
-        
-        
-        
-            
-            
+
+
+class ManualCurriculumGenerator(AbsCurriculumGenerator):
+    """
+    Curriculum based on moving the distribution over K tasks.
+    """
+    def __init__(self, K, max_epoch, log_dir, restore, **kwargs):
+        self.K = K
+        self.max_epoch = max_epoch
+        self.policy = None
+        self.mean=0
+        self.logger = CurriculumLogger(log_dir=log_dir,
+                                        algo="manual",
+                                        restore=restore)
+        if restore:
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
+                                      allow_pickle=True).item()
+
+            self.policy = generator_state["policy"]
+            self.mean = generator_state["mean"]
+            iepoch = generator_state["iepoch"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch}. {self.policy}")
+
+
+    def gaussian(self, mean, std, max_points=1000):
+        """
+        Function to get the gaussian pdf with the given mean and std.
+        """
+        x = np.arange(0, self.K, self.K/max_points)
+        gaus = (1/np.sqrt(2*np.pi*(std**2)) * np.exp(-0.5 * ((x-mean)**2) / std**2))
+        return gaus
+
+    def update_policy(self, iepoch, iiter, **kwargs):
+        """
+        Steps to update the policy:
+            1. Update the mean by a factor of K/max_epochs.
+            2. Get the new probabilistic distribution.
+            3. Return the next task index.
+        """
+        self.mean += self.K/self.max_epoch
+        probs = self.gaussian(mean=self.mean, std=1, max_points=self.K)
+        self.policy = [probs[i] for i in range(self.K)]
+        self.policy[-1] += 1-sum(self.policy)
+        self.logger.log(iepoch, 
+                        iiter,
+                        policy=self.policy, 
+                        mean=self.mean,
+                        algo=kwargs["algo"],
+                        k=kwargs["k"]
+                        )
+
+    def get_next_task_ind(self, **kwargs):
+        task_ind = np.random.choice(self.K, size=1, p=self.policy)
+        return int(task_ind)
+
+    def all_exhausted(self):
+        pass
+
+    def reset_exhausted(self):
+        pass
+
+    def report_exhausted_task(self, k):
+        pass

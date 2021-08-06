@@ -149,7 +149,7 @@ class CurriculumLogger:
             pass
         """
         with open(self.stats_path, 'a+') as fo:
-            stats = {k:str(kwargs[k]) for k in kwargs if k not in ['policy', 'weights','arm_rewards', 'reward_hist', 'losses']}
+            stats = {k:str(kwargs[k]) for k in kwargs if k not in ['policy', 'weights','arm_rewards', 'reward_hist']}
             stats['iepoch'] = iepoch
             stats['iiter'] = iiter
             fo.write(json.dumps(stats) + '\n')
@@ -168,7 +168,7 @@ class CurriculumLogger:
                            'weights':str(kwargs["weights"])
                           }
                 fo.write(json.dumps(weights)+'\n')
-
+        '''
         if kwargs["log_wandb"]:
             log_dict = {"loss":kwargs["losses"][1],
                         "k":kwargs["k"],
@@ -176,6 +176,7 @@ class CurriculumLogger:
                         "reward":kwargs["reward"]
                         }
             wandb.log(log_dict)
+        '''
 
         #### Save state ####
         if (self.algo=='exp3s') and (iiter==kwargs["num_iters"]):
@@ -193,6 +194,13 @@ class CurriculumLogger:
                             arm_rewards=kwargs["arm_rewards"],
                             reward_hist=kwargs['reward_hist'],
                             env_mode=kwargs['env_mode'])
+        elif self.algo=='manual':
+            self.save_state(iepoch=iepoch, 
+                            iiter=iiter, 
+                            algo=self.algo, 
+                            policy=kwargs["policy"], 
+                            mean=kwargs['mean'])
+
 
 
     def save_state(self, **kwargs):

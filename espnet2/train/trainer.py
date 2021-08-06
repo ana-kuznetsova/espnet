@@ -41,7 +41,7 @@ from espnet2.train.reporter import Reporter
 from espnet2.train.reporter import SubReporter
 from espnet2.utils.build_dataclass import build_dataclass
 from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
-from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator, SWUCBCurriculumGenerator
+from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator, SWUCBCurriculumGenerator, ManualCurriculumGenerator
 from espnet2.curriculum.curriculum_iter_factory import CurriculumIterFactory
 
 if LooseVersion(torch.__version__) >= LooseVersion("1.1.0"):
@@ -337,6 +337,13 @@ class Trainer:
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
                 )
+            elif trainer_options.curriculum_algo=='manual':
+                curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
+                                                                 max_epoch=trainer_options.max_epoch,
+                                                                 log_dir=str(output_dir),
+                                                                 restore=restore_curriculum,
+                                                                 iepoch=start_epoch,
+                                                                 )
 
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
@@ -751,7 +758,6 @@ class Trainer:
 
                 loss /= accum_grad
                 loss = loss.detach()
-
         return loss
 
     @classmethod
@@ -987,8 +993,26 @@ class Trainer:
                             iiter,
                             accum_grad 
                             ) 
+            elif options.curriculum_algo=='manual':
+                all_steps_are_invalid = cls.train_one_batch(
+                                            batch,
+                                            model,
+                                            scaler,
+                                            ngpu,
+                                            distributed,
+                                            reporter,
+                                            iiter,
+                                            accum_grad,
+                                            grad_noise,
+                                            grad_clip,
+                                            grad_clip_type,
+                                            optimizers,
+                                            schedulers,
+                                            start_time
+                                            )
 
-            if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                logging.info(f"STATS: {loss1}, { loss2}, {iiter}, {iepoch}")
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
@@ -999,6 +1023,8 @@ class Trainer:
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
                 )
+            else:
+                curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
 
 
