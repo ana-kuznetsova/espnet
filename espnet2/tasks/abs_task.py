@@ -1932,7 +1932,7 @@ class AbsTask(ABC):
             kwargs = {}
 
         # IterableDataset is supported from pytorch=1.2
-        if LooseVersion(torch.__version__) >= LooseVersion("1.2"):
+        if False: #LooseVersion(torch.__version__) >= LooseVersion("1.2"):
             dataset = IterableESPnetDataset(
                 data_path_and_name_and_type,
                 float_dtype=dtype,
