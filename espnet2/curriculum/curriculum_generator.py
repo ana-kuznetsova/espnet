@@ -435,8 +435,40 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
 
 class ManualCurriculumGenerator(AbsCurriculumGenerator):
     """
-    Curriculum based on moving the distribution over K tasks.
+    Manual curriculum with interpolation.
     """
-    def __init__(self, K, man_curr_file, log_dir, restore, **kwargs):
-        self.stages = np.load(man_curr_file)
+    def __init__(self, K, man_curr_file, epochs_per_stage, log_dir, restore, **kwargs):
+        assert np.load(man_curr_file).shape[0]%2==0, "Not all the curriculum distributions are specified."
+        self.distributions = np.load(man_curr_file)
+        self.K = K
+        self.epochs_per_stage = epochs_per_stage
+        self.stage_epoch = 1
+        self.start_i = 0
+        self.end_i = 1
+        self.policy = self.distributions[0]
+    
+    def update_policy(self, iepoch, iiter, num_iters, k, progress_gain, batch_lens):
+        if self.stage_epoch <= self.epochs_per_stage:
+            tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
+            tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
+            self.policy = tmp1 + tmp2
+            self.stage_epoch+=1
+        else:
+            self.stage_epoch = 1
+            self.start_i+=2
+            self.end_i+=2
+
+
+        
+    def get_next_task_ind(self, **kwargs):
+        raise NotImplementedError
+
+    def all_exhausted(self):
+        pass
+    
+    def reset_exhausted(self):
+        pass
+
+    def report_exhausted_task(self, k):
+        pass
     
