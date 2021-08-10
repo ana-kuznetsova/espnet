@@ -446,7 +446,6 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
 
           
             self.policy=generator_state["policy"][0], 
-            logging.info(f"Policy shape: {self.policy}")
             self.epochs_per_stage=generator_state["epochs_per_stage"],
             self.start_i=generator_state["start_i"],
             self.end_i=generator_state["end_i"],
@@ -493,6 +492,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         
     def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
+        logging.info(f"{arr}, {self.policy}")
         task_ind = np.random.choice(arr, size=1, p=self.policy)
         return int(task_ind)
 
