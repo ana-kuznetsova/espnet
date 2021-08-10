@@ -451,7 +451,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     def update_policy(self, iepoch, iiter, k, **kwargs):
         if self.stage_epoch > self.epochs_per_stage:
             self.stage_epoch = 1
-            self.start_i+=2
+            self.start_i = min(self.start_i+=2, self.distributions.shape[0]-1)
             self.end_i+=2
             self.policy = self.distributions[self.start_i]
             
