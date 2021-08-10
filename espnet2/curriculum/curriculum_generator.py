@@ -465,7 +465,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             logging.info(f"Policy after: {self.policy}")
             self.stage_epoch+=1
             self.logger.log(iepoch, iiter, 
-                            policy=policy, 
+                            policy=self.policy, 
                             epochs_per_stage=self.epochs_per_stage,
                             start_i=self.start_i,
                             end_i=self.end_i,
