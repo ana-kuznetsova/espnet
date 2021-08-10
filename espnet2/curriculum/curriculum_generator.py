@@ -438,16 +438,33 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     Manual curriculum with interpolation.
     """
     def __init__(self, K, man_curr_file, epochs_per_stage, log_dir, restore, **kwargs):
-        assert np.load(man_curr_file).shape[0]%2==0, "Not all the curriculum distributions are specified."
-        assert np.load(man_curr_file).shape[1]==K, "Manual distribution and K do not match."
-        self.distributions = np.load(man_curr_file)
-        self.K = K
-        self.epochs_per_stage = epochs_per_stage
-        self.stage_epoch = 1
-        self.start_i = 0
-        self.end_i = 1
-        self.policy = self.distributions[0]
-        self.logger = CurriculumLogger(log_dir=log_dir, algo="manual", restore=restore)
+        if restore:
+            self.log_dir = log_dir
+            #Read history files, restore the last iter from iepoch
+            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
+                                      allow_pickle=True).item()
+
+          
+            self.policy=kwargs["policy"], 
+            self.epochs_per_stage=kwargs["epochs_per_stage"],
+            self.start_i=kwargs["start_i"],
+            self.end_i=kwargs["end_i"],
+            self.stage_epoch=kwargs['stage_epoch']
+            iepoch = generator_state["iepoch"]
+            iiter = generator_state["iiter"]
+
+            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
+        else:
+            assert np.load(man_curr_file).shape[0]%2==0, "Not all the curriculum distributions are specified."
+            assert np.load(man_curr_file).shape[1]==K, "Manual distribution and K do not match."
+            self.distributions = np.load(man_curr_file)
+            self.K = K
+            self.epochs_per_stage = epochs_per_stage
+            self.stage_epoch = 1
+            self.start_i = 0
+            self.end_i = 1
+            self.policy = self.distributions[0]
+            self.logger = CurriculumLogger(log_dir=log_dir, algo="manual", restore=restore)
     
     def update_policy(self, iepoch, iiter, k, **kwargs):
         if self.stage_epoch > self.epochs_per_stage:
