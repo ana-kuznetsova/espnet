@@ -449,6 +449,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     
     def update_policy(self, iepoch, iiter, k, **kwargs):
         if self.stage_epoch > self.epochs_per_stage:
+            logging.info(f"Starting next stage of manual curriculum.")
             self.stage_epoch = 1
             self.start_i+=2
             self.end_i+=2

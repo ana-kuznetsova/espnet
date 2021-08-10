@@ -685,6 +685,20 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--man_curr_file",
+            type=str,
+            default=None,
+            help="Path to manual curriculum file with distributions.",
+        )
+
+        group.add_argument(
+            "--epochs_per_stage",
+            type=int,
+            default=None,
+            help="Epochs per stage in manual curriculum.",
+        )
+
+        group.add_argument(
             "--use_curriculum",
             type=bool,
             default=False,

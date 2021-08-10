@@ -115,6 +115,8 @@ class TrainerOptions:
     beta: Optional[float]
     start_curriculum: Optional[int]
     wandb_model_log_interval: int
+    man_curr_file: Optional[str]
+    epochs_per_stage: Optional[int]
 
 
 class Trainer:
