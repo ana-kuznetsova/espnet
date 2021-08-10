@@ -450,7 +450,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             self.start_i=generator_state["start_i"],
             self.end_i=generator_state["end_i"],
             self.stage_epoch=generator_state['stage_epoch']
-            
+
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
@@ -459,13 +459,13 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             assert np.load(man_curr_file).shape[0]%2==0, "Not all the curriculum distributions are specified."
             assert np.load(man_curr_file).shape[1]==K, "Manual distribution and K do not match."
             self.distributions = np.load(man_curr_file)
-            self.K = K
             self.epochs_per_stage = epochs_per_stage
             self.stage_epoch = 1
             self.start_i = 0
             self.end_i = 1
             self.policy = self.distributions[0]
-            self.logger = CurriculumLogger(log_dir=log_dir, algo="manual", restore=restore)
+        self.K = K
+        self.logger = CurriculumLogger(log_dir=log_dir, algo="manual", restore=restore)
     
     def update_policy(self, iepoch, iiter, k, **kwargs):
         if self.stage_epoch > self.epochs_per_stage:
