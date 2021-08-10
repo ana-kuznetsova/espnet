@@ -445,7 +445,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
                                       allow_pickle=True).item()
 
           
-            self.policy=generator_state["policy"], 
+            self.policy=generator_state["policy"][0], 
             logging.info(f"Policy shape: {self.policy}")
             self.epochs_per_stage=generator_state["epochs_per_stage"],
             self.start_i=generator_state["start_i"],
