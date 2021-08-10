@@ -454,7 +454,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             self.stage_epoch = 1
             self.start_i+=2
             self.end_i+=2
-        if iepoch%self.epochs_per_stage==0:
+        if iepoch==1 and iiter==1:
             logging.info(f"Updating policy at epoch {iepoch}")
             tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
             tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
