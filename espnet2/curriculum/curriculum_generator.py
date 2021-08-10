@@ -447,6 +447,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         self.start_i = 0
         self.end_i = 1
         self.policy = self.distributions[0]
+        self.logger = CurriculumLogger(log_dir=log_dir, algo="manual", restore=restore)
     
     def update_policy(self, iepoch, iiter, k, **kwargs):
         if self.stage_epoch > self.epochs_per_stage:
@@ -463,6 +464,12 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             self.policy = tmp1 + tmp2
             logging.info(f"Policy after: {self.policy}")
             self.stage_epoch+=1
+            self.logger.log(iepoch, iiter, 
+                            policy=policy, 
+                            epochs_per_stage=self.epochs_per_stage,
+                            start_i=self.start_i,
+                            end_i=self.end_i,
+                            stage_epoch=self.stage_epoch)
         
         
     def get_next_task_ind(self, **kwargs):

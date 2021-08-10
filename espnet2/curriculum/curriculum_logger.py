@@ -199,7 +199,11 @@ class CurriculumLogger:
                             iiter=iiter, 
                             algo=self.algo, 
                             policy=kwargs["policy"], 
-                            mean=kwargs['mean'])
+                            epochs_per_stage=kwargs["epochs_per_stage"],
+                            start_i=kwargs["start_i"],
+                            end_i=kwargs["end_i"]i,
+                            stage_epoch=kwargs['stage_epoch']
+                            )
 
 
 
