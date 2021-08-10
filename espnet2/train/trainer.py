@@ -341,7 +341,8 @@ class Trainer:
                 )
             elif trainer_options.curriculum_algo=='manual':
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
-                                                                 max_epoch=trainer_options.max_epoch,
+                                                                 man_curr_file=trainer_options.man_curr_file,
+                                                                 epochs_per_stage=trainer_options.epochs_per_stage,
                                                                  log_dir=str(output_dir),
                                                                  restore=restore_curriculum,
                                                                  iepoch=start_epoch,
