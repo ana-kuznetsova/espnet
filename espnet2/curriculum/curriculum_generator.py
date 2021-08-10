@@ -447,21 +447,22 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         self.end_i = 1
         self.policy = self.distributions[0]
     
-    def update_policy(self, iepoch, iiter, num_iters, k, progress_gain, batch_lens):
-        if self.stage_epoch <= self.epochs_per_stage:
-            tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
-            tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
-            self.policy = tmp1 + tmp2
-            self.stage_epoch+=1
-        else:
+    def update_policy(self, iepoch, iiter, k, progress_gain, **kwargs):
+        if self.stage_epoch > self.epochs_per_stage:
             self.stage_epoch = 1
             self.start_i+=2
             self.end_i+=2
-
-
+        
+        tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
+        tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
+        self.policy = tmp1 + tmp2
+        self.stage_epoch+=1
+        
         
     def get_next_task_ind(self, **kwargs):
-        raise NotImplementedError
+        arr = np.arange(self.K)
+        task_ind = np.random.choice(arr, size=1, p=self.policy)
+        return int(task_ind)
 
     def all_exhausted(self):
         pass
