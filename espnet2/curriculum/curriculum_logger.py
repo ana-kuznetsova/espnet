@@ -201,7 +201,7 @@ class CurriculumLogger:
                             policy=kwargs["policy"], 
                             epochs_per_stage=kwargs["epochs_per_stage"],
                             start_i=kwargs["start_i"],
-                            end_i=kwargs["end_i"]i,
+                            end_i=kwargs["end_i"],
                             stage_epoch=kwargs['stage_epoch']
                             )
 
