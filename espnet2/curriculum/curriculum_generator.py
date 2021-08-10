@@ -446,6 +446,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
 
           
             self.policy=generator_state["policy"], 
+            logging.info(f"Policy shape: {self.policy.shape}")
             self.epochs_per_stage=generator_state["epochs_per_stage"],
             self.start_i=generator_state["start_i"],
             self.end_i=generator_state["end_i"],
