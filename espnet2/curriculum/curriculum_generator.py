@@ -492,7 +492,8 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
         
     def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
-        logging.info(f"{arr}, {self.policy}, {self.policy[0]}, {self.policy[1]}, {self.policy[0][0]}")
+        logging.info(f"{arr}, {self.policy}, {self.policy[0]}, {self.policy[1]}")
+        logging.info(f"{self.policy[0][0]}")
         task_ind = np.random.choice(arr, size=1, p=self.policy)
         return int(task_ind)
 
