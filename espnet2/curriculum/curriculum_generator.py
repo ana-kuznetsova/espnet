@@ -439,6 +439,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
     """
     def __init__(self, K, man_curr_file, epochs_per_stage, log_dir, restore, **kwargs):
         assert np.load(man_curr_file).shape[0]%2==0, "Not all the curriculum distributions are specified."
+        assert np.load(man_curr_file).shape[1]==K, "Manual distribution and K do not match."
         self.distributions = np.load(man_curr_file)
         self.K = K
         self.epochs_per_stage = epochs_per_stage
