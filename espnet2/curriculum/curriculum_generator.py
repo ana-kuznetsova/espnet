@@ -454,13 +454,14 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             self.stage_epoch = 1
             self.start_i+=2
             self.end_i+=2
-        
-        tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
-        tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
-        logging.info(f"Policy before:{self.policy}")
-        self.policy = tmp1 + tmp2
-        logging.info(f"Policy after: {self.policy}")
-        self.stage_epoch+=1
+        if iepoch%self.epochs_per_stage==0:
+            logging.info(f"Updating policy at epoch {iepoch}")
+            tmp1 = (1 - self.stage_epoch/self.epochs_per_stage)*self.distributions[self.start_i]
+            tmp2 = (self.stage_epoch/self.epochs_per_stage)*self.distributions[self.end_i]
+            logging.info(f"Policy before:{self.policy}")
+            self.policy = tmp1 + tmp2
+            logging.info(f"Policy after: {self.policy}")
+            self.stage_epoch+=1
         
         
     def get_next_task_ind(self, **kwargs):
