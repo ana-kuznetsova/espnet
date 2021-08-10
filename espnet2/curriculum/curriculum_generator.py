@@ -444,7 +444,7 @@ class ManualCurriculumGenerator(AbsCurriculumGenerator):
             generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
                                       allow_pickle=True).item()
 
-            logging.info(f"{generator_state}")
+            logging.info(f"{generator_state}, {generator_state["policy"]}")
             self.policy=np.array(list(generator_state["policy"])),
             logging.info(f"Init {self.policy}") 
             self.epochs_per_stage=generator_state["epochs_per_stage"],
