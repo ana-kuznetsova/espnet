@@ -105,7 +105,7 @@ def plot_reward(stats, title, out_dir, segment_size=1000):
     plt.plot(r_stats['max'], label='max r')
     plt.plot(r_stats['avg'], label='avg r')
     plt.plot(progress_gains, label='avg gain')
-    plt.xticks(ticks, labels[::20])
+    plt.xticks(ticks, labels[::20][:len(ticks)])
     plt.legend()
     plt.xlabel('Timesteps')
     plt.ylabel('Reward')
