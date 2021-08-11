@@ -997,6 +997,7 @@ class Trainer:
                             accum_grad 
                             ) 
             elif options.curriculum_algo=='manual':
+                batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
                                             model,
