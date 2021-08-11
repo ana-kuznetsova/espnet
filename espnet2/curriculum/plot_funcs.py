@@ -66,7 +66,7 @@ def plot_task_count(stats, title, out_dir, segment_size=1000, k=1):
     plt.figure(figsize=(12, 4))
     for i in range(k):
         plt.plot(task_count[i], label='k='+str(i))
-        plt.xticks(ticks, labels[::20])
+        plt.xticks(ticks, labels[::20][:len(ticks)])
         plt.legend()
     plt.xlabel('Timesteps')
     plt.ylabel('% of times task k was selected')
