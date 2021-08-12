@@ -3,6 +3,7 @@ from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 import numpy as np
 from tqdm import tqdm
+import argparse
 
 
 def train_vector_model(subword_model, text, save_file, sep='\t'):
@@ -37,7 +38,7 @@ def train_vector_model(subword_model, text, save_file, sep='\t'):
     return word_vectors, training_data
 
 
-def calculate_sent_norms(vectors_file, subword_model, text, save_file):
+def calculate_word_norms(vectors_file, subword_model, text, save_file):
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
@@ -102,3 +103,33 @@ def calc_sent_norm_complexity(word_norms_file, text, save_file):
         for k in sent_norms:
             fo.write(k+' '+str(sent_norms[k])+'\n')
     print(f"Saved sentence norms in {save_file}.")
+
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str,required=True, help='vectors, wnorms or snorms.')
+    parser.add_argument('--text', type=str, help='Path to text file in SCP format.')
+    parser.add_argument('--subword_model', type=str, help='Path to sentencepiece model.')
+    parser.add_argument('--sep', default='\t', type=str, help='Separator between sentence ID and sentence.')
+    parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
+    parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
+    parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
+
+    args = parser.parse_args()
+
+    if args.task=='vectors':
+        train_vector_model(args.subword_model, 
+                           args.text, 
+                           args.save_file,
+                           args.sep)
+
+    if args.task=='wnorms':
+        calculate_word_norms(args.vectors_file,
+                             args.subword_model, 
+                             args.text, 
+                             args.save_file)
+
+    if args.task='snorms':
+        calc_sent_norm_complexity(args.word_norms_file, 
+                                  args.text, 
+                                  args.save_file)
