@@ -72,3 +72,33 @@ def calculate_sent_norms(vectors_file, subword_model, text, save_file):
         for k in word_norms:
             fo.write(k+' '+str(word_norms[k])+'\n')
     print(f"Saved word norms to {save_file}.")
+
+
+def calc_sent_norm_complexity(word_norms_file, text, save_file):
+    data_dict = {}
+    print("Reading text data...")
+    with open(text, 'r') as fo:
+        for line in fo.readlines():
+            data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
+    
+    word_norms = {}
+    print("Reading word norms...")
+    with open(word_norms_file, 'r') as fo:
+        for line in fo.readlines():
+            word_norms[line.split()[0]] = float(line.split()[-1])
+
+    print("Calculating sentence norms...")
+    sent_norms = {}
+
+    for k in tqdm(data_dict):
+        sent_norm = 0
+        sent = data_dict[k].split()
+        for w in sent:
+            sent_norm+=word_norms[w]
+        sent_norm/=len(sent)
+        sent_norms[k]=sent_norm
+    
+    with open(save_file, 'w') as fo:
+        for k in sent_norms:
+            fo.write(k+' '+str(sent_norms[k])+'\n')
+    print(f"Saved sentence norms in {save_file}.")
