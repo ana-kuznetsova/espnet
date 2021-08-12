@@ -256,6 +256,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.policy = generator_state["policy"]
             self.arm_rewards = generator_state["arm_rewards"]
             self.reward_history = generator_state["reward_hist"]
+            self.env_mode = generator_state["env_mode"]
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
