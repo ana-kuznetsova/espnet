@@ -21,3 +21,19 @@ Other tasks include `wnorms` for word norms and `snorms` for sentence norms. To 
 python norm_complexity.py --help
 ```
 
+### 2. Task split
+
+`scp_to_task.py` takes a file with utterance IDs and complexity measures as input. It can split the tasks into equal subsets and according to complexity distribution using a boolean parameter `euqalTasks=True`. The script takes positional arguments: 
+
+`ntasks` the number of tasks we want to split the data;
+
+`in_file`, the scp file with the complexity measures calculated;
+
+`task file` the output file with the tasks assigned to each utterance ID.
+
+Usage:
+
+```bash
+python scp_to_task.py <K> <complexity.scp>  <task_file>
+```
+
