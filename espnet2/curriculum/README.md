@@ -36,4 +36,21 @@ Usage:
 ```bash
 python scp_to_task.py <K> <complexity.scp>  <task_file>
 ```
+### 3. Curriculum Learning Parameters
+To turn on curriculum learning set `use_curriculum` parameter to `True` in `config.yaml`.
+#### Curriculum iterator
 
+For curriculum learning we use a separate sampler class `CurriculumSampler` and its own iter factory `CurriculumIterFactory` for the training portion of the dataset. It creates `K` separate data loaders and has the parameter to refill the iterators when either of them is exhausted. 
+
+```
+refill_task: True
+```
+The `refill_task` parameter should be set to `True` in `config.yaml`.
+
+#### Curriculum Generators
+`CurriculumGenerator` is the class that updates and logs curriculum statistics according to the update formulas of implemented algorithms.
+
+`curriculum_algo` is the parameter that selects the type of curriculum. Implemented options are:
+1. Sliding Window UCB: `swucb`
+2. EXP3.S: `exp3s`
+3. Manual curriculum: `manual`
