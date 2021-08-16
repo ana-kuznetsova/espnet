@@ -54,3 +54,9 @@ The `refill_task` parameter should be set to `True` in `config.yaml`.
 1. Sliding Window UCB: `swucb`
 2. EXP3.S: `exp3s`
 3. Manual curriculum: `manual`
+
+Each of the generators inherits from `AbsCurriculumGenerator` and contains methods:
+* `update_policy()` that updates the policy according to the algorithm formula 
+* `get_next_task_ind()` that samples next task index `k` according to the current policy.
+
+All of the generators use the same `CurriculumLogger` which saves policy, generator statistics and generator state after each epoch. `generator_state` is used to restore the state of the curriculum learning when the training is resumed.
