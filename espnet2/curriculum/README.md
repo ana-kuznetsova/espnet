@@ -60,3 +60,20 @@ Each of the generators inherits from `AbsCurriculumGenerator` and contains metho
 * `get_next_task_ind()` that samples next task index `k` according to the current policy.
 
 All of the generators use the same `CurriculumLogger` which saves policy, generator statistics and generator state after each epoch. `generator_state` is used to restore the state of the curriculum learning when the training is resumed.
+
+**Sliding Window UCB**
+
+Parameters for `SWUCBCurriculumGenerator`:
+
+* `K` number of tasks
+* `hist_size` size of the reward history for policy updates
+* `threshold` controls the standard deviation of the rewards after which the environment mode changes from abrupltly changing to slowly varying.
+* ` gain_type` (PG, SPG, VPG)
+* `env_mode` set internally, controls the mode of the SWUCB algorithm and policy updates/
+* `restore` set to `True` automatically if ESPnet loads a checkpoint.
+
+The following parameters control the increase in window size over the time steps:
+
+* `gamma`
+* `lmbda`
+* `slow_k`
