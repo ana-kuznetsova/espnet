@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# coding:utf-8
+
 import sentencepiece as spm
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
@@ -13,7 +16,7 @@ Sentencepiece model. The sentence norm is an average of word norms.
 
 For argument information run:
 
-norm_complexity --help
+python norm_complexity.py --help
 '''
 
 
@@ -45,7 +48,7 @@ def train_vector_model(subword_model, text, save_file, sep='\t'):
     model = Word2Vec(sentences=training_data, vector_size=100, window=5, min_count=1, workers=4)
     word_vectors = model.wv
     word_vectors.save(save_file)
-    print(f"Saved vectors to {save_file}.")
+    print("Saved vectors to ", save_file)
     return word_vectors, training_data
 
 
@@ -83,7 +86,7 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
     with open(save_file, 'w') as fo:
         for k in word_norms:
             fo.write(k+' '+str(word_norms[k])+'\n')
-    print(f"Saved word norms to {save_file}.")
+    print("Saved word norms to ", save_file)
 
 
 def calc_sent_norm_complexity(word_norms_file, text, save_file):
@@ -113,7 +116,7 @@ def calc_sent_norm_complexity(word_norms_file, text, save_file):
     with open(save_file, 'w') as fo:
         for k in sent_norms:
             fo.write(k+' '+str(sent_norms[k])+'\n')
-    print(f"Saved sentence norms in {save_file}.")
+    print("Saved sentence norms in ", save_file)
 
 
 if __name__=="__main__":
@@ -140,7 +143,7 @@ if __name__=="__main__":
                              args.text, 
                              args.save_file)
 
-    if args.task='snorms':
+    if args.task=='snorms':
         calc_sent_norm_complexity(args.word_norms_file, 
                                   args.text, 
                                   args.save_file)
