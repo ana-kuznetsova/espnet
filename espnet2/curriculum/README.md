@@ -101,3 +101,31 @@ Parameters for `ManualCurriculumGenerator`:
 * `man_curr_file` is an `.npy` file with numpy array which has a shape of  <img src="https://render.githubusercontent.com/render/math?math=(2\times stages \times K)">  where for each stage we have 2 distributions.
 * `epochs_per_stage` - the number of training epochs per one stage of manual curriculum.
 
+**Example Config File**
+```
+##Curriculum Learning params
+task_file: /path/to/task_file
+K: 2
+iterator_type: curriculum
+use_curriculum: true
+curriculum_algo: swucb
+gain_type: SPG
+refill_task: true
+slow_k: 0.6
+```
+### 4. Plotting Functions
+`plot_funcs.py` contains several plotting options:
+* Reward, cummulative reward over time
+* Policy over time
+* Task selection over time.
+
+To make all possible plots run
+```bash
+python plot_funcs.py --all --exp <name_of_experiment> --K <num tasks> --log_dir <path/to/dir/with/espnet/logs> --out_dir <path/to/output/dir> --segment_size 1000
+```
+Plotting functions average statistics over a number of time steps, `segment_size` parameter controls how many steps to average. By default `segment_size=1000`.
+
+For more options see 
+```
+python plot_funcs.py --help
+```
