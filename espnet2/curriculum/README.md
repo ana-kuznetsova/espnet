@@ -47,6 +47,13 @@ refill_task: True
 ```
 The `refill_task` parameter should be set to `True` in `config.yaml`.
 
+
+**Progress gain options**
+
+* Prediciton gain  (PG)
+* Self-prediction gain (SPG)
+* Validation prediction gain (VPG)
+
 #### Curriculum Generators
 `CurriculumGenerator` is the class that updates and logs curriculum statistics according to the update formulas of implemented algorithms.
 
@@ -101,6 +108,7 @@ Parameters for `ManualCurriculumGenerator`:
 * `man_curr_file` is an `.npy` file with numpy array which has a shape of  <img src="https://render.githubusercontent.com/render/math?math=(2\times stages \times K)">  where for each stage we have 2 distributions.
 * `epochs_per_stage` - the number of training epochs per one stage of manual curriculum.
 
+
 **Example Config File**
 ```
 ##Curriculum Learning params
@@ -113,7 +121,14 @@ gain_type: SPG
 refill_task: true
 slow_k: 0.6
 ```
-### 4. Plotting Functions
+
+### 4. Changes to the Trainer class
+Training in ESPnet is handled by `Trainer` class in `trainer.py`. We have introduced several changes to accomodate curriculum learning. Class method `train_one_epoch_curriculum()` takes `CurriculumIterFactory` and `CurriculumGenerator` objects as arguments, handles sampling of the next task index, calculation of the prediction gain and policy updates.
+
+
+As opposed to the normal training, losses in `train_one_epoch_curriculum()` are calculated twice: when the model is in `.train()` mode and `.eval()` mode. The minibatch gets sampled twice from the `CurriculumIterFactory` or validation set (depending on on the prediction gain type) but the backwards pass is done once. Additionally, we are passing around iterator and generator objects so that they do not have to be re-initialized at each epoch.
+
+### 5. Plotting Functions
 `plot_funcs.py` contains several plotting options:
 * Reward, cummulative reward over time
 * Policy over time
