@@ -100,3 +100,7 @@ Parameters for `ManualCurriculumGenerator`:
 * `K` number of tasks
 * `man_curr_file` is an `.npy` file with numpy array which has a shape of $(2\times stages \times K)$ where for each stage we have 2 distributions.
 * `epochs_per_stage` - the number of training epochs per one stage of manual curriculum.
+
+```math
+a + b = c
+```
