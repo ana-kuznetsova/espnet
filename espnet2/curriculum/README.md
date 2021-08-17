@@ -79,6 +79,7 @@ The following parameters control the increase in window size over the time steps
 * `slow_k`
 
 **EXP3.S**
+
 Parameters for `EXP3SCurriculumGenerator`:
 
 * `K`: number of tasks
@@ -89,3 +90,13 @@ Parameters for `EXP3SCurriculumGenerator`:
 Related to EXP3 algorithm:
 * `epsilon` controls the probability of choosing random task over the best task as an exploration strategy
 * `eta` and `beta` control the step size in EXP3.S weight scaling
+
+**Manual Curriculum**
+
+Manual curriculum as opposed to automated curriculum can be defined manually. Each stage of the manual curriculum lasts for manually chosen $N$ epochs. For each stage we define start and end curriculum distributions e.g if $K=2$ then for one stage the start distribution can be defined as $[1, 0]$ and end distribution as $[0.5, 0.5]$. By interpolation at each of the $N$ epochs the curriculum will gradually change from picking the easier task most of the time to harder task.
+
+Parameters for `ManualCurriculumGenerator`:
+
+* `K` number of tasks
+* `man_curr_file` is an `.npy` file with numpy array which has a shape of $(2\times stages \times K)$ where for each stage we have 2 distributions.
+* `epochs_per_stage` - the number of training epochs per one stage of manual curriculum.
