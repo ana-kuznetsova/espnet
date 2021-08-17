@@ -69,7 +69,7 @@ Parameters for `SWUCBCurriculumGenerator`:
 * `hist_size` size of the reward history for policy updates
 * `threshold` controls the standard deviation of the rewards after which the environment mode changes from abrupltly changing to slowly varying.
 * ` gain_type` (PG, SPG, VPG)
-* `env_mode` set internally, controls the mode of the SWUCB algorithm and policy updates/
+* `env_mode` set internally, controls the mode of the SWUCB algorithm and policy updates
 * `restore` set to `True` automatically if ESPnet loads a checkpoint.
 
 The following parameters control the increase in window size over the time steps:
@@ -77,3 +77,15 @@ The following parameters control the increase in window size over the time steps
 * `gamma`
 * `lmbda`
 * `slow_k`
+
+**EXP3.S**
+Parameters for `EXP3SCurriculumGenerator`:
+
+* `K`: number of tasks
+* `init`: type of policy initialization (zeros or random)
+* `hist_size`: size of the reward history for policy updates
+* `gain_type` (PG, SPG, VPG)
+
+Related to EXP3 algorithm:
+* `epsilon` controls the probability of choosing random task over the best task as an exploration strategy
+* `eta` and `beta` control the step size in EXP3.S weight scaling
