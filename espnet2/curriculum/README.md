@@ -93,14 +93,11 @@ Related to EXP3 algorithm:
 
 **Manual Curriculum**
 
-Manual curriculum as opposed to automated curriculum can be defined manually. Each stage of the manual curriculum lasts for manually chosen $N$ epochs. For each stage we define start and end curriculum distributions e.g if $K=2$ then for one stage the start distribution can be defined as $[1, 0]$ and end distribution as $[0.5, 0.5]$. By interpolation at each of the $N$ epochs the curriculum will gradually change from picking the easier task most of the time to harder task.
+Manual curriculum as opposed to automated curriculum can be defined manually. Each stage of the manual curriculum lasts for manually chosen <img src="https://render.githubusercontent.com/render/math?math=N"> epochs. For each stage we define start and end curriculum distributions e.g if <img src="https://render.githubusercontent.com/render/math?math=K=2"> then for one stage the start distribution can be defined as <img src="https://render.githubusercontent.com/render/math?math=[1, 0]"> and end distribution as <img src="https://render.githubusercontent.com/render/math?math=[0.5, 0.5]">. By interpolation at each of the <img src="https://render.githubusercontent.com/render/math?math=N"> epochs the curriculum will gradually change from picking the easier task most of the time to harder task.
 
 Parameters for `ManualCurriculumGenerator`:
 
 * `K` number of tasks
-* `man_curr_file` is an `.npy` file with numpy array which has a shape of $(2\times stages \times K)$ where for each stage we have 2 distributions.
+* `man_curr_file` is an `.npy` file with numpy array which has a shape of  <img src="https://render.githubusercontent.com/render/math?math=(2\times stages \times K)">  where for each stage we have 2 distributions.
 * `epochs_per_stage` - the number of training epochs per one stage of manual curriculum.
 
-```math
-a + b = c
-```
