@@ -1025,6 +1025,7 @@ class Trainer:
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
+                    gain_type=options.gain_type,
                 )
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
