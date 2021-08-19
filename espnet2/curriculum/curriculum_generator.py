@@ -130,8 +130,8 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         loss_before = float(losses[0])#.detach().cpu().numpy())
         loss_after = float(losses[1])#.detach().cpu().numpy())
         progress_gain = loss_before - loss_after
-        if kwargs['gain_type']=='SPG':
-            progress_gain = progress_gain/loss_before
+        #if kwargs['gain_type']=='SPG':
+        #    progress_gain = progress_gain/loss_before
         #logging.info(f"Loss before: {loss_before} Loss after: {loss_after} Gain: {progress_gain}")
 
         reward = float(self.get_reward(progress_gain, batch_lens))
@@ -388,8 +388,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         loss_before = float(losses[0])
         loss_after = float(losses[1])
         progress_gain = loss_before - loss_after
-        if kwargs['gain_type']=='SPG':
-            progress_gain = progress_gain/loss_before
+        #if kwargs['gain_type']=='SPG':
+        #    progress_gain = progress_gain/loss_before
         reward = self.get_reward(progress_gain, batch_lens)
         self.update_arm_reward(k, reward)
         if len(self.reward_history) <= self.K:
