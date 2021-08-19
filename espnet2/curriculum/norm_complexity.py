@@ -165,6 +165,6 @@ if __name__=="__main__":
                              args.save_file)
     else:
         calc_sent_norm_complexity(args.vectors,
-                                  args.subword_model 
+                                  args.subword_model, 
                                   args.text, 
                                   args.save_file, args.sep)
