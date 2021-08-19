@@ -89,18 +89,39 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
     print("Saved word norms to ", save_file)
 
 
-def calc_sent_norm_complexity(word_norms_file, text, save_file):
+def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_norm, sep):
+    sp = spm.SentencePieceProcessor()
+    sp.Load(subword_model)
+
+    wv = KeyedVectors.load(vectors_file, mmap='r')
     data_dict = {}
+
     print("Reading text data...")
     with open(text, 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
     
     word_norms = {}
-    print("Reading word norms...")
-    with open(word_norms_file, 'r') as fo:
-        for line in fo.readlines():
-            word_norms[line.split()[0]] = float(line.split()[-1])
+
+    print("Calculating word norms...")
+    for k in tqdm(data_dict):
+        sent = data_dict[k]
+        sent = sp.EncodeAsPieces(sent) + ['▁']
+        token = ''
+        norm = 0
+        for j, sub_word in enumerate(sent):
+            if '▁' in sub_word and len(token) > 0:
+                token = token.replace('▁', '')
+                word_norms[token] = norm
+                token = ''
+                token+=sub_word
+                norm = 0
+            else:
+                token += sub_word
+            if sub_word in wv:
+                norm += np.linalg.norm(wv[sub_word])
+            else:
+                norm+=max_norm+1
 
     print("Calculating sentence norms...")
     sent_norms = {}
@@ -128,8 +149,11 @@ if __name__=="__main__":
     parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
     parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
     parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
+    parser.add_argument('--max_norm', type=float, help='Max norm for filling OOVs')
+
 
     args = parser.parse_args()
+
 
     if args.task=='vectors':
         train_vector_model(args.subword_model, 
@@ -137,13 +161,15 @@ if __name__=="__main__":
                            args.save_file,
                            args.sep)
 
-    if args.task=='wnorms':
+    elif args.task=='wnorms':
         calculate_word_norms(args.vectors_file,
                              args.subword_model, 
                              args.text, 
                              args.save_file)
-
-    if args.task=='snorms':
-        calc_sent_norm_complexity(args.word_norms_file, 
+    else:
+        calc_sent_norm_complexity(args.vectors,
+                                  args.subword_model, 
                                   args.text, 
-                                  args.save_file)
+                                  args.save_file,
+                                  args.max_norm,
+                                  args.sep)

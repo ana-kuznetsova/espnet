@@ -91,7 +91,6 @@ def load_pretrained_model(
             return obj
 
         obj = get_attr(model, dst_key)
-
     src_state = torch.load(path, map_location=map_location)
     if excludes is not None:
         for e in excludes.split(","):
