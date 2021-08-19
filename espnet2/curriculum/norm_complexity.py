@@ -132,8 +132,6 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    print("ARGS:", args)
-
     if args.task=='vectors':
         train_vector_model(args.subword_model, 
                            args.text, 
@@ -147,6 +145,7 @@ if __name__=="__main__":
                              args.save_file)
 
     if args.task=='snorms':
+        print("Sent norms task")
         calc_sent_norm_complexity(args.word_norms, 
                                   args.text, 
                                   args.save_file)
