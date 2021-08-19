@@ -89,7 +89,7 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
     print("Saved word norms to ", save_file)
 
 
-def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, sep):
+def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_norm, sep):
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
@@ -148,6 +148,8 @@ if __name__=="__main__":
     parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
     parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
     parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
+    parser.add_argument('--max_norm', type=float, help='Max norm for filling OOVs')
+
 
     args = parser.parse_args()
 
@@ -167,4 +169,6 @@ if __name__=="__main__":
         calc_sent_norm_complexity(args.vectors,
                                   args.subword_model, 
                                   args.text, 
-                                  args.save_file, args.sep)
+                                  args.save_file,
+                                  args.max_norm,
+                                  args.sep)
