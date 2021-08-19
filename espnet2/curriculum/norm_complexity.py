@@ -145,7 +145,7 @@ if __name__=="__main__":
                              args.text, 
                              args.save_file)
 
-    elif args.task=='snorms':
+    elif str(args.task)=='snorms':
         print("Sent norms task")
         calc_sent_norm_complexity(args.word_norms, 
                                   args.text, 
