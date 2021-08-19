@@ -118,9 +118,10 @@ def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_
                 norm = 0
             else:
                 token += sub_word
-            
-            norm += np.linalg.norm(wv[sub_word])
-    
+            if sub_word in wv:
+                norm += np.linalg.norm(wv[sub_word])
+            else:
+                norm+=max_norm+1
 
     print("Calculating sentence norms...")
     sent_norms = {}
