@@ -89,8 +89,7 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
     print("Saved word norms to ", save_file)
 
 
-def calc_sent_norm_complexity(word_norms_file, text, save_file):
-    print('Func call')
+def calc_sent_norm_complexity(word_norms_file, text, save_file, sep):
     data_dict = {}
     print("Reading text data...")
     with open(text, 'r') as fo:
@@ -148,7 +147,7 @@ if __name__=="__main__":
         print("Sent norms task", flush=True)
         calc_sent_norm_complexity(args.word_norms, 
                                   args.text, 
-                                  args.save_file)
+                                  args.save_file, args.sep)
     '''
     elif args.task=='snorms':
         print("Sent norms task", flush=True)
