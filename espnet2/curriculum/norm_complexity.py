@@ -90,6 +90,7 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
 
 
 def calc_sent_norm_complexity(word_norms_file, text, save_file):
+    print('Func call')
     data_dict = {}
     print("Reading text data...")
     with open(text, 'r') as fo:
