@@ -144,6 +144,6 @@ if __name__=="__main__":
                              args.save_file)
 
     if args.task=='snorms':
-        calc_sent_norm_complexity(args.word_norms_file, 
+        calc_sent_norm_complexity(args.word_norms, 
                                   args.text, 
                                   args.save_file)
