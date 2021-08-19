@@ -89,18 +89,38 @@ def calculate_word_norms(vectors_file, subword_model, text, save_file):
     print("Saved word norms to ", save_file)
 
 
-def calc_sent_norm_complexity(word_norms_file, text, save_file, sep):
+def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, sep):
+    sp = spm.SentencePieceProcessor()
+    sp.Load(subword_model)
+
+    wv = KeyedVectors.load(vectors_file, mmap='r')
     data_dict = {}
+
     print("Reading text data...")
     with open(text, 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
     
     word_norms = {}
-    print("Reading word norms...")
-    with open(word_norms_file, 'r') as fo:
-        for line in fo.readlines():
-            word_norms[line.split()[0]] = float(line.split()[-1])
+
+    print("Calculating word norms...")
+    for k in tqdm(data_dict):
+        sent = data_dict[k]
+        sent = sp.EncodeAsPieces(sent) + ['▁']
+        token = ''
+        norm = 0
+        for j, sub_word in enumerate(sent):
+            if '▁' in sub_word and len(token) > 0:
+                token = token.replace('▁', '')
+                word_norms[token] = norm
+                token = ''
+                token+=sub_word
+                norm = 0
+                norm += np.linalg.norm(wv[sub_word])
+            else:
+                token += sub_word
+                norm += np.linalg.norm(wv[sub_word])
+    
 
     print("Calculating sentence norms...")
     sent_norms = {}
@@ -148,10 +168,3 @@ if __name__=="__main__":
         calc_sent_norm_complexity(args.word_norms, 
                                   args.text, 
                                   args.save_file, args.sep)
-    '''
-    elif args.task=='snorms':
-        print("Sent norms task", flush=True)
-        calc_sent_norm_complexity(args.word_norms, 
-                                  args.text, 
-                                  args.save_file)
-    '''
