@@ -164,7 +164,7 @@ if __name__=="__main__":
                              args.text, 
                              args.save_file)
     else:
-        print("Sent norms task", flush=True)
-        calc_sent_norm_complexity(args.word_norms, 
+        calc_sent_norm_complexity(args.vectors,
+                                  args.subword_model 
                                   args.text, 
                                   args.save_file, args.sep)
