@@ -81,10 +81,10 @@ def main(args):
     if not args.num_threads:
         calc_CR(args.data_dir, args.res_dir, map_) 
     else:
-        threads = []
-        for file_ in ['validated.tsv']: 
+        for file_ in ['validated.tsv', 'invalidated.tsv']: 
+            threads = []
             csv_path = os.path.join(args.data_dir, file_)
-            csv = pd.read_csv(csv_path, sep = '\t')[:100]
+            csv = pd.read_csv(csv_path, sep = '\t')
             csv_len = len(csv)
             rows_per_thread = csv_len/args.num_threads
             for i in range(args.num_threads):
@@ -97,9 +97,9 @@ def main(args):
                 threads.append(t)
                 print(f"starting thread {i} for file {file_}")
                 t.start()
-        print("waiting for threads to finish")
-        for thread in threads:
-            thread.join()
+            print(f"waiting for threads to finish for file {file_}")
+            for thread in threads:
+                thread.join()
 
     if args.wav_scp:
         save_file(map_, args.res_dir, args.wav_scp)
