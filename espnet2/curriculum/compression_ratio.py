@@ -3,7 +3,7 @@ import pandas as pd
 import subprocess
 from tqdm import tqdm
 import argparse
-import threading
+import multiprocessing
 """
 def calc_CR_wav(wav_scp, data_dir, res_dir):
 
@@ -40,8 +40,7 @@ def calc_CR(data_dir, res_dir, map_, file_, start=None, end=None):
     p = os.path.join(data_dir,'clips')
     files = map_
     data = file_[start:end]
-    for x in tqdm(data.iterrows()):
-        ind, row = x
+    for idx, row in tqdm(data.iterrows()): 
         fname = row['path']
         client = row['client_id']
         fname_in = os.path.join(p, fname)
@@ -77,29 +76,30 @@ def save_file(map_, res_dir, wav_scp=None):
                 #fo.write('sp1.1-'+client+'-'+fname.split('.')[0]+' '+"["+str(CR)+"]\n")
             
 def main(args):
-    map_ = {}
-    if not args.num_threads:
+    manager = multiprocessing.Manager()
+    map_ = manager.dict()
+    if not args.num_process:
         calc_CR(args.data_dir, args.res_dir, map_) 
     else:
         for file_ in ['validated.tsv', 'invalidated.tsv']: 
-            threads = []
+            processes = []
             csv_path = os.path.join(args.data_dir, file_)
             csv = pd.read_csv(csv_path, sep = '\t')
             csv_len = len(csv)
-            rows_per_thread = csv_len/args.num_threads
-            for i in range(args.num_threads):
-                t = threading.Thread(target=calc_CR, args=(args.data_dir, 
-                                                           args.res_dir, 
-                                                           map_, 
-                                                           csv, 
-                                                           int(i*rows_per_thread),
-                                                           int(min((i+1)*rows_per_thread, csv_len)), ))
-                threads.append(t)
-                print(f"starting thread {i} for file {file_}")
-                t.start()
-            print(f"waiting for threads to finish for file {file_}")
-            for thread in threads:
-                thread.join()
+            rows_per_process = csv_len/args.num_process
+            for i in range(args.num_process):
+                p = multiprocessing.Process(target=calc_CR, args=(args.data_dir, 
+                                                                  args.res_dir, 
+                                                                  map_, 
+                                                                  csv, 
+                                                                  int(i*rows_per_process),
+                                                                  int(min((i+1)*rows_per_process, csv_len)), ))
+                processes.append(p)
+                print(f"starting process {i} for file {file_} with {int(rows_per_process)} rows")
+                p.start()
+            print(f"waiting for processes to finish for file {file_}")
+            for process in processes:
+                process.join()
 
     if args.wav_scp:
         save_file(map_, args.res_dir, args.wav_scp)
@@ -110,7 +110,7 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_threads", type=int, required=False)
+    parser.add_argument("--num_process", type=int, required=False)
     parser.add_argument('--wav_scp', type=str, required=False)
     parser.add_argument('--data_dir', type=str, required=True,
                         help='Path to audio dir.')
