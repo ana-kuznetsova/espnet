@@ -3,7 +3,7 @@ import pandas as pd
 import subprocess
 from tqdm import tqdm
 import argparse
-import multiprocessing
+from multiprocessing import Pool, Manager, Process, RLock
 """
 def calc_CR_wav(wav_scp, data_dir, res_dir):
 
@@ -36,24 +36,28 @@ def calc_CR_wav(wav_scp, data_dir, res_dir):
             CR = 1 - (fsize_comp/fsize)
             fo.write(fname+' '+str(CR)+"\n")
 """
-def calc_CR(data_dir, res_dir, map_, file_, start=None, end=None):
+def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
+    tqdm_text = "#"+"{}".format(pid).zfill(3)
     p = os.path.join(data_dir,'clips')
     files = map_
     data = file_[start:end]
-    for idx, row in tqdm(data.iterrows()): 
-        fname = row['path']
-        client = row['client_id']
-        fname_in = os.path.join(p, fname)
-        temp = subprocess.run(["gzip", "-k", fname_in])
-        fsize = subprocess.run(["du", fname_in], stdout=subprocess.PIPE, 
-                                            text=True, check=True)
-        fsize_comp = subprocess.run(["du", fname_in+'.gz'], stdout=subprocess.PIPE, 
-                                            text=True, check=True)
-        fsize = int(fsize.stdout.split('\t')[0])
-        fsize_comp = int(fsize_comp.stdout.split('\t')[0])
-        temp = subprocess.run(["rm", fname_in+".gz"])
-        CR = 1 - (fsize_comp/fsize)
-        files[client+'-'+fname.split('.')[0]] = str(CR)
+    #for idx, row in tqdm(data.iterrows()): 
+    with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
+        for idx, row in data.iterrows():
+            fname = row['path']
+            client = row['client_id']
+            fname_in = os.path.join(p, fname)
+            temp = subprocess.run(["gzip", "-k", fname_in])
+            fsize = subprocess.run(["du", fname_in], stdout=subprocess.PIPE, 
+                                                text=True, check=True)
+            fsize_comp = subprocess.run(["du", fname_in+'.gz'], stdout=subprocess.PIPE, 
+                                                text=True, check=True)
+            fsize = int(fsize.stdout.split('\t')[0])
+            fsize_comp = int(fsize_comp.stdout.split('\t')[0])
+            temp = subprocess.run(["rm", fname_in+".gz"])
+            CR = 1 - (fsize_comp/fsize)
+            files[client+'-'+fname.split('.')[0]] = str(CR)
+            pbar.update(1)
 
 
 def save_file(map_, res_dir, wav_scp=None):  
@@ -76,31 +80,32 @@ def save_file(map_, res_dir, wav_scp=None):
                 #fo.write('sp1.1-'+client+'-'+fname.split('.')[0]+' '+"["+str(CR)+"]\n")
             
 def main(args):
-    manager = multiprocessing.Manager()
+    manager = Manager()
     map_ = manager.dict()
     if not args.num_process:
         calc_CR(args.data_dir, args.res_dir, map_) 
     else:
         for file_ in ['validated.tsv', 'invalidated.tsv']: 
+            pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
             processes = []
             csv_path = os.path.join(args.data_dir, file_)
             csv = pd.read_csv(csv_path, sep = '\t')
             csv_len = len(csv)
             rows_per_process = csv_len/args.num_process
+            print('\n')
+            print(f"starting processes for file {file_} with {int(rows_per_process)} rows")
             for i in range(args.num_process):
-                p = multiprocessing.Process(target=calc_CR, args=(args.data_dir, 
-                                                                  args.res_dir, 
-                                                                  map_, 
-                                                                  csv, 
-                                                                  int(i*rows_per_process),
-                                                                  int(min((i+1)*rows_per_process, csv_len)), ))
-                processes.append(p)
-                print(f"starting process {i} for file {file_} with {int(rows_per_process)} rows")
-                p.start()
-            print(f"waiting for processes to finish for file {file_}")
-            for process in processes:
-                process.join()
-
+                processes.append(pool.apply_async(calc_CR, args=(i,
+                                     args.data_dir, 
+                                     args.res_dir, 
+                                     map_, 
+                                     csv, 
+                                     int(i*rows_per_process),
+                                     int(min((i+1)*rows_per_process, csv_len)), )))
+    
+            pool.close()
+            results = [job.get() for job in processes]
+            print("\n")
     if args.wav_scp:
         save_file(map_, args.res_dir, args.wav_scp)
     else:
