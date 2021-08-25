@@ -78,25 +78,26 @@ def save_file(map_, res_dir, wav_scp=None):
             
 def main(args):
     map_ = {}
-    if not num_threads:
+    if not args.num_threads:
         calc_CR(args.data_dir, args.res_dir, map_) 
     else:
         threads = []
-        for file_ in ['validated.tsv', 'invalidated.tsv']: 
-            csv = os.path.join(args.data_dir, file_)
+        for file_ in ['validated.tsv']: 
+            csv_path = os.path.join(args.data_dir, file_)
+            csv = pd.read_csv(csv_path, sep = '\t')[:100]
             csv_len = len(csv)
             rows_per_thread = csv_len/args.num_threads
             for i in range(args.num_threads):
                 t = threading.Thread(target=calc_CR, args=(args.data_dir, 
                                                            args.res_dir, 
                                                            map_, 
-                                                           file_=csv, 
-                                                           i*rows_per_thread,
-                                                           min((i+1)*rows_per_thread, csv_len)))
+                                                           csv, 
+                                                           int(i*rows_per_thread),
+                                                           int(min((i+1)*rows_per_thread, csv_len)), ))
                 threads.append(t)
                 print(f"starting thread {i} for file {file_}")
-                t1.start()
-        
+                t.start()
+        print("waiting for threads to finish")
         for thread in threads:
             thread.join()
 
@@ -104,12 +105,12 @@ def main(args):
         save_file(map_, args.res_dir, args.wav_scp)
     else:
         save_file(map_, args.res_dir)
-
+    print("compression ratio file created successfully...")
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_threads", type=str, required=False)
+    parser.add_argument("--num_threads", type=int, required=False)
     parser.add_argument('--wav_scp', type=str, required=False)
     parser.add_argument('--data_dir', type=str, required=True,
                         help='Path to audio dir.')
