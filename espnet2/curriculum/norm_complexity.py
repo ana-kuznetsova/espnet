@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # coding:utf-8
+# Author : Anastasiia Kuznetsova
 
 import sentencepiece as spm
+from string import punctuation
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 import numpy as np
@@ -19,6 +21,15 @@ For argument information run:
 python norm_complexity.py --help
 '''
 
+def pre_process(text):
+    '''
+    Params:
+        text(str): path to raw text
+    '''
+
+    raw_text = [line.lower() for line in open(text, 'r').readlines()]
+    filtered_text = [''.join([char for char in line if char not in punctuation]) for line in raw_text]
+    return filteredt_text
 
 def train_vector_model(subword_model, text, save_file, sep='\t'):
     '''

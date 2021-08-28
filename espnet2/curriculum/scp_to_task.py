@@ -4,7 +4,7 @@ nTasks = sys.argv[1]
 in_file = sys.argv[2]
 task_file = sys.argv[3]
 
-equalTasks = False
+equalTasks = int(sys.argv[4])
 
 utt2complexity = dict()
 with open(in_file, 'r') as f:
