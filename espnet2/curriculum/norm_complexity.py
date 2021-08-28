@@ -29,7 +29,10 @@ def pre_process(text):
 
     raw_text = [line.lower() for line in open(text, 'r').readlines()]
     filtered_text = [''.join([char for char in line if char not in punctuation]) for line in raw_text]
-    return filtered_text
+    
+    with open(text+'_filtered.txt', 'w') as fo:
+        for i, line in enumerate(filtered_text):
+            fo.write(str(i)+' '+line)
 
 def train_vector_model(subword_model, text, save_file, sep='\t'):
     '''
@@ -42,9 +45,10 @@ def train_vector_model(subword_model, text, save_file, sep='\t'):
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
+    pre_process(text)
     data_dict = {}
     print("Reading text data...")
-    with open(text, 'r') as fo:
+    with open(text+'_filtered.txt', 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
 
