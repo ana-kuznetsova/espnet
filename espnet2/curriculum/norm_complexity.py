@@ -29,7 +29,7 @@ def pre_process(text):
 
     raw_text = [line.lower() for line in open(text, 'r').readlines()]
     filtered_text = [''.join([char for char in line if char not in punctuation]) for line in raw_text]
-    return filteredt_text
+    return filtered_text
 
 def train_vector_model(subword_model, text, save_file, sep='\t'):
     '''
