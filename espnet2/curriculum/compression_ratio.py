@@ -1,3 +1,6 @@
+"""
+Author: Anurag Kumar
+"""
 import os
 import pandas as pd
 import subprocess
@@ -37,52 +40,66 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
             pbar.update(1)
 
 
-def save_file(map_, res_dir, wav_scp=None):  
-    with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
-        if wav_scp:
-            fe = open(res_dir+'/extras', 'w') 
-            print("Comparing wav_scp files.....")
-            for line in tqdm(open(wav_scp,'r').readlines()):
-                fname = line.split()[0]
-                if fname in map_:
-                    fo.write(fname + ' ' + map_[fname]+'\n')
-                else:
-                    fe.write(line+'\n')
-            fe.close()
-        else:
-            for file in map_:
-                fo.write(file + ' ' + map_[file]+'\n')
-            
+def save_file(map_, res_dir, wav_scp=None, compression=None):  
+    if not compression:
+        with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
+            if wav_scp:
+                fe = open(res_dir+'/extras', 'w') 
+                print("Comparing wav_scp files.....")
+                for line in tqdm(open(wav_scp,'r').readlines()):
+                    fname = line.split()[0]
+                    if fname in map_:
+                        fo.write(fname + ' ' + map_[fname]+'\n')
+                    else:
+                        fe.write(line+'\n')
+                fe.close()
+            else:
+                for file in map_:
+                    fo.write(file + ' ' + map_[file]+'\n')
+    else:
+        compressions = {}
+        wavs = {i.split()[0]: 1 for i in open(wav_scp,'r').readlines()}
+        for line in tqdm(open(compression, 'r').readlines()):
+            fname = line.split()[0]
+            cr = line.split()[1]
+            if fname in wavs:
+                compressions[fname] = cr
+        
+        with open(compression, 'r') as fo:
+            for fname in compressions:
+                fo.write(fname+' '+cr+'\n')
+
 def main(args):
     manager = Manager()
     map_ = manager.dict()
-    if not args.num_process:
-        calc_CR(args.data_dir, args.res_dir, map_) 
-    else:
-        for file_ in ['validated.tsv', 'invalidated.tsv']: 
-            pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
-            processes = []
-            csv_path = os.path.join(args.data_dir, file_)
-            csv = pd.read_csv(csv_path, sep = '\t')
-            csv_len = len(csv)
-            rows_per_process = int(csv_len/args.num_process) + 1
-            print('\n')
-            print(f"starting processes for file {file_} with {rows_per_process} rows")
-            for i in range(args.num_process):
-                start = int(i*rows_per_process)
-                end = int(min(start + rows_per_process, csv_len))
-                processes.append(pool.apply_async(calc_CR, args=(i,
-                                     args.data_dir, 
-                                     args.res_dir, 
-                                     map_, 
-                                     csv, 
-                                     start,
-                                     end,)))
-    
-            pool.close()
-            results = [job.get() for job in processes]
+    if not args.compression:
+        if not args.num_process:
+            calc_CR(args.data_dir, args.res_dir, map_) 
+        else:
+            for file_ in ['validated.tsv', 'invalidated.tsv']: 
+                pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
+                processes = []
+                csv_path = os.path.join(args.data_dir, file_)
+                csv = pd.read_csv(csv_path, sep = '\t')
+                csv_len = len(csv)
+                rows_per_process = int(csv_len/args.num_process) + 1
+                print('\n')
+                print(f"starting processes for file {file_} with {rows_per_process} rows")
+                for i in range(args.num_process):
+                    start = int(i*rows_per_process)
+                    end = int(min(start + rows_per_process, csv_len))
+                    processes.append(pool.apply_async(calc_CR, args=(i,
+                                        args.data_dir, 
+                                        args.res_dir, 
+                                        map_, 
+                                        csv, 
+                                        start,
+                                        end,)))
+        
+                pool.close()
+                results = [job.get() for job in processes]
     if args.wav_scp:
-        save_file(map_, args.res_dir, args.wav_scp)
+        save_file(map_, args.res_dir, args.wav_scp, args.compression)
     else:
         save_file(map_, args.res_dir)
     print("compression ratio file created successfully...")
@@ -96,6 +113,6 @@ if __name__=="__main__":
                         help='Path to audio dir.')
     parser.add_argument('--res_dir', type=str, required=True,
                         help='Path to dir where csv with the results will be stored.')
-
+    parser.add_argument("--compression", type=str, required=False)
     args = parser.parse_args()
     main(args)
