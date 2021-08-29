@@ -40,7 +40,8 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
             pbar.update(1)
 
 
-def save_file(map_, res_dir, wav_scp=None, compression=None):  
+def save_file(map_, res_dir, wav_scp=None, compression=None): 
+    print('\n') 
     if not compression:
         with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
             if wav_scp:

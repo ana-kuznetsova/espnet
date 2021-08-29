@@ -93,8 +93,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
             logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
 
-
-
     def all_exhausted(self):
         return all(self.tasks_exhausted)
 
