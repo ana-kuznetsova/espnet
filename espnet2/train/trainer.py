@@ -839,6 +839,7 @@ class Trainer:
                         print(curriculum_generator.exausted)
                         curriculum_generator.reset_exhausted()
                         print(curriculum_generator.exausted)
+                        
                         #Refill every task here
                         for i in range(iterator.K):
                             tasks.pop(k)
