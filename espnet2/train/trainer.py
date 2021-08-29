@@ -836,7 +836,7 @@ class Trainer:
                     curriculum_generator.report_exhausted_task(k)
                     logging.info(f"Task {k} is exhausted.")
                     if curriculum_generator.all_exhausted():
-                        curriculum.reset_exhausted()
+                        curriculum_generator.reset_exhausted()
                         #Refill every task here
                         for i in range(iterator.K):
                             tasks.pop(k)
