@@ -50,7 +50,7 @@ scheduler: noamlr
 scheduler_conf:
     model_size: 256
     warmup_steps: 25000
-
+num_iters_per_epoch: 600
 # minibatch related
 batch_type: numel
 batch_bins: 10000000
@@ -76,3 +76,13 @@ specaug_conf:
     - 0
     - 40
     num_time_mask: 2
+
+#Curriculum
+task_file: /N/slate/ak16/task_files/ky_task_file5_neq
+K: 5
+iterator_type: curriculum
+use_curriculum: true
+curriculum_algo: exp3s
+gain_type: SPG
+refill_task: true
+eta: 0.001
