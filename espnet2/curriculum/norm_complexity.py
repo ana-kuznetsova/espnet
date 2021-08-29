@@ -1,12 +1,15 @@
 #!/usr/bin/python
 # coding:utf-8
+# Author : Anastasiia Kuznetsova
 
 import sentencepiece as spm
+from string import punctuation
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 import numpy as np
 from tqdm import tqdm
 import argparse
+import pandas as pd
 
 '''
 The scirpt calculates vector norm as a complexity measure for curriculum learning.
@@ -19,23 +22,50 @@ For argument information run:
 python norm_complexity.py --help
 '''
 
+def pre_process(text, lang=None, corpus='CV'):
+    '''
+    Params:
+        text(str): path to raw text.
+        lang (str) language.
+        cv_path (str) path to commonvoice root folder.
+    '''
+    if corpus=='CV':
+        CV_ROOT = '~/Rev/commonvoice'
 
-def train_vector_model(subword_model, text, save_file, sep='\t'):
+    raw_text = [line.lower() for line in open(text, 'r').readlines()]
+    
+    if lang:
+        csv = pd.read_csv(CV_ROOT+'/'+lang+'/validated.tsv')
+        for id_, row in csv.iterrows(): 
+            raw_text.append(row['sentence'].lower())
+
+    filtered_text = [''.join([char for char in line if char not in punctuation]) for line in raw_text]
+    
+    with open(text.split('.')[0]+'_filtered.txt', 'w') as fo:
+        for i, line in enumerate(filtered_text):
+            fo.write(str(i)+' '+line)
+
+def train_vector_model(subword_model, text, save_file, lang=None, sep='\t'):
     '''
     Params:
         subword_model (str): Path to sentencepiece model.
         text (str) path to text in scp format.
         sep (str) separator between sentence ID and sentence.
         save_file (str) file name to store vectors.
+        lang (str) langauge
     '''
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
+    
+
     data_dict = {}
     print("Reading text data...")
-    with open(text, 'r') as fo:
+    with open(text.split('.')[0]+'_filtered.txt', 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
+
+    
 
     print("Creating subwords for training data...")
     training_data = []
@@ -139,25 +169,12 @@ def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_
             fo.write(k+' '+str(sent_norms[k])+'\n')
     print("Saved sentence norms in ", save_file)
 
-
-if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--task', type=str,required=True, help='vectors, wnorms or snorms.')
-    parser.add_argument('--text', type=str, help='Path to text file in SCP format.')
-    parser.add_argument('--subword_model', type=str, help='Path to sentencepiece model.')
-    parser.add_argument('--sep', default='\t', type=str, help='Separator between sentence ID and sentence.')
-    parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
-    parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
-    parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
-    parser.add_argument('--max_norm', type=float, help='Max norm for filling OOVs')
-
-
-    args = parser.parse_args()
-
-
+def main(args):
+    pre_process(args.text, args.lang)
+    filtered_text = args.text.split('.')[0] + '_filtered.txt'
     if args.task=='vectors':
         train_vector_model(args.subword_model, 
-                           args.text, 
+                           filtered_text, 
                            args.save_file,
                            args.sep)
 
@@ -173,3 +190,19 @@ if __name__=="__main__":
                                   args.save_file,
                                   args.max_norm,
                                   args.sep)
+
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str,required=True, help='vectors, wnorms or snorms.')
+    parser.add_argument('--text', type=str, help='Path to text file in SCP format.')
+    parser.add_argument('--subword_model', type=str, help='Path to sentencepiece model.')
+    parser.add_argument('--sep', default='\t', type=str, help='Separator between sentence ID and sentence.')
+    parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
+    parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
+    parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
+    parser.add_argument('--max_norm', type=float, help='Max norm for filling OOVs')
+    parser.add_argument('--corpus', type=str, required=False)
+    parser.add_Argument('--lang', type=str, required=False)
+    args = parser.parse_args()
+    main(args)
