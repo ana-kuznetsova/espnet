@@ -63,7 +63,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                             "gain_type":gain_type
                             }
 
-        self.tasks_exhausted = [False]*self.K
+        self.exhausted = [False]*self.K
         
         if not restore:
             self.reward_hist = np.array([])
@@ -94,17 +94,17 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}.")
 
     def all_exhausted(self):
-        return all(self.tasks_exhausted)
+        return all(self.exhausted)
 
     def reset_exhausted(self):
         self.exhausted = [False for i in range(self.K)]
 
     def report_exhausted_task(self, k):
-        self.tasks_exhausted[k] = True
+        self.exhausted[k] = True
 
     def get_next_task_ind(self, **kwargs):
         arr = np.arange(self.K)
-        ind = [i for i in range(self.K) if not self.tasks_exhausted[i]]
+        ind = [i for i in range(self.K) if not self.exhausted[i]]
         norm_probs = self.policy[ind]/self.policy[ind].sum()
         task_ind = np.random.choice(arr[ind], size=1, p=norm_probs)
         return int(task_ind)
