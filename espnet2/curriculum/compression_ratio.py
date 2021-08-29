@@ -40,14 +40,14 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
 def save_file(map_, res_dir, wav_scp=None):  
     with open(os.path.join(res_dir, "compression_ratio"), 'w') as fo:
         if wav_scp:
-            fe = open('extras', 'w') 
+            fe = open(res_dir+'/extras', 'w') 
             print("Comparing wav_scp files.....")
             for line in tqdm(open(wav_scp,'r').readlines()):
                 fname = line.split()[0]
                 if fname in map_:
                     fo.write(fname + ' ' + map_[fname]+'\n')
                 else:
-                    fe.write(fname)
+                    fe.write(line+'\n')
             fe.close()
         else:
             for file in map_:
