@@ -46,6 +46,3 @@ if __name__=='__main__':
     parser.add_argument("--res_dir", required=True)
     args = parser.parse_args()
     main(args)
-
-    args = parser.parse_args()
-    main(args)

@@ -5,7 +5,7 @@ nTasks = sys.argv[1]
 in_file = sys.argv[2]
 task_file = sys.argv[3]
 
-equalTasks = False
+equalTasks = int(sys.argv[4])
 
 utt2complexity = dict()
 with open(in_file, 'r') as f:
@@ -23,6 +23,8 @@ if equalTasks:
         task = 0
         for ID, complexity in complexity_sorted:
             f.write(ID + " " + str(task) + "\n")
+            f.write("sp0.9-" + ID + " " + str(task) + "\n")
+            f.write("sp1.1-" + ID + " " + str(task) + "\n")
             i += 1
             if i % nPerTask == 0:
                 if task < int(nTasks) - 1:
@@ -51,6 +53,8 @@ else:
                 task_max = min_comp + task_comp_size*(task+1)
                 prev_task_i = i
             f.write(ID + " " + str(task) + "\n")
+            f.write("sp0.9-" + ID + " " + str(task) + "\n")
+            f.write("sp1.1-" + ID + " " + str(task) + "\n")
             i += 1
         print(str(task) + " (" + str(task_min) + ", " + str(task_max) + ") " + str(i-prev_task_i))
     
