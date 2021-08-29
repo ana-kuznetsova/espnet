@@ -1,4 +1,5 @@
 import sys
+import math
 
 nTasks = sys.argv[1]
 in_file = sys.argv[2]
@@ -33,8 +34,9 @@ if equalTasks:
 
         
 else:
-    min_comp = complexity_sorted[0][1]
-    max_comp = complexity_sorted[-1][1]
+    nUtts = len(complexity_sorted)
+    min_comp = complexity_sorted[math.ceil(nUtts/100.)][1]
+    max_comp = complexity_sorted[-math.ceil(nUtts/100.)][1]
 
     task_comp_size = (max_comp - min_comp)/float(nTasks)
     with open(task_file, 'w') as f:
@@ -44,7 +46,7 @@ else:
         task_max = min_comp + task_comp_size
         prev_task_i = 0
         for ID, complexity in complexity_sorted:
-            if complexity > task_max:
+            if complexity > task_max and task != float(nTasks)-1:
                 print(str(task) + " (" + str(task_min) + ", " + str(task_max) + ") " + str(i-prev_task_i))
                 task += 1
                 task_min = task_max
