@@ -826,7 +826,6 @@ class Trainer:
 
             try:
                 _, batch = tasks[k].next()
-                logging.info(f"Batchsize:{len(batch)}")
             except StopIteration as e:
                 if options.refill_task==True:
                     logging.info(f"Refilled task {k}.")
