@@ -812,8 +812,8 @@ class Trainer:
 
         iiter = 0
         #Reset the exausted tasks list
-        curriculum_generator.reset_exhausted()
-
+        curriculum_generator.reset_exhausted() 
+        
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
             # For pretraining select task from a uniform distribution
