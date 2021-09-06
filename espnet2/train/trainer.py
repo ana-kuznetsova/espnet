@@ -1035,7 +1035,7 @@ class Trainer:
             kwargs['shared_array'][0] += loss1.detach().cpu()
             kwargs['shared_array'][1] += loss2.detach().cpu()
 
-            if shared_array[-1] != 0:
+            if kwargs['shared_array'][0] > 0 and kwargs['shared_array'][1] > 0:
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                     curriculum_generator.update_policy(
