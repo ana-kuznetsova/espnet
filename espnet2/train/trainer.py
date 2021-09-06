@@ -1040,7 +1040,10 @@ class Trainer:
             #logging.info(f"ngpu:{ngpu}, tr.ngpu:{options.total_gpu}")
             while(True):
                 l1, l2 = 0, 0
-                f = open('temp.losses', 'r')
+                try:
+                    f = open('temp.losses', 'r')
+                except:
+                    continue
                 lines = f.readlines()
                 logging.info(f"lines:{len(lines)}, tr.ngpu:{options.total_gpu}")
                 if len(lines) == options.total_gpu:
