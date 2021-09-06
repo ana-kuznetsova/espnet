@@ -1035,6 +1035,9 @@ class Trainer:
             kwargs['shared_array'][0] += loss1.detach().cpu()
             kwargs['shared_array'][1] += loss2.detach().cpu()
 
+            while(kwargs['shared_array'][0] <= 0 or kwargs['shared_array'][1] <= 0):
+                continue
+
             if kwargs['shared_array'][0] > 0 and kwargs['shared_array'][1] > 0:
                 loss1 = kwargs['shared_array'][0]/options.total_gpu
                 loss2 = kwargs['shared_array'][1]/options.total_gpu
