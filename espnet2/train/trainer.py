@@ -1040,6 +1040,7 @@ class Trainer:
                 l1, l2 = 0, 0
                 f = open('temp.losses', 'r')
                 lines = f.readlines()
+                print(len(lines))
                 if len(lines) == ngpu:
                     for line in lines:
                         l1 += float(line.split()[0])
