@@ -1041,7 +1041,7 @@ class Trainer:
                 l1, l2 = 0, 0
                 f = open('temp.losses', 'r')
                 lines = f.readlines()
-                logging.info(f"lines:{len(lines)}, ngpu:{ngpu}, tr.ngpu:{trainer_options.ngpu}")
+                logging.info(f"lines:{len(lines)}, ngpu:{ngpu}, tr.ngpu:{options.ngpu}")
                 if len(lines) == ngpu:
                     for line in lines:
                         l1 += float(line.split()[0])
