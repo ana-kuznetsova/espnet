@@ -1054,7 +1054,8 @@ class Trainer:
                     break
                 f.close()
 
-            if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
