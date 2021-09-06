@@ -80,7 +80,6 @@ import sys
 class TrainerOptions:
     ngpu: int
     total_gpu: int
-    shared_array: object
     resume: bool
     use_amp: bool
     train_dtype: str
