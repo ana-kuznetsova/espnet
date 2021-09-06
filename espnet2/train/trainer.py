@@ -1036,11 +1036,12 @@ class Trainer:
 
             #Just a dummy loop to wait till all processes have written losses. If true,
             #then read the losses and take average.
+            logging.info(f"ngpu:{ngpu}, tr.ngpu:{trainer_options.ngpu}")
             while(True):
                 l1, l2 = 0, 0
                 f = open('temp.losses', 'r')
                 lines = f.readlines()
-                log.info(f"lines:{len(lines)}")
+                logging.info(f"lines:{len(lines)}, ngpu:{ngpu}, tr.ngpu:{trainer_options.ngpu}")
                 if len(lines) == ngpu:
                     for line in lines:
                         l1 += float(line.split()[0])
