@@ -788,6 +788,13 @@ class AbsTask(ABC):
         )
 
         group.add_argument(
+            "--total_gpu",
+            type=int,
+            default=0,
+            help="Total GPUs running the model",
+        )
+
+        group.add_argument(
             "--gen_log_dir",
             type=str,
             default=None,
