@@ -373,7 +373,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         Manage synchronization for multi-gpu training.
         """
-        time.sleep(0.75)
+        time.sleep(3)
         if iepoch == self.last_epoch and iiter == self.last_iter:
             return 0
         self.last_iter = iiter
