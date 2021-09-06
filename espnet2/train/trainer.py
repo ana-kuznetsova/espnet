@@ -1028,8 +1028,8 @@ class Trainer:
                 4. Empty the file after policy update. 
             Only works for 1 node, multigpu training.
             """
-            print(os.getcwd())
-            with open('../../../../espnet2/curriculum/temp.losses', 'a+') as tmp:
+            
+            with open('temp.losses', 'a+') as tmp:
                 loss1 = loss1.detach().cpu().numpy()
                 loss2 = loss2.detach().cpu().numpy()
                 tmp.write(str(loss1)+" "+str(loss2)+"\n")
@@ -1038,7 +1038,7 @@ class Trainer:
             #then read the losses and take average.
             while(True):
                 l1, l2 = 0
-                f = open('../curriculum/temp.losses', 'r')
+                f = open('temp.losses', 'r')
                 lines = f.readlines()
                 if len(lines) == ngpu:
                     for line in lines:
@@ -1067,7 +1067,7 @@ class Trainer:
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
-            os.remove('../curriculum/temp.losses')
+            os.remove('temp.losses')
 
             start_time = time.perf_counter()
 
