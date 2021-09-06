@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 from contextlib import contextmanager
 import dataclasses
 from dataclasses import is_dataclass
@@ -1065,7 +1066,7 @@ class Trainer:
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
-
+            os.remove('../curriculum/temp.losses')
 
             start_time = time.perf_counter()
 
