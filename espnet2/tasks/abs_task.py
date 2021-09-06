@@ -804,7 +804,7 @@ class AbsTask(ABC):
 
         group.add_argument(
             "--shared_array",
-            type=object,
+            type=list[tensor],
             default=None,
             help="Lock for synchronization",
         )
