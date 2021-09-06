@@ -1032,8 +1032,8 @@ class Trainer:
                 4. Empty the file after policy update. 
             Only works for 1 node, multigpu training.
             """
-            kwargs['shared_array'][0] += loss1
-            kwargs['shared_array'][1] += loss2
+            kwargs['shared_array'][0] += loss1.detach().cpu()
+            kwargs['shared_array'][1] += loss2.detach().cpu()
 
             if shared_array[-1] != 0:
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
