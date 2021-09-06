@@ -6,6 +6,7 @@ import os
 import json
 import wandb
 import logging
+import time
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
@@ -231,7 +232,6 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         #assert check_argument_types()
         self.K = K 
-        self.log_dir = log_dir
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
@@ -245,11 +245,12 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.env_mode = 1
         else:
             self.slow_k = slow_k
-
+        self.last_iter = 0
+        self.last_epoch = 0
         self.exhausted = [False for i in range(self.K)]
 
         if restore:
-            #self.log_dir = log_dir
+            self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
             generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
                                       allow_pickle=True).item()
@@ -368,6 +369,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
+    def update_check(self, iepoch, iiter):
+        time.sleep(0.75)
+        if ipoch == self.last_epoch and iiter == self.last_iter:
+            return 0
+        self.last_iter = iiter
+        self.last_epoch = iepoch
+        return 1
+
     def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):
         """
         Updates policy based on the received progress gain.
@@ -378,13 +387,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """ 
-        stats_dir = os.path.join(self.log_dir, "generator_stats") 
-        if os.path.isfile(stats_dir):
-            with open(stats_dir, 'r') as f:
-                lines = f.readlines()
-                last = json.loads(lines[-1])
-                if int(last['iiter']) == iiter and int(last['iepoch']) == iepoch:
-                    return
+        if not self.update_check(ipoch, iiter):
+            return
 
         total_iters = iiter
         if iepoch > 1:
