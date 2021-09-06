@@ -1058,8 +1058,8 @@ class Trainer:
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
 
-            kwargs['shared_array'][0] -= kwargs['shared_array'][0]
-            kwargs['shared_array'][1] -= kwargs['shared_array'][1]
+                kwargs['shared_array'][0] -= kwargs['shared_array'][0]
+                kwargs['shared_array'][1] -= kwargs['shared_array'][1]
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
