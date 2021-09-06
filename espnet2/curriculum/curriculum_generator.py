@@ -370,8 +370,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         return np.array(cost)
 
     def update_check(self, iepoch, iiter):
+        """
+        Manage synchronization for multi-gpu training.
+        """
         time.sleep(0.75)
-        if ipoch == self.last_epoch and iiter == self.last_iter:
+        if iepoch == self.last_epoch and iiter == self.last_iter:
             return 0
         self.last_iter = iiter
         self.last_epoch = iepoch
