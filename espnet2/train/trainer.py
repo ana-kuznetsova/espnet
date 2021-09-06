@@ -1071,7 +1071,7 @@ class Trainer:
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
-            os.remove('temp.losses')
+            os.remove('/N/slate/ak16/espnet/egs2/commonvoice/asr1/temp.losses')
 
             start_time = time.perf_counter()
 
