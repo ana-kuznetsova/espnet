@@ -80,6 +80,7 @@ import sys
 class TrainerOptions:
     ngpu: int
     total_gpu: int
+    shared_array: object
     resume: bool
     use_amp: bool
     train_dtype: str
@@ -1029,36 +1030,10 @@ class Trainer:
                 4. Empty the file after policy update. 
             Only works for 1 node, multigpu training.
             """
-            
-            with open('temp.losses', 'a+') as tmp:
-                loss1 = loss1.detach().cpu().numpy()
-                loss2 = loss2.detach().cpu().numpy()
-                tmp.write(str(loss1)+" "+str(loss2)+"\n")
+            shared_array[0] += loss1
+            shared_array[1] += loss2
 
-            #Just a dummy loop to wait till all processes have written losses. If true,
-            #then read the losses and take average.
-            #logging.info(f"ngpu:{ngpu}, tr.ngpu:{options.total_gpu}")
-            while(True):
-                l1, l2 = 0, 0
-                try:
-                    f = open('temp.losses', 'r')
-                except:
-                    continue
-                lines = f.readlines()
-                logging.info(f"lines:{len(lines)}, tr.ngpu:{options.total_gpu}")
-                if len(lines) == options.total_gpu:
-                    for line in lines:
-                        l1 += float(line.split()[0])
-                        l2 += float(line.split()[1])
-                    l1 = l1/ngpu
-                    l2 = l2/ngpu
-                    loss1, loss2 = l1, l2
-                    f.close()
-                    break
-                f.close()
-
-            if os.path.isfile('temp.losses'):
-                os.remove('temp.losses')
+            if shared_array[-1] > 0:
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                     curriculum_generator.update_policy(
@@ -1076,6 +1051,8 @@ class Trainer:
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
 
+            shared_array[0] -= shared_array[0]
+            shared_array[1] -= shared_array[1]
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()

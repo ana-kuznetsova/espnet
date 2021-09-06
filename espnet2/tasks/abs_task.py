@@ -78,6 +78,7 @@ if LooseVersion(torch.__version__) >= LooseVersion("1.5.0"):
 else:
     from torch.multiprocessing.spawn import SpawnContext as ProcessContext
 
+from torch.multiprocessing import Manager
 
 optim_classes = dict(
     adam=torch.optim.Adam,
@@ -801,6 +802,13 @@ class AbsTask(ABC):
             help="Where to log generator stats",
         )
 
+        group.add_argument(
+            "--shared_array",
+            type=object,
+            default=None,
+            help="Lock for synchronization",
+        )
+
         group.add_argument("--start_curriculum",
                            type=int,
                            default=0,
@@ -936,6 +944,7 @@ class AbsTask(ABC):
             help="The maximum cache size for validation data loader. e.g. 10MB, 20GB. "
             "If None, the 5 percent size of --max_cache_size",
         )
+        
 
         group = parser.add_argument_group("Optimizer related")
         for i in range(1, cls.num_optimizers + 1):
@@ -1178,6 +1187,7 @@ class AbsTask(ABC):
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
                 local_args.total_gpu = args.ngpu
+                local_args.shared_array = [torch.zeros(1).share_memory_() for i in range(2)]
 
                 process = mp.Process(
                     target=cls.main_worker,
