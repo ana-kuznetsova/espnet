@@ -1054,24 +1054,25 @@ class Trainer:
                     break
                 f.close()
 
-            #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-            if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
-                curriculum_generator.update_policy(
-                    iepoch=iepoch,
-                    iiter=iiter,
-                    num_iters=iterator.num_iters_per_epoch, 
-                    k=k, 
-                    #losses=(loss1.item(), loss2.item()), 
-                    losses=(loss1, loss2),
-                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                    algo=options.curriculum_algo,
-                    start_curriculum=options.start_curriculum,
-                    gain_type=options.gain_type,
-                )
-            else:
-                curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
-            
             if os.path.isfile('temp.losses'):
+                f = open('temp.losses', 'r')
+                #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
+                    curriculum_generator.update_policy(
+                        iepoch=iepoch,
+                        iiter=iiter,
+                        num_iters=iterator.num_iters_per_epoch, 
+                        k=k, 
+                        #losses=(loss1.item(), loss2.item()), 
+                        losses=(loss1, loss2),
+                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                        algo=options.curriculum_algo,
+                        start_curriculum=options.start_curriculum,
+                        gain_type=options.gain_type,
+                    )
+                else:
+                    curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
+                f.close()
                 os.remove('temp.losses')
 
             start_time = time.perf_counter()
