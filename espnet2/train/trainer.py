@@ -1037,7 +1037,7 @@ class Trainer:
             #Just a dummy loop to wait till all processes have written losses. If true,
             #then read the losses and take average.
             while(True):
-                l1, l2 = 0
+                l1, l2 = 0, 0
                 f = open('temp.losses', 'r')
                 lines = f.readlines()
                 if len(lines) == ngpu:
