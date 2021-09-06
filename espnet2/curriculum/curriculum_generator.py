@@ -390,7 +390,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """ 
-        if not self.update_check(ipoch, iiter):
+        if not self.update_check(iepoch, iiter):
             return
 
         total_iters = iiter
