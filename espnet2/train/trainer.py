@@ -1036,7 +1036,7 @@ class Trainer:
 
             #Just a dummy loop to wait till all processes have written losses. If true,
             #then read the losses and take average.
-            logging.info(f"ngpu:{ngpu}, tr.ngpu:{options.ngpu}")
+            logging.info(f"ngpu:{ngpu}, tr.ngpu:{options.total_gpu}")
             while(True):
                 l1, l2 = 0, 0
                 f = open('temp.losses', 'r')

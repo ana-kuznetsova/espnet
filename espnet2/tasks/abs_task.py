@@ -1170,6 +1170,7 @@ class AbsTask(ABC):
                 local_args.local_rank = i
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
+                local_args.total_gpu = args.ngpu
 
                 process = mp.Process(
                     target=cls.main_worker,
