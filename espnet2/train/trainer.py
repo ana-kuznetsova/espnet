@@ -199,6 +199,7 @@ class Trainer:
         plot_attention_iter_factory: Optional[AbsIterFactory],
         trainer_options,
         distributed_option: DistributedOption,
+        shared_array,
     ) -> None:
         """Perform training. This method performs the main process of training."""
         assert check_argument_types()
@@ -394,6 +395,7 @@ class Trainer:
                             distributed_option=distributed_option,
                             iepoch=iepoch,
                             valid_iterator=valid_iter_factory,
+                            shared_array=shared_array,
                         )
                     else:    
 
@@ -410,6 +412,7 @@ class Trainer:
                                 options=trainer_options,
                                 distributed_option=distributed_option,
                                 iepoch=iepoch,
+                                shared_array=shared_array,
                             )
 
                 else:
@@ -1030,8 +1033,8 @@ class Trainer:
                 4. Empty the file after policy update. 
             Only works for 1 node, multigpu training.
             """
-            shared_array[0] += loss1
-            shared_array[1] += loss2
+            kwargs['shared_array'][0] += loss1
+            kwargs['shared_array'][1] += loss2
 
             if shared_array[-1] > 0:
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
@@ -1051,8 +1054,8 @@ class Trainer:
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
 
-            shared_array[0] -= shared_array[0]
-            shared_array[1] -= shared_array[1]
+            kwargs['shared_array'][0] -= kwargs['shared_array'][0]
+            kwargs['shared_array'][1] -= kwargs['shared_array'][1]
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()

@@ -1187,11 +1187,11 @@ class AbsTask(ABC):
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
                 local_args.total_gpu = args.ngpu
-                local_args.shared_array = [torch.zeros(1).share_memory_() for i in range(2)]
+                shared_array = [torch.zeros(1).share_memory_() for i in range(2)]
 
                 process = mp.Process(
                     target=cls.main_worker,
-                    args=(local_args,),
+                    args=(local_args, shared_array),
                     daemon=False,
                 )
                 process.start()
@@ -1202,7 +1202,7 @@ class AbsTask(ABC):
                 pass
 
     @classmethod
-    def main_worker(cls, args: argparse.Namespace):
+    def main_worker(cls, args: argparse.Namespace, shared_array):
         assert check_argument_types()
 
         # 0. Init distributed process
@@ -1447,6 +1447,7 @@ class AbsTask(ABC):
                 plot_attention_iter_factory=plot_attention_iter_factory,
                 trainer_options=trainer_options,
                 distributed_option=distributed_option,
+                shared_array=shared_array,
             )
 
             if wandb.run:
