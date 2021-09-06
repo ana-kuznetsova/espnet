@@ -1055,7 +1055,7 @@ class Trainer:
                 f.close()
 
             if os.path.isfile('temp.losses'):
-                f = open('temp.losses', 'r')
+                os.remove('temp.losses')
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                     curriculum_generator.update_policy(
@@ -1072,8 +1072,6 @@ class Trainer:
                     )
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
-                f.close()
-                os.remove('temp.losses')
 
             start_time = time.perf_counter()
 
