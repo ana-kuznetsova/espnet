@@ -3,6 +3,7 @@ from typeguard import check_argument_types
 from abc import ABC
 from abc import abstractmethod
 import os
+import json
 import wandb
 import logging
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
@@ -230,6 +231,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         #assert check_argument_types()
         self.K = K 
+        self.log_dir = log_dir
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
@@ -247,7 +249,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.exhausted = [False for i in range(self.K)]
 
         if restore:
-            self.log_dir = log_dir
+            #self.log_dir = log_dir
             #Read history files, restore the last iter from iepoch
             generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
                                       allow_pickle=True).item()
@@ -375,7 +377,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             3. Calculate arm count.
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
-        """   
+        """ 
+        stats_dir = os.path.join(self.log_dir, "generator_stats") 
+        if os.path.isfile(stats_dir):
+            with open(stats_dir, 'r') as f:
+                lines = f.readlines()
+                last = json.loads(lines[-1])
+                if int(last['iiter']) == iiter and int(last['iepoch']) == iepoch:
+                    return
+
         total_iters = iiter
         if iepoch > 1:
             prev_iters = (iepoch-1)*num_iters
