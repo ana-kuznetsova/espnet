@@ -801,14 +801,14 @@ class AbsTask(ABC):
             default=None,
             help="Where to log generator stats",
         )
-
+        """
         group.add_argument(
             "--shared_array",
             type=list,
             default=None,
             help="Lock for synchronization",
         )
-
+        """
         group.add_argument("--start_curriculum",
                            type=int,
                            default=0,
