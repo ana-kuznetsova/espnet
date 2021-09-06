@@ -1036,6 +1036,8 @@ class Trainer:
             kwargs['shared_array'][1] += loss2.detach().cpu()
 
             if kwargs['shared_array'][0] > 0 and kwargs['shared_array'][1] > 0:
+                loss1 = kwargs['shared_array'][0]/options.total_gpu
+                loss2 = kwargs['shared_array'][1]/options.total_gpu
                 #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                     curriculum_generator.update_policy(
@@ -1043,8 +1045,8 @@ class Trainer:
                         iiter=iiter,
                         num_iters=iterator.num_iters_per_epoch, 
                         k=k, 
-                        #losses=(loss1.item(), loss2.item()), 
-                        losses=(loss1, loss2),
+                        losses=(loss1.item(), loss2.item()), 
+                        #losses=(loss1, loss2),
                         batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                         algo=options.curriculum_algo,
                         start_curriculum=options.start_curriculum,
