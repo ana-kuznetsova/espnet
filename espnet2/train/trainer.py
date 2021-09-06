@@ -1028,6 +1028,7 @@ class Trainer:
                 4. Empty the file after policy update. 
             Only works for 1 node, multigpu training.
             """
+            print(os.getcwd())
             with open('espnet2/curriculum/temp.losses', 'a+') as tmp:
                 loss1 = loss1.detach().cpu().numpy()
                 loss2 = loss2.detach().cpu().numpy()
