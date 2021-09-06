@@ -1018,35 +1018,6 @@ class Trainer:
                                             start_time
                                             )
 
-            """
-            To handle multigpu policy update:
-                1. Write the losses recieved in a file in ../curriculum/temp.losses.
-                2. Wait for all processes to write in the file. 
-                3. Update policy only if number of lines present in file == ngpu.
-                4. Empty the file after policy update. 
-            Only works for 1 node, multigpu training.
-            """
-            with open('../curriculum/temp.losses', 'a') as tmp:
-                loss1 = loss1.detach().cpu().numpy()
-                loss2 = loss2.detach().cpu().numpy()
-                tmp.write(str(loss1)+" "+str(loss2)+"\n")
-
-            #Just a dummy loop to wait till all processes have written losses. If true,
-            #then read the losses and take average.
-            while(True):
-                l1, l2 = 0
-                f = open('../curriculum/temp.losses', 'r')
-                lines = f.readlines()
-                if len(lines) == ngpu:
-                    for line in lines:
-                        l1 += float(line.split()[0])
-                        l2 += float(line.split()[1])
-                    l1 = l1/ngpu
-                    l2 = l2/ngpu
-                    loss1, loss2 = l1, l2
-                    f.close()
-                    break
-                f.close()
 
             if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 curriculum_generator.update_policy(
@@ -1054,8 +1025,8 @@ class Trainer:
                     iiter=iiter,
                     num_iters=iterator.num_iters_per_epoch, 
                     k=k, 
-                    #losses=(loss1.item(), loss2.item()), 
-                    losses=(loss1, loss2)
+                    losses=(loss1.item(), loss2.item()), 
+                    #losses=(loss1, loss2)
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
