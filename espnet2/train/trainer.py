@@ -79,6 +79,7 @@ import sys
 @dataclasses.dataclass
 class TrainerOptions:
     ngpu: int
+    total_gpu: int
     resume: bool
     use_amp: bool
     train_dtype: str
