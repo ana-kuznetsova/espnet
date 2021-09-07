@@ -199,6 +199,7 @@ class Trainer:
         trainer_options,
         distributed_option: DistributedOption,
         shared_array,
+        lock,
     ) -> None:
         """Perform training. This method performs the main process of training."""
         assert check_argument_types()
@@ -327,6 +328,7 @@ class Trainer:
                                             epsilon=trainer_options.epsilon,
                                             eta=trainer_options.eta,
                                             beta=trainer_options.beta,
+                                            lock=lock,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -341,6 +343,7 @@ class Trainer:
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
+                                       lock=lock,
                 )
             elif trainer_options.curriculum_algo=='manual':
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,

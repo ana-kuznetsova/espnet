@@ -248,6 +248,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.last_iter = 0
         self.last_epoch = 0
         self.exhausted = [False for i in range(self.K)]
+        self.lock = kwargs['lock']
 
         if restore:
             self.log_dir = log_dir
@@ -373,11 +374,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         Manage synchronization for multi-gpu training.
         """
-        time.sleep(3)
+        self.lock.acquire()
         if iepoch == self.last_epoch and iiter == self.last_iter:
+            self.lock.release()
             return 0
         self.last_iter = iiter
         self.last_epoch = iepoch
+        self.lock.release()
         return 1
 
     def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):

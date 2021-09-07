@@ -78,7 +78,7 @@ if LooseVersion(torch.__version__) >= LooseVersion("1.5.0"):
 else:
     from torch.multiprocessing.spawn import SpawnContext as ProcessContext
 
-from torch.multiprocessing import Manager
+from torch.multiprocessing import Lock
 
 optim_classes = dict(
     adam=torch.optim.Adam,
@@ -1179,6 +1179,7 @@ class AbsTask(ABC):
             error_queues = []
             processes = []
             mp = torch.multiprocessing.get_context("spawn")
+            lock = Lock()
             for i in range(args.ngpu):
                 # Copy args
                 local_args = argparse.Namespace(**vars(args))
@@ -1191,7 +1192,7 @@ class AbsTask(ABC):
 
                 process = mp.Process(
                     target=cls.main_worker,
-                    args=(local_args, shared_array),
+                    args=(local_args, shared_array, lock),
                     daemon=False,
                 )
                 process.start()
@@ -1448,6 +1449,7 @@ class AbsTask(ABC):
                 trainer_options=trainer_options,
                 distributed_option=distributed_option,
                 shared_array=shared_array,
+                lock=lock, 
             )
 
             if wandb.run:
