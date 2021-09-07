@@ -1061,7 +1061,7 @@ class Trainer:
                         algo=options.curriculum_algo,
                         start_curriculum=options.start_curriculum,
                         gain_type=options.gain_type,
-                        lock = lock,
+                        lock=kwargs['lock'],
                     )
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
