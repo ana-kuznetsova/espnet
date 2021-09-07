@@ -1192,7 +1192,7 @@ class AbsTask(ABC):
 
                 process = mp.Process(
                     target=cls.main_worker,
-                    args=(local_args, shared_array, lock),
+                    args=(local_args, shared_array, lock, ),
                     daemon=False,
                 )
                 process.start()
@@ -1203,7 +1203,7 @@ class AbsTask(ABC):
                 pass
 
     @classmethod
-    def main_worker(cls, args: argparse.Namespace, shared_array):
+    def main_worker(cls, args: argparse.Namespace, shared_array, lock):
         assert check_argument_types()
 
         # 0. Init distributed process
