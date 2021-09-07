@@ -393,11 +393,13 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """ 
+        kwargs['lock'].acquire()
         flag = self.update_check(iepoch, iiter)
         logging.info(f"Before:{iepoch}, {iiter}, {flag}")
         if not flag:
             #Duplicate update, so skip
             return
+        kwargs['lock'].release()
         logging.info(f"After:{iepoch}, {iiter}, {flag}")
         total_iters = iiter
         if iepoch > 1:

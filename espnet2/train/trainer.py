@@ -1044,7 +1044,7 @@ class Trainer:
             while(kwargs['shared_array'][0] <= 0 or kwargs['shared_array'][1] <= 0):
                 continue
 
-            kwargs['lock'].acquire()
+            
             if kwargs['shared_array'][0] > 0 and kwargs['shared_array'][1] > 0:
                 loss1 = kwargs['shared_array'][0]/options.total_gpu
                 loss2 = kwargs['shared_array'][1]/options.total_gpu
@@ -1061,13 +1061,14 @@ class Trainer:
                         algo=options.curriculum_algo,
                         start_curriculum=options.start_curriculum,
                         gain_type=options.gain_type,
+                        lock = lock,
                     )
                 else:
                     curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
 
                 kwargs['shared_array'][0] -= kwargs['shared_array'][0]
                 kwargs['shared_array'][1] -= kwargs['shared_array'][1]
-            kwargs['lock'].release()
+          
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
