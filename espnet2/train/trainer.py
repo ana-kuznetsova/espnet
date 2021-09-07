@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import time
 from contextlib import contextmanager
 import dataclasses
 from dataclasses import is_dataclass
@@ -328,7 +329,7 @@ class Trainer:
                                             epsilon=trainer_options.epsilon,
                                             eta=trainer_options.eta,
                                             beta=trainer_options.beta,
-                                            lock=lock,
+                                            #lock=lock,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -343,7 +344,7 @@ class Trainer:
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
-                                       lock=lock,
+                                       #lock=lock,
                 )
             elif trainer_options.curriculum_algo=='manual':
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
@@ -398,6 +399,7 @@ class Trainer:
                             iepoch=iepoch,
                             valid_iterator=valid_iter_factory,
                             shared_array=shared_array,
+                            lock=lock,
                         )
                     else:    
 
@@ -415,6 +417,7 @@ class Trainer:
                                 distributed_option=distributed_option,
                                 iepoch=iepoch,
                                 shared_array=shared_array,
+                                lock=lock,
                             )
 
                 else:
@@ -1041,6 +1044,7 @@ class Trainer:
             while(kwargs['shared_array'][0] <= 0 or kwargs['shared_array'][1] <= 0):
                 continue
 
+            kwargs['lock'].acquire()
             if kwargs['shared_array'][0] > 0 and kwargs['shared_array'][1] > 0:
                 loss1 = kwargs['shared_array'][0]/options.total_gpu
                 loss2 = kwargs['shared_array'][1]/options.total_gpu
@@ -1063,6 +1067,7 @@ class Trainer:
 
                 kwargs['shared_array'][0] -= kwargs['shared_array'][0]
                 kwargs['shared_array'][1] -= kwargs['shared_array'][1]
+            kwargs['lock'].release()
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()
