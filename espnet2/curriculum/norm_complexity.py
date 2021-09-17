@@ -57,15 +57,11 @@ def train_vector_model(subword_model, text, save_file, lang=None, sep='\t'):
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
-    
-
     data_dict = {}
     print("Reading text data...")
     with open(text, 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
-
-    
 
     print("Creating subwords for training data...")
     training_data = []

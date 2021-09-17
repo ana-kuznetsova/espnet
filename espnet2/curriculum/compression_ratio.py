@@ -60,15 +60,18 @@ def save_file(map_, res_dir, wav_scp=None, compression=None):
     else:
         compressions = {}
         wavs = {i.split()[0]: 1 for i in open(wav_scp,'r').readlines()}
+        #print(list(wavs.keys())[:10])
         for line in tqdm(open(compression, 'r').readlines()):
+            #print(line)
             fname = line.split()[0]
             cr = line.split()[1]
+            #print("FNAME:",fname, "CR:",cr)
             if fname in wavs:
                 compressions[fname] = cr
         
-        with open(compression, 'r') as fo:
+        with open(compression+'_new', 'w') as fo:
             for fname in compressions:
-                fo.write(fname+' '+cr+'\n')
+                fo.write(fname+' '+compressions[fname]+'\n')
 
 def main(args):
     manager = Manager()
@@ -114,6 +117,6 @@ if __name__=="__main__":
                         help='Path to audio dir.')
     parser.add_argument('--res_dir', type=str, required=True,
                         help='Path to dir where csv with the results will be stored.')
-    parser.add_argument("--compression", type=str, required=False)
+    parser.add_argument("--compression", type=str, required=False, help='Path to compression file')
     args = parser.parse_args()
     main(args)
