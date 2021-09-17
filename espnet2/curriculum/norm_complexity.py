@@ -61,7 +61,7 @@ def train_vector_model(subword_model, text, save_file, lang=None, sep='\t'):
 
     data_dict = {}
     print("Reading text data...")
-    with open(text.split('.')[0]+'_filtered.txt', 'r') as fo:
+    with open(text, 'r') as fo:
         for line in fo.readlines():
             data_dict[line.split(sep)[0]] = line.split(sep)[-1].strip()
 
@@ -160,7 +160,10 @@ def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_
         sent_norm = 0
         sent = data_dict[k].split()
         for w in sent:
-            sent_norm+=word_norms[w]
+            if w in word_norms:
+                sent_norm+=word_norms[w]
+            else:
+                sent_norm+=max_norm
         sent_norm/=len(sent)
         sent_norms[k]=sent_norm
     
@@ -170,11 +173,11 @@ def calc_sent_norm_complexity(vectors_file, subword_model, text, save_file, max_
     print("Saved sentence norms in ", save_file)
 
 def main(args):
-    pre_process(args.text, args.lang)
-    filtered_text = args.text.split('.')[0] + '_filtered.txt'
+    #pre_process(args.text, args.lang)
+    #filtered_text = args.text.split('.')[0] + '_filtered.txt'
     if args.task=='vectors':
         train_vector_model(args.subword_model, 
-                           filtered_text, 
+                           args.text, 
                            args.save_file,
                            args.sep)
 
@@ -201,8 +204,8 @@ if __name__=="__main__":
     parser.add_argument('--save_file', type=str, help='File to save the result of the function.')
     parser.add_argument('--vectors', type=str, help='Path to file with saved vectors.')
     parser.add_argument('--word_norms', type=str, help='Path to file with precalculated word norms.')
-    parser.add_argument('--max_norm', type=float, help='Max norm for filling OOVs')
+    parser.add_argument('--max_norm', default=999999999999.0, type=float, help='Max norm for filling OOVs')
     parser.add_argument('--corpus', type=str, required=False)
-    parser.add_Argument('--lang', type=str, required=False)
+    parser.add_argument('--lang', type=str, required=False)
     args = parser.parse_args()
     main(args)
