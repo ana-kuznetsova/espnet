@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 from string import punctuation
 punctuation+='—'
@@ -11,10 +12,7 @@ from gensim.models import KeyedVectors
 
 
 
-def main(args):
-    lang = args[1]
-    corpus_path = args[2]
-    cv_path = args[3]
+def main(lang, corpus_path, cv_path):
 
     #Open Covo corpora
     with open(os.path.join(corpus_path, lang+'.txt'), 'r') as fo:
@@ -141,3 +139,10 @@ def main(args):
         for k in sent_norms:
             fo.write(k+' '+str(sent_norms[k])+'\n')
     print("Saved sentence norms in ", os.path.join(corpus_path, lang+'_sent_norms'))
+
+
+if __name__=="__main__":
+    lang = sys.argv[1]
+    corpus_path = sys.argv[2]
+    cv_path = sys.argv[3]
+    main(lang, corpus_path, cv_path)
