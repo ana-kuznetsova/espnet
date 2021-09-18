@@ -40,14 +40,14 @@ def main(lang, corpus_path, cv_path):
         sent_dict[line] = df_txt[i]
 
     #Make spm file
-    with open(os.path.join(corpus_path, lang+'_spm', 'w')) as fo:
+    with open(os.path.join(corpus_path, lang+'_spm'), 'w') as fo:
         for k in sent_dict:
             fo.write(sent_dict[k]+'\n')
     
     #Train sentencepiece model
     print("SPM training started...")
     spm_path = os.path.join(corpus_path, lang+"_spm")
-    cmd = '--input='+spm_path+' --model_prefix='+lang+'_unigram '+ '--vocab_size=8000 ' + ' --character_coverage=1'
+    cmd = '--input='+spm_path+' --model_prefix='+os.path.join(corpus_path, lang+'_unigram ')+ '--vocab_size=8000 ' + ' --character_coverage=1'
     spm.SentencePieceTrainer.train(cmd)
 
     #Train Word2Vec model
@@ -119,13 +119,14 @@ def main(lang, corpus_path, cv_path):
             else:
                 norm+=max_norm+1
 
-    max_word_norm = max(word_norms, k = lambda x: x[1])
+    max_word_norm = max(word_norms.items(), key = lambda x: x[1])[1]
 
     print("Calculating sentence norms...")
     sent_norms = {}
 
     for line in tqdm(scp_text):
         sent_norm = 0
+        k = line.split('\t')[0]
         sent = line.split('\t')[-1]
         for w in sent:
             if w in word_norms:
