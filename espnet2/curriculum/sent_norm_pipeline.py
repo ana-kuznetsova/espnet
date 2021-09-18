@@ -10,9 +10,18 @@ from tqdm import tqdm
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 
+def filter_wav(wav, map, save_dir):
+    save_dir = os.path.join(save_dir, 'sentence_norm.txt')
+    with open(save_dir, 'w') as fo:
+        for line in tqdm(open(wav,'r').readlines()):
+            _id_ = line.split(' ')[0]
+            if _id_ in map:
+                fo.write(_id_+" "+map[_id_]+'\n')
+            else:
+                print(_id_)
+    print("sentence length written successfully")
 
-
-def main(lang, corpus_path, cv_path):
+def main(lang, corpus_path, cv_path, save_dir):
 
     #Open Covo corpora
     with open(os.path.join(corpus_path, lang+'.txt'), 'r') as fo:
@@ -135,15 +144,14 @@ def main(lang, corpus_path, cv_path):
                 sent_norm+=max_word_norm
         sent_norm/=len(sent)
         sent_norms[k]=sent_norm
+
     
-    with open(os.path.join(corpus_path, lang+'_sent_norms'), 'w') as fo:
-        for k in sent_norms:
-            fo.write(k+' '+str(sent_norms[k])+'\n')
-    print("Saved sentence norms in ", os.path.join(corpus_path, lang+'_sent_norms'))
+    filter_wav()
 
 
 if __name__=="__main__":
     lang = sys.argv[1]
     corpus_path = sys.argv[2]
     cv_path = sys.argv[3]
-    main(lang, corpus_path, cv_path)
+    save_dir = sys.argv[4]
+    main(lang, corpus_path, cv_path, save_dir)
