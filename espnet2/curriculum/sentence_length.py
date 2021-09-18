@@ -17,6 +17,8 @@ def filter_wav(wav, map, save_dir):
             _id_ = line.split(' ')[0]
             if _id_ in map:
                 fo.write(_id_+" "+map[_id_]+'\n')
+            else:
+                print(_id_)
     print("sentence length written successfully")
 
 def main(args):

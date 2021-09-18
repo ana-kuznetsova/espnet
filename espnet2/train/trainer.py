@@ -1052,7 +1052,7 @@ class Trainer:
                 if options.curriculum_algo!='manual' and not (np.isinf(loss1) or np.isinf(loss2)):    
                     curriculum_generator.update_policy(
                         iepoch=iepoch,
-                        iiter=iiter,
+                        iiter=2,
                         num_iters=iterator.num_iters_per_epoch, 
                         k=k, 
                         losses=(loss1.item(), loss2.item()), 
