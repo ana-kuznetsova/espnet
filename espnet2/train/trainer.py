@@ -196,6 +196,7 @@ class Trainer:
         plot_attention_iter_factory: Optional[AbsIterFactory],
         trainer_options,
         distributed_option: DistributedOption,
+        pid: int,
     ) -> None:
         """Perform training. This method performs the main process of training."""
         assert check_argument_types()
@@ -324,6 +325,7 @@ class Trainer:
                                             epsilon=trainer_options.epsilon,
                                             eta=trainer_options.eta,
                                             beta=trainer_options.beta,
+                                            pid=pid,
                                             )
             elif trainer_options.curriculum_algo=='swucb':
                 curriculum_generator = SWUCBCurriculumGenerator(
@@ -338,6 +340,7 @@ class Trainer:
                                        restore=restore_curriculum,
                                        gain_type=trainer_options.gain_type,
                                        iepoch=start_epoch,
+                                       pid=pid,
                 )
             elif trainer_options.curriculum_algo=='manual':
                 curriculum_generator = ManualCurriculumGenerator(K=train_iter_factory.K,
@@ -813,9 +816,10 @@ class Trainer:
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
-        
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
+            
+
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
@@ -1023,7 +1027,6 @@ class Trainer:
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
-                    num_iters=iterator.num_iters_per_epoch, 
                     k=k, 
                     losses=(loss1.item(), loss2.item()), 
                     #losses=(loss1, loss2)
