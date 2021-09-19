@@ -23,13 +23,13 @@ elif [[ "fr" == *"${lang}"* ]]; then
 elif [[ "es" == *"${lang}"* ]]; then
   nbpe=235
 else
-  nbpe=150
+  nbpe=180
 fi
 
 ./asr.sh \
     --ngpu 1 \
     --lang "${lang}" \
-    --stage 10 \
+    --stage $4 \
     --local_data_opts "--lang ${lang}" \
     --use_lm true \
     --lm_config "${lm_config}" \
