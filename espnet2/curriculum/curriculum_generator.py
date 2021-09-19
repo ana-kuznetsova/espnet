@@ -51,7 +51,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = CurriculumLogger(log_dir=log_dir+'_'+str(pid),
+        self.logger = CurriculumLogger(log_dir=log_dir,
                                         algo="exp3s",
                                         pid=str(pid), 
                                         restore=restore)
