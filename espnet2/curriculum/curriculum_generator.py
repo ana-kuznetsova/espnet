@@ -177,7 +177,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         if len(self.reward_hist) > self.hist_size:
             #self.reward_hist = np.delete(self.reward_hist, 0)
-            self.reward_hist = self.reward_hist[1:]
+            del self.reward_hist[:1]
         
         #self.reward_hist = np.append(self.reward_hist, float(progress_gain))
         self.reward_hist.append(progress_gain)
@@ -322,7 +322,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_history = np.append(self.reward_history, reward)
         if len(self.reward_history) > self.hist_size:
             #self.reward_history = np.delete(self.reward_history, 0)
-            self.reward_history = self.reward_history [1:]
+            del self.reward_history[:1]
         return reward
 
     def update_arm_reward(self, arm, reward):
@@ -346,8 +346,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             if len(self.arm_rewards[i]['rewards']) > self.hist_size:
                 #self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
                 #self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
-                self.arm_rewards[i]['rewards'] = self.arm_rewards[i]['rewards'][1:]
-                self.arm_rewards[i]['count'] = self.arm_rewards[i]['count'][1:]
+                del self.arm_rewards[i]['rewards'][:1]
+                del self.arm_rewards[i]['count'][:1]
 
 
     def get_mean_reward(self, win_size):
