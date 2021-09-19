@@ -240,6 +240,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.gamma = gamma
         self.slow_k = slow_k
         self.gain_type = gain_type
+        self.max_iter = 0
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -368,7 +369,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):
+    def update_policy(self, iepoch, iiter, k, algo, losses, batch_lens, **kwargs):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -379,8 +380,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             5. Calculate arm cost and update policy.
         """   
         total_iters = iiter
+        self.max_iiter = max(self.max_iiter, iiter)
         if iepoch > 1:
-            prev_iters = (iepoch-1)*num_iters
+            prev_iters = (iepoch-1)*self.max_iiter
             total_iters += prev_iters
 
         win_size = self.calc_sliding_window(total_iters)
