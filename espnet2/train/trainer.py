@@ -816,10 +816,6 @@ class Trainer:
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
-<<<<<<< HEAD
-        total_iters = 0
-=======
->>>>>>> f9d089dc71f29e22c4c3cacce878775898770e09
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
             
@@ -1028,10 +1024,6 @@ class Trainer:
 
 
             if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                if iepoch == 1:
-                    num_iters = iiter
-                else:
-                    num_iters = 
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
