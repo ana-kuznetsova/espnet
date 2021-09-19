@@ -51,6 +51,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
+        self.max_iter = 0
         self.logger = CurriculumLogger(log_dir=log_dir,
                                         algo="exp3s",
                                         pid=str(pid), 
@@ -184,13 +185,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         return reward
 
     def update_weights(self, iepoch, iiter, num_iters, k, reward):
+        self.max_iter = max(self.max_iter, iiter)
         if iepoch==1:
-            #if iiter==1:
-            #    t = 0.99
-            #else:
             t = iiter
         else:
-            prev_iters = (iepoch-1)*num_iters
+            prev_iters = (iepoch-1)*self.max_iter
             t = prev_iters + iiter
         #logging.info(f"Iter t {t}")
         alpha_t = t**-1

@@ -92,8 +92,6 @@ class CurriculumLogger:
         np.save(os.path.join(self.log_dir, "generator_state.npy"), state_dict)
 '''
 
-##Copied from master
-
 class CurriculumLogger:
     """
     Simple logger class that logs necessary stats in the log_dir.
