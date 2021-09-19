@@ -98,15 +98,15 @@ class CurriculumLogger:
     """
     Simple logger class that logs necessary stats in the log_dir.
     """
-    def __init__(self, log_dir, algo, restore=False):
+    def __init__(self, log_dir, algo, pid, restore=False):
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         self.log_dir = log_dir
         self.algo=algo
 
-        self.stats_path = os.path.join(self.log_dir, "generator_stats")
-        self.policy_path = os.path.join(self.log_dir, "policy")
-        self.weights_path = os.path.join(self.log_dir, "weights")
+        self.stats_path = os.path.join(self.log_dir, "generator_stats"+pid)
+        self.policy_path = os.path.join(self.log_dir, "policy"+pid)
+        self.weights_path = os.path.join(self.log_dir, "weights"+pid)
 
         if restore==False:
             if os.path.exists(self.stats_path):

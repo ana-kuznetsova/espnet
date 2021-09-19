@@ -53,6 +53,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.epsilon = epsilon
         self.logger = CurriculumLogger(log_dir=log_dir+'_'+str(pid),
                                         algo="exp3s",
+                                        pid=str(pid), 
                                         restore=restore)
         
         #Whether log RL config params to wandb
@@ -235,7 +236,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
-        self.logger = CurriculumLogger(log_dir=log_dir+'_'+str(pid), algo="swucb", restore=restore)
+        self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb", pid=str(pid), restore=restore)
         self.env_mode = env_mode
         self.lmbda = lmbda
         self.gamma = gamma
