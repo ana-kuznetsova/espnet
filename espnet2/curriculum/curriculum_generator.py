@@ -9,7 +9,7 @@ from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
 class AbsCurriculumGenerator(ABC):
     @abstractmethod
-    def update_policy(self, iepoch, iiter, num_iters, k, progress_gain, batch_lens):
+    def update_policy(self, iepoch, iiter, k, progress_gain, batch_lens):
         raise NotImplementedError
         
     @abstractmethod
@@ -69,7 +69,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.exhausted = [False]*self.K
         
         if not restore:
-            self.reward_hist = np.array([])
+            self.reward_hist = []
             if init=='ones':
                 self.weights = np.ones(K)
             elif init=='zeros':
@@ -116,7 +116,6 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def update_policy(self, 
                      iepoch, 
                      iiter,
-                     num_iters, 
                      k, 
                      losses,
                      batch_lens,
@@ -137,7 +136,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
-        self.update_weights(iepoch, iiter, num_iters, k, reward)
+        self.update_weights(iepoch, iiter, k, reward)
         if iepoch > kwargs['start_curriculum']:
             tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
             pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
@@ -148,7 +147,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.logger.log(iepoch, 
                         iiter, 
                         k=k,
-                        num_iters=num_iters, 
+                        num_iters=self.max_iter, 
                         progress_gain=progress_gain, 
                         reward=reward, 
                         policy=self.policy, 
@@ -179,12 +178,12 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
 
         if len(self.reward_hist) > self.hist_size:
-            self.reward_hist = np.delete(self.reward_hist, 0)
+            self.reward_hist = self.reward_hist[1:]
         
-        self.reward_hist = np.append(self.reward_hist, float(progress_gain))
+        self.reward_hist.append(float(progress_gain))
         return reward
 
-    def update_weights(self, iepoch, iiter, num_iters, k, reward):
+    def update_weights(self, iepoch, iiter, k, reward):
         self.max_iter = max(self.max_iter, iiter)
         if iepoch==1:
             t = iiter
@@ -241,6 +240,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.gamma = gamma
         self.slow_k = slow_k
         self.gain_type = gain_type
+        self.max_iter = 0
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -264,8 +264,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
             
         else:
-            self.reward_history = np.array([])
-            self.arm_rewards = {i:{'rewards':np.array([]), 'count':np.array([])} for i in range(self.K)}
+            self.reward_history = []
+            self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
             self.policy = np.zeros(self.K)
         try:
             self.set_params(self.lmbda, self.gamma, self.slow_k)
@@ -317,9 +317,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         #reward = progress_gain/np.sum(batch_lens)
         reward = progress_gain
-        self.reward_history = np.append(self.reward_history, reward)
+        self.reward_history.append(reward)
         if len(self.reward_history) > self.hist_size:
-            self.reward_history = np.delete(self.reward_history, 0)
+            self.reward_history = self.reward_history[1:]
         return reward
 
     def update_arm_reward(self, arm, reward):
@@ -329,15 +329,15 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         for i in range(self.K):
             if i == arm:
-                self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
-                self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
+                self.arm_rewards[i]['rewards'].append(reward)
+                self.arm_rewards[i]['count'].append(1)
             else:
-                self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], 0)
-                self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 0)
+                self.arm_rewards[i]['rewards'].append(0)
+                self.arm_rewards[i]['count'].append(0)
             
             if len(self.arm_rewards[i]['rewards']) > self.hist_size:
-                self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
-                self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
+                self.arm_rewards[i]['rewards'] = self.arm_rewards[i]['rewards'][1:]
+                self.arm_rewards[i]['count'] = self.arm_rewards[i]['count'][1:]
            
 
     def get_mean_reward(self, win_size):
@@ -369,7 +369,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
 
-    def update_policy(self, iepoch, iiter, num_iters, k, algo, losses, batch_lens, **kwargs):
+    def update_policy(self, iepoch, iiter, k, algo, losses, batch_lens, **kwargs):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -380,8 +380,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             5. Calculate arm cost and update policy.
         """   
         total_iters = iiter
+        self.max_iiter = max(self.max_iiter, iiter)
         if iepoch > 1:
-            prev_iters = (iepoch-1)*num_iters
+            prev_iters = (iepoch-1)*self.max_iiter
             total_iters += prev_iters
 
         win_size = self.calc_sliding_window(total_iters)
@@ -410,7 +411,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.policy = mean_rewards + arm_cost
         self.logger.log(iiter=iiter, 
                         iepoch=iepoch,
-                        num_iters=num_iters, 
+                        num_iters=self.max_iter, 
                         k=k, 
                         algo=algo, 
                         losses=(loss_before, loss_after), 
