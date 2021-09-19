@@ -1170,10 +1170,11 @@ class AbsTask(ABC):
                 local_args.local_rank = i
                 local_args.dist_rank = args.ngpu * node_rank + i
                 local_args.ngpu = 1
+                pid = i
 
                 process = mp.Process(
                     target=cls.main_worker,
-                    args=(local_args,),
+                    args=(local_args,pid),
                     daemon=False,
                 )
                 process.start()
@@ -1184,7 +1185,7 @@ class AbsTask(ABC):
                 pass
 
     @classmethod
-    def main_worker(cls, args: argparse.Namespace):
+    def main_worker(cls, args: argparse.Namespace, pid: int):
         assert check_argument_types()
 
         # 0. Init distributed process
@@ -1429,6 +1430,7 @@ class AbsTask(ABC):
                 plot_attention_iter_factory=plot_attention_iter_factory,
                 trainer_options=trainer_options,
                 distributed_option=distributed_option,
+                pid=pid,
             )
 
             if wandb.run:

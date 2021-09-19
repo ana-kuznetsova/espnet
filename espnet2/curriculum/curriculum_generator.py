@@ -41,6 +41,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
                 beta=0,
                 restore=False,
                 log_config=True,
+                pid=None,
                 **kwargs):
 
         assert check_argument_types()
@@ -50,7 +51,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.logger = CurriculumLogger(log_dir=log_dir,
+        self.logger = CurriculumLogger(log_dir=log_dir+'_'+str(pid),
                                         algo="exp3s",
                                         restore=restore)
         
@@ -218,7 +219,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                  gain_type='PG',
                  env_mode=None,
                  restore=False,
-                 log_config=True, 
+                 log_config=True,
+                 pid=None, 
                  **kwargs):
         """
         K        : no. of tasks.
@@ -233,7 +235,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.action_hist = []
         self.hist_size = hist_size
         self.threshold = threshold
-        self.logger = CurriculumLogger(log_dir=log_dir, algo="swucb", restore=restore)
+        self.logger = CurriculumLogger(log_dir=log_dir+'_'+str(pid), algo="swucb", restore=restore)
         self.env_mode = env_mode
         self.lmbda = lmbda
         self.gamma = gamma
