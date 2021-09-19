@@ -812,8 +812,8 @@ class Trainer:
 
         iiter = 0
         #Reset the exausted tasks list
-        curriculum_generator.reset_exhausted()
-
+        curriculum_generator.reset_exhausted() 
+        
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
             # For pretraining select task from a uniform distribution
@@ -826,7 +826,6 @@ class Trainer:
 
             try:
                 _, batch = tasks[k].next()
-                logging.info(f"Batchsize:{len(batch)}")
             except StopIteration as e:
                 if options.refill_task==True:
                     logging.info(f"Refilled task {k}.")
@@ -1019,6 +1018,7 @@ class Trainer:
                                             start_time
                                             )
 
+
             if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
@@ -1026,6 +1026,7 @@ class Trainer:
                     num_iters=iterator.num_iters_per_epoch, 
                     k=k, 
                     losses=(loss1.item(), loss2.item()), 
+                    #losses=(loss1, loss2)
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
                     start_curriculum=options.start_curriculum,
