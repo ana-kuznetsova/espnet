@@ -50,7 +50,7 @@ scheduler: noamlr
 scheduler_conf:
     model_size: 256
     warmup_steps: 25000
-
+num_iters_per_epoch: 1360
 # minibatch related
 batch_type: numel
 batch_bins: 10000000
@@ -76,3 +76,14 @@ specaug_conf:
     - 0
     - 40
     num_time_mask: 2
+
+#Curriculum
+task_file: /home/anakuzne/task_files/task_file_eu_K2
+K: 2
+iterator_type: curriculum
+use_curriculum: true
+curriculum_algo: swucb
+gain_type: SPG
+refill_task: true
+slow_k: 0.6
+threshold: 0.001

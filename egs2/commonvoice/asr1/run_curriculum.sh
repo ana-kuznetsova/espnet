@@ -5,15 +5,16 @@ set -e
 set -u
 set -o pipefail
 
-lang=vi # en de fr cy tt kab ca zh-TW it fa eu es ru tr nl eo zh-CN rw pt zh-HK cs pl uk
+lang=$1 # en de fr cy tt kab ca zh-TW it fa eu es ru tr nl eo zh-CN rw pt zh-HK cs pl uk
 
 train_set=train_"$(echo "${lang}" | tr - _)"
 train_dev=dev_"$(echo "${lang}" | tr - _)"
 test_set="${train_dev} test_$(echo ${lang} | tr - _)"
 
-asr_config=conf/tuning/train_asr_conformer5.yaml
+asr_config=conf/curriculum/train_asr_conformer5_$2.yaml
 lm_config=conf/train_lm.yaml
 inference_config=conf/decode_asr.yaml
+export CUDA_VISIBLE_DEVICES=$3
 
 if [[ "zh" == *"${lang}"* ]]; then
   nbpe=2500
@@ -22,12 +23,13 @@ elif [[ "fr" == *"${lang}"* ]]; then
 elif [[ "es" == *"${lang}"* ]]; then
   nbpe=235
 else
-  nbpe=150
+  nbpe=180
 fi
 
 ./asr.sh \
     --ngpu 1 \
     --lang "${lang}" \
+    --stage $4 \
     --local_data_opts "--lang ${lang}" \
     --use_lm true \
     --lm_config "${lm_config}" \
