@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import os
 import sys
+import argparse
 import pandas as pd
 from string import punctuation
 punctuation+='—'
@@ -21,10 +24,10 @@ def filter_wav(wav, map, save_dir):
                 print(_id_)
     print("sentence length written successfully")
 
-def main(lang, corpus_path, cv_path, save_dir):
-
+def main(args):
+    
     #Open Covo corpora
-    with open(os.path.join(corpus_path, lang+'.txt'), 'r') as fo:
+    with open(os.path.join(args.corpus, args.lang+'.txt'), 'r') as fo:
         f = fo.readlines()
 
     #Remove punctuation from covo corpus
@@ -36,8 +39,8 @@ def main(lang, corpus_path, cv_path, save_dir):
     for i, line in enumerate(filtered_text):
         sent_dict[i]=line
 
-    val = pd.read_csv(os.path.join(cv_path,'validated.tsv'), sep='\t')
-    inval = pd.read_csv(os.path.join(cv_path,'invalidated.tsv'), sep='\t')
+    val = pd.read_csv(os.path.join(args.cv_path,'validated.tsv'), sep='\t')
+    inval = pd.read_csv(os.path.join(args.cv_path,'invalidated.tsv'), sep='\t')
     df = pd.concat([val, inval])
 
     df_txt = []
@@ -49,19 +52,19 @@ def main(lang, corpus_path, cv_path, save_dir):
         sent_dict[line] = df_txt[i]
 
     #Make spm file
-    with open(os.path.join(corpus_path, lang+'_spm'), 'w') as fo:
+    with open(os.path.join(args.corpus, args.lang+'_spm'), 'w') as fo:
         for k in sent_dict:
             fo.write(sent_dict[k]+'\n')
     
     #Train sentencepiece model
     print("SPM training started...")
-    spm_path = os.path.join(corpus_path, lang+"_spm")
-    cmd = '--input='+spm_path+' --model_prefix='+os.path.join(corpus_path, lang+'_unigram ')+ '--vocab_size=8000 ' + ' --character_coverage=1'
+    spm_path = os.path.join(args.corpus, args.lang+"_spm")
+    cmd = '--input='+spm_path+' --model_prefix='+os.path.join(args.corpus, args.lang+'_unigram ')+ '--vocab_size=8000 ' + ' --character_coverage=1'
     spm.SentencePieceTrainer.train(cmd)
 
     #Train Word2Vec model
 
-    subword_model = os.path.join(corpus_path, lang+'_unigram'+'.model')
+    subword_model = os.path.join(args.corpus, args.lang+'_unigram'+'.model')
     sp = spm.SentencePieceProcessor()
     sp.Load(subword_model)
 
@@ -75,8 +78,8 @@ def main(lang, corpus_path, cv_path, save_dir):
     print("Training subword vectors...")
     model = Word2Vec(sentences=training_data, vector_size=100, window=5, min_count=1, workers=4)
     word_vectors = model.wv
-    word_vectors.save(os.path.join(corpus_path, lang+'.wordvectors'))
-    print("Saved vectors to ", os.path.join(corpus_path, lang+'.wordvectors'))
+    word_vectors.save(os.path.join(args.corpus, args.lang+'.wordvectors'))
+    print("Saved vectors to ", os.path.join(args.corpus, args.lang+'.wordvectors'))
 
     print("Creating scp files...")
     scp_text = []
@@ -93,7 +96,7 @@ def main(lang, corpus_path, cv_path, save_dir):
         txt = ''.join([char for char in txt.lower() if char not in punctuation])
         scp_text.append(ID+'\t'+txt+'\n')
 
-    with open(os.path.join(corpus_path, lang+'_text.scp'), 'w') as fo:
+    with open(os.path.join(args.corpus, args.lang+'_text.scp'), 'w') as fo:
         for line in scp_text:
             fo.write(line+'\n')
 
@@ -143,15 +146,19 @@ def main(lang, corpus_path, cv_path, save_dir):
             else:
                 sent_norm+=max_word_norm
         sent_norm/=len(sent)
-        sent_norms[k]=sent_norm
+        sent_norms[k]=str(sent_norm)
 
     
-    filter_wav()
+    filter_wav(args.wav_scp, sent_norms, args.save_dir)
 
 
 if __name__=="__main__":
-    lang = sys.argv[1]
-    corpus_path = sys.argv[2]
-    cv_path = sys.argv[3]
-    save_dir = sys.argv[4]
-    main(lang, corpus_path, cv_path, save_dir)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--lang', type=str,required=True, help='Language to calculate norms.')
+    parser.add_argument('--corpus', type=str, required=True, help='Path to corpus')
+    parser.add_argument('--cv_path', type=str, required=True, help='Path to commonvoice tsv files')
+    parser.add_argument('--save_dir', type=str, required=True, help='Path to save results')
+    parser.add_argument('--wav_scp', type=str, required=True, help='Path to wav.scp')
+    args = parser.parse_args()
+    main(args)
+
