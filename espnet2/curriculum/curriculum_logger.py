@@ -104,9 +104,9 @@ class CurriculumLogger:
         self.log_dir = log_dir
         self.algo=algo
 
-        self.stats_path = os.path.join(self.log_dir, "generator_stats"+pid)
-        self.policy_path = os.path.join(self.log_dir, "policy"+pid)
-        self.weights_path = os.path.join(self.log_dir, "weights"+pid)
+        self.stats_path = os.path.join(self.log_dir, "generator_stats_"+pid)
+        self.policy_path = os.path.join(self.log_dir, "policy_"+pid)
+        self.weights_path = os.path.join(self.log_dir, "weights_"+pid)
 
         if restore==False:
             if os.path.exists(self.stats_path):
