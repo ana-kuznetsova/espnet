@@ -53,7 +53,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     ### Task dependent. You have to make data the following preparation part by yourself.
     for part in "validated" "test" "dev"; do
         # use underscore-separated names in data directories.
-        local/data_prep.pl "${COMMONVOICE}/cv-corpus-5.1-2020-06-22/${lang}" ${part} data/"$(echo "${part}_${lang}" | tr - _)"
+        local/data_prep.pl "${COMMONVOICE}/cv-corpus-7.0-2021-07-21/${lang}" ${part} data/"$(echo "${part}_${lang}" | tr - _)"
     done
 
     # remove test&dev data from validated sentences

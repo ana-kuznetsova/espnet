@@ -224,11 +224,11 @@ log "$0 $*"
 run_args=$(pyscripts/utils/print_args.py $0 "$@")
 . utils/parse_options.sh
 
-if [ $# -ne 0 ]; then
-    log "${help_message}"
-    log "Error: No positional arguments are required."
-    exit 2
-fi
+#if [ $# -ne 0 ]; then
+#    log "${help_message}"
+#    log "Error: No positional arguments are required."
+#    exit 2
+#fi
 
 . ./path.sh
 . ./cmd.sh
