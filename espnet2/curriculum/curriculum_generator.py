@@ -319,7 +319,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         #reward = progress_gain/np.sum(batch_lens)
         reward = progress_gain
-        self.reward_history = np.append(self.reward_history, reward)
+        #self.reward_history = np.append(self.reward_history, reward)
+        self.reward_history.append(reward)
         if len(self.reward_history) > self.hist_size:
             #self.reward_history = np.delete(self.reward_history, 0)
             del self.reward_history[:1]
