@@ -88,7 +88,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
             self.policy = generator_state["policy"]
             self.weights = generator_state["weights"]
-            self.reward_hist = generator_state["reward_hist"]
+            self.reward_hist = list(generator_state["reward_hist"])
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
