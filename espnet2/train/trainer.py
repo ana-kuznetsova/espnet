@@ -1035,8 +1035,6 @@ class Trainer:
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
             
-
-
             start_time = time.perf_counter()
 
             # NOTE(kamo): Call log_message() after next()

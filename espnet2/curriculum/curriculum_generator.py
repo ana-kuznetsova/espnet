@@ -68,7 +68,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.exhausted = [False]*self.K
         
         if not restore:
-            self.reward_hist = []
+            self.reward_hist = np.array([])
             if init=='ones':
                 self.weights = np.ones(K)
             elif init=='zeros':
@@ -89,7 +89,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
             self.policy = generator_state["policy"]
             self.weights = generator_state["weights"]
-            self.reward_hist = list(generator_state["reward_hist"])
+            self.reward_hist = generator_state["reward_hist"]
             iepoch = generator_state["iepoch"]
             iiter = generator_state["iiter"]
 
@@ -178,11 +178,11 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
             reward = (2*(progress_gain - q_lo)/(q_hi-q_lo)) - 1
 
         if len(self.reward_hist) > self.hist_size:
-            #self.reward_hist = np.delete(self.reward_hist, 0)
-            del self.reward_hist[:1]
+            self.reward_hist = np.delete(self.reward_hist, 0)
+            #del self.reward_hist[:1]
         
-        #self.reward_hist = np.append(self.reward_hist, float(progress_gain))
-        self.reward_hist.append(progress_gain)
+        self.reward_hist = np.append(self.reward_hist, float(progress_gain))
+        #self.reward_hist.append(progress_gain)
         return reward
 
     def update_weights(self, iepoch, iiter, num_iter, k, reward):
@@ -200,7 +200,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         r = (reward + self.beta)/self.policy[k]
         r_vec = np.zeros(self.K)
         r_vec[k] = r
-
+                      
         for i, w in enumerate(self.weights):
             tmp1 = (1-alpha_t)*np.exp(w + self.eta*r_vec[i])
             sum_ind = [j for j in range(len(self.weights)) if j!=i]
@@ -268,8 +268,8 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
             
         else:
-            self.reward_history = []
-            #self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
+            self.reward_history = np.array([])
+            self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
             self.arm_rewards = None
             self.arm_counts = None
             self.policy = torch.zeros(self.K)
@@ -323,11 +323,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         #reward = progress_gain/np.sum(batch_lens)
         reward = progress_gain
-        #self.reward_history = np.append(self.reward_history, reward)
-        self.reward_history.append(reward)
+        self.reward_history = np.append(self.reward_history, reward)
+        #self.reward_history.append(reward)
         if len(self.reward_history) > self.hist_size:
-            #self.reward_history = np.delete(self.reward_history, 0)
-            del self.reward_history[:1]
+            self.reward_history = np.delete(self.reward_history, 0)
+            #del self.reward_history[:1]
         return reward
 
     def update_arm_reward(self, arm, reward):
@@ -337,22 +337,22 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         for i in range(self.K):
             if i == arm:
-                #self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
-                #self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
-                self.arm_rewards[i]['rewards'].append(reward)
-                self.arm_rewards[i]['count'].append(1)
+                self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
+                self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 1)
+                #self.arm_rewards[i]['rewards'].append(reward)
+                #self.arm_rewards[i]['count'].append(1)
 
             else:
-                #self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], 0)
-                #self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 0)
-                self.arm_rewards[i]['rewards'].append(0)
-                self.arm_rewards[i]['count'].append(0)
+                self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], 0)
+                self.arm_rewards[i]['count'] = np.append(self.arm_rewards[i]['count'], 0)
+                #self.arm_rewards[i]['rewards'].append(0)
+                #self.arm_rewards[i]['count'].append(0)
             
             if len(self.arm_rewards[i]['rewards']) > self.hist_size:
-                #self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
-                #self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
-                del self.arm_rewards[i]['rewards'][:1]
-                del self.arm_rewards[i]['count'][:1]
+                self.arm_rewards[i]['rewards'] = np.delete(self.arm_rewards[i]['rewards'], 0)
+                self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
+                #del self.arm_rewards[i]['rewards'][:1]
+                #del self.arm_rewards[i]['count'][:1]
 
 
     def get_mean_reward(self, win_size):
