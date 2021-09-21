@@ -4,6 +4,7 @@ from abc import ABC
 from abc import abstractmethod
 import os
 import wandb
+import torch
 import logging
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
@@ -50,7 +51,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.eta = eta
         self.beta = beta
         self.epsilon = epsilon
-        self.max_iter = 0
+        #self.max_iter = 0
         self.logger = CurriculumLogger(log_dir=log_dir,
                                         algo="exp3s",
                                         restore=restore)
@@ -114,6 +115,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
     def update_policy(self, 
                      iepoch, 
                      iiter,
+                     num_iter,
                      k, 
                      losses,
                      batch_lens,
@@ -134,7 +136,7 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
 
         reward = float(self.get_reward(progress_gain, batch_lens))
         #logging.info(f"Reward: {reward}")
-        self.update_weights(iepoch, iiter, k, reward)
+        self.update_weights(iepoch, iiter, num_iter, k, reward)
         if iepoch > kwargs['start_curriculum']:
             tmp1 = np.exp(self.weights)/np.sum(np.exp(self.weights))
             pi = (1 - self.epsilon)*tmp1 + self.epsilon/self.K
@@ -183,15 +185,15 @@ class EXP3SCurriculumGenerator(AbsCurriculumGenerator):
         self.reward_hist.append(progress_gain)
         return reward
 
-    def update_weights(self, iepoch, iiter, k, reward):
-        self.max_iter = max(self.max_iter, iiter)
+    def update_weights(self, iepoch, iiter, num_iter, k, reward):
+        #self.max_iter = max(self.max_iter, iiter)
         if iepoch==1:
             #if iiter==1:
             #    t = 0.99
             #else:
             t = iiter
         else:
-            prev_iters = (iepoch-1)*self.max_iter
+            prev_iters = (iepoch-1)*num_iter
             t = prev_iters + iiter
         #logging.info(f"Iter t {t}")
         alpha_t = t**-1
@@ -242,7 +244,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         self.gamma = gamma
         self.slow_k = slow_k
         self.gain_type = gain_type
-        self.max_iter = 0
+        #self.max_iter = 0
         if self.env_mode is None:
             self.env_mode = 1
         else:
@@ -267,8 +269,10 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             
         else:
             self.reward_history = []
-            self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
-            self.policy = np.zeros(self.K)
+            #self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
+            self.arm_rewards = None
+            self.arm_counts = None
+            self.policy = torch.zeros(self.K)
         try:
             self.set_params(self.lmbda, self.gamma, self.slow_k)
         except AssertionError as e:
@@ -366,7 +370,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             else:
                 mean_rewards.append(rewards_sum/arm_count)
         return np.array(mean_rewards)
-
+        
     def get_arm_cost(self, iteration, win_size):
         """
         Calculates arm cost for all arms based on current iteration value.
@@ -379,8 +383,9 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             else:
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
+        
 
-    def update_policy(self, iepoch, iiter, k, algo, losses, batch_lens, **kwargs):
+    def update_policy(self, iepoch, iiter, num_iter, k, algo, losses, batch_lens, **kwargs):
         """
         Updates policy based on the received progress gain.
         Executes steps:
@@ -390,10 +395,10 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             4. Calculate mean reward per arm.
             5. Calculate arm cost and update policy.
         """   
-        self.max_iter = max(self.max_iter, iiter)
+        #self.max_iter = max(self.max_iter, iiter)
         total_iters = iiter
         if iepoch > 1:
-            prev_iters = (iepoch-1)*self.max_iter
+            prev_iters = (iepoch-1)*num_iter
             total_iters += prev_iters
 
         win_size = self.calc_sliding_window(total_iters)

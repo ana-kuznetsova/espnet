@@ -1023,6 +1023,7 @@ class Trainer:
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
+                    num_iter=iterator.num_iters_per_epoch,
                     k=k, 
                     losses=(loss1.item(), loss2.item()), 
                     #losses=(loss1, loss2)
