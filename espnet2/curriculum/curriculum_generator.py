@@ -4,6 +4,7 @@ from abc import ABC
 from abc import abstractmethod
 import os
 import wandb
+import torch
 import logging
 from espnet2.curriculum.curriculum_logger import CurriculumLogger
 
@@ -247,7 +248,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.env_mode = 1
         else:
             self.slow_k = slow_k
-
+        self.reward_hist_len = 0
         self.exhausted = [False for i in range(self.K)]
 
         if restore:
@@ -321,16 +322,19 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         reward = progress_gain
         #self.reward_history = np.append(self.reward_history, reward)
         self.reward_history.append(reward)
-        if len(self.reward_history) > self.hist_size:
+        self.reward_hist_len += 1
+
+        if self.reward_hist_len > self.hist_size:
             #self.reward_history = np.delete(self.reward_history, 0)
             del self.reward_history[:1]
         return reward
-
+        
     def update_arm_reward(self, arm, reward):
         """
         Updates record of reward for each arm. For the chosen arm, the value is updated
         by the current reward value, for the rest of the arms we simply append 0.
         """
+        '''
         for i in range(self.K):
             if i == arm:
                 #self.arm_rewards[i]['rewards'] = np.append(self.arm_rewards[i]['rewards'], reward)
@@ -349,7 +353,22 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
                 #self.arm_rewards[i]['count'] = np.delete(self.arm_rewards[i]['count'], 0)
                 del self.arm_rewards[i]['rewards'][:1]
                 del self.arm_rewards[i]['count'][:1]
+        '''
+        rewards = torch.zeros(self.K, 1)
+        counts = torch.zeros(self.K, 1)
+        rewards[arm] = reward
+        counts[arm] = 1
 
+        if self.arm_rewards is None:
+            self.arm_rewards = rewards
+            self.arm_counts = counts
+        else:
+            self.arm_rewards = torch.cat((self.arm_rewards, rewards), dim=1)
+            self.arm_counts = torch.cat((self.arm_counts, counts), dim=1)
+        
+        if self.arm_rewards.shape[1] > self.hist_size:
+            self.arm_rewards = self.arm_rewards[:, 1:]
+            self.arm_counts = self.arm_counts[:, 1:]    
 
     def get_mean_reward(self, win_size):
         """
@@ -357,6 +376,7 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
         """
         if win_size == 0:
            win_size += 1 
+        '''
         mean_rewards = []
         for arm in range(self.K):
             rewards_sum = np.sum(self.arm_rewards[arm]['rewards'][-win_size:])
@@ -366,11 +386,18 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             else:
                 mean_rewards.append(rewards_sum/arm_count)
         return np.array(mean_rewards)
+        '''
+        rewards_sum = self.arm_rewards[:, -win_size:].sum()
+        arm_counts = self.arm_counts[:, -win_size:].sum()
+        mean_rewards = rewards_sum / arm_counts
+        mean_rewards[mean_rewards == float("Inf")] = 99999999999
+        return mean_rewards
 
     def get_arm_cost(self, iteration, win_size):
         """
         Calculates arm cost for all arms based on current iteration value.
         """
+        '''
         cost = []
         for arm in range(self.K):
             arm_count = np.sum(self.arm_rewards[arm]['count'][-win_size:])
@@ -379,6 +406,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             else:
                 cost.append(np.sqrt((1 + self.alpha) * (np.log(iteration+1)) / arm_count))
         return np.array(cost)
+        '''
+        arm_counts = self.arm_counts[:, -win_size:]
+        arm_costs = torch.sqrt(1 + self.alpha) * (torch.log(iteration + 1) / arm_counts)
+        arm_costs[arm_costs == float("Inf")] = 99999999999
+        return arm_costs
 
     def update_policy(self, iepoch, iiter, k, algo, losses, batch_lens, **kwargs):
         """
@@ -397,14 +429,14 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             total_iters += prev_iters
 
         win_size = self.calc_sliding_window(total_iters)
-        loss_before = float(losses[0])
-        loss_after = float(losses[1])
+        loss_before = losses[0]
+        loss_after = losses[1]
         progress_gain = loss_before - loss_after
         #if kwargs['gain_type']=='SPG':
         #    progress_gain = progress_gain/loss_before
         reward = self.get_reward(progress_gain, batch_lens)
         self.update_arm_reward(k, reward)
-        if len(self.reward_history) <= self.K:
+        if self.reward_hist_length <= self.K:
             return
         #Change mode based on reward history.
         std_dev = np.std(self.reward_history)
