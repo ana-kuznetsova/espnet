@@ -26,7 +26,7 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
                                    "--encoding","signed-integer",
                                    "--rate","48000",
                                    fname_in, fname_in[:-4]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            temp = subprocess.run(["gzip", "-k", "".join(fname_in.split('.')[:-1])+".wav"])
+            temp = subprocess.run(["gzip", "-k", fname_in[:-4]+".wav"])
             #fsize = subprocess.run(["du", fname_in.split('.')[0]+".wav"], stdout=subprocess.PIPE, 
             #                                    text=True, check=True)
             #fsize_comp = subprocess.run(["du", fname_in.split('.')[0]+".wav"+'.gz'], stdout=subproce$
