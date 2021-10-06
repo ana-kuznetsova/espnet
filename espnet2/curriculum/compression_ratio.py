@@ -39,8 +39,9 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
             temp = subprocess.run(["rm", fname_in[:-4]+".wav"])
             try:
                 CR = fsize_comp/fsize
-            except:
+            except Exception as e:
                 print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
+                print(e)
                 raise ZeroDivisionError
             files[client+'-'+fname.split('.')[0]] = str(CR)
             pbar.update(1)
