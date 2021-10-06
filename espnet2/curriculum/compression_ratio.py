@@ -25,16 +25,18 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
                                    "--channels", "1", 
                                    "--encoding","signed-integer",
                                    "--rate","48000",
-                                   fname_in, fname_in.split('.')[0]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            temp = subprocess.run(["gzip", "-k", fname_in.split('.')[0]+".wav"])
-            fsize = subprocess.run(["du", fname_in.split('.')[0]+".wav"], stdout=subprocess.PIPE, 
-                                                text=True, check=True)
-            fsize_comp = subprocess.run(["du", fname_in.split('.')[0]+".wav"+'.gz'], stdout=subprocess.PIPE, 
-                                                text=True, check=True)
-            fsize = int(fsize.stdout.split('\t')[0])
-            fsize_comp = int(fsize_comp.stdout.split('\t')[0])
-            temp = subprocess.run(["rm", fname_in.split('.')[0]+".wav"+".gz"])
-            temp = subprocess.run(["rm", fname_in.split('.')[0]+".wav"])
+                                   fname_in, "".join(fname_in.split('.')[:-1])+".wav"], stdout=subpro$
+            temp = subprocess.run(["gzip", "-k", "".join(fname_in.split('.')[:-1])+".wav"])
+            #fsize = subprocess.run(["du", fname_in.split('.')[0]+".wav"], stdout=subprocess.PIPE, 
+            #                                    text=True, check=True)
+            #fsize_comp = subprocess.run(["du", fname_in.split('.')[0]+".wav"+'.gz'], stdout=subproce$
+            #                                    text=True, check=True)
+            fsize = os.path.getsize("".join(fname_in.split('.')[:-1])+".wav")
+            fsize_comp = os.path.getsize("".join(fname_in.split('.')[:-1])+".wav"+'.gz')
+            #fsize = int(fsize.stdout.split('\t')[0])
+            #fsize_comp = int(fsize_comp.stdout.split('\t')[0])
+            temp = subprocess.run(["rm", "".join(fname_in.split('.')[:-1])+".wav"+".gz"])
+            temp = subprocess.run(["rm", "".join(fname_in.split('.')[:-1])+".wav"])
             CR = fsize_comp/fsize
             files[client+'-'+fname.split('.')[0]] = str(CR)
             pbar.update(1)
