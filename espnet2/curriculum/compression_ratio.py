@@ -43,7 +43,7 @@ def calc_CR(pid, data_dir, res_dir, map_, file_, start=None, end=None):
                 print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
                 print(e)
                 raise ZeroDivisionError
-            files[client+'-'+fname.split('.')[0]] = str(CR)
+            files[fname.split('.')[0]] = str(CR)
             pbar.update(1)
 
 
