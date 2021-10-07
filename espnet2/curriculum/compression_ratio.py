@@ -34,7 +34,7 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
                 print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
                 print(e)
                 raise ZeroDivisionError
-            files[fname.split('.')[0]] = str(CR)
+            files['mls_'+filename.split('.')[0]] = str(CR)
             pbar.update(1)
 
 def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
