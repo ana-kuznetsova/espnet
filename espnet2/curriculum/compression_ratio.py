@@ -121,7 +121,6 @@ def main(args):
             if args.db == 'cv':
                 processes.append(pool.apply_async(calc_CR_CV, args=(i,
                                     args.data_dir, 
-                                    args.res_dir, 
                                     map_, 
                                     csv, 
                                     start,
@@ -129,7 +128,6 @@ def main(args):
             if args.db == 'mls':
                 processes.append(pool.apply_async(calc_CR_MLS, args=(i,
                                     args.data_dir, 
-                                    args.res_dir, 
                                     map_, 
                                     csv, 
                                     start,
@@ -138,7 +136,7 @@ def main(args):
         pool.close()
         results = [job.get() for job in processes]
     if args.wav_scp:
-        save_file(map_, args.res_dir, args.wav_scp, args.compression)
+        save_file(map_, args.res_dir, args.wav_scp)
     else:
         save_file(map_, args.res_dir)
     print("compression ratio file created successfully...")
