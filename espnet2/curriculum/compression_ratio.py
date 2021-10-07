@@ -21,7 +21,7 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
             filename = row['filename']
             fname_in = os.path.join(p, fname)
             fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
-            temp = subprocess.run(["sox", 
+            temp = subprocess.run(["ffmpeg","-i", 
                                    fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(temp.stdout)
             print(temp.stderr)
