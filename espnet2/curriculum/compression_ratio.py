@@ -71,7 +71,7 @@ def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
 def save_file(map_, res_dir, db, wav_scp=None, compression=None): 
     print('\n') 
     if not compression:
-        with open(os.path.join(res_dir, "compression_ratio"+db), 'w') as fo:
+        with open(os.path.join(res_dir, "compression_ratio_"+db), 'w') as fo:
             if wav_scp:
                 fe = open(res_dir+'/extras', 'w') 
                 print("Comparing wav_scp files.....")
