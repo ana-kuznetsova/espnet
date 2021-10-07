@@ -23,8 +23,6 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
             fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["ffmpeg","-i", 
                                    fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(temp.stdout)
-            print(temp.stderr)
             temp = subprocess.run(["gzip", "-k", fname_out[:-5]+".wav"])
             fsize = os.path.getsize(fname_out[:-5]+".wav")
             fsize_comp = os.path.getsize(fname_out[:-5]+".wav.gz")
