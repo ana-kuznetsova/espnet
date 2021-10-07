@@ -21,6 +21,7 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
             filename = row['filename']
             fname_in = os.path.join(p, fname)
             copyfile(fname_in, '/shared/workspaces/anuragkumar95/compressions/'+filename)
+            print(f"File copied at {'/shared/workspaces/anuragkumar95/compressions/'+filename}")
             fname_in = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["sox", 
                                    fname_in, fname_in[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
