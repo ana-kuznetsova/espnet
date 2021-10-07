@@ -113,7 +113,7 @@ def main(args):
         processes = []
         csv_path = os.path.join(args.data_dir, file_)
         csv = pd.read_csv(csv_path, sep = '\t')
-        csv_len = 100#len(csv)
+        csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
         print(f"starting processes for file {file_} with {rows_per_process} rows")
