@@ -68,7 +68,7 @@ def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
             pbar.update(1)
 
 
-def save_file(map_, res_dir, wav_scp=None, db, compression=None): 
+def save_file(map_, res_dir, db, wav_scp=None, compression=None): 
     print('\n') 
     if not compression:
         with open(os.path.join(res_dir, "compression_ratio"+db), 'w') as fo:
@@ -138,9 +138,9 @@ def main(args):
         pool.close()
         results = [job.get() for job in processes]
     if args.wav_scp:
-        save_file(map_, args.res_dir, args.wav_scp, args.db)
+        save_file(map_, args.res_dir, args.db, args.wav_scp)
     else:
-        save_file(map_, args.res_dir)
+        save_file(map_, args.res_dir,  args.db)
     print("compression ratio file created successfully...")
 
 
