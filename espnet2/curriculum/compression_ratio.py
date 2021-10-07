@@ -34,7 +34,6 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
                 print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
                 print(e)
                 raise ZeroDivisionError
-            print('mls_'+filename.split('.')[0])
             files['mls_'+filename.split('.')[0]] = str(CR)
             pbar.update(1)
 
@@ -78,10 +77,10 @@ def save_file(map_, res_dir, db, wav_scp=None, compression=None):
                 print("Comparing wav_scp files.....")
                 for line in tqdm(open(wav_scp,'r').readlines()):
                     fname = line.split()[0]
-                    if fname in map_:
-                        fo.write(fname + ' ' + map_[fname]+'\n')
-                    else:
-                        fe.write(line+'\n')
+                    #if fname in map_:
+                    fo.write(fname + ' ' + map_[fname]+'\n')
+                    #else:
+                    #    fe.write(line+'\n')
                 fe.close()
             else:
                 for file in map_:
@@ -156,3 +155,6 @@ if __name__=="__main__":
                         help='Path to dir where csv with the results will be stored.')
     args = parser.parse_args()
     main(args)
+
+
+    
