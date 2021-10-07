@@ -2,6 +2,7 @@
 Author: Anurag Kumar
 """
 import os
+from shutil import copyfile
 import pandas as pd
 import subprocess
 from tqdm import tqdm
@@ -19,13 +20,15 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
             fname = row['path']
             filename = row['filename']
             fname_in = os.path.join(p, fname)
+            copyfile(fname_in, '/shared/workspaces/anuragkumar95/compressions/'+filename)
+            fname_in = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["sox", 
-                                   fname_in, '/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            temp = subprocess.run(["gzip", "-k", '/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav"])
-            fsize = os.path.getsize('/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav")
-            fsize_comp = os.path.getsize('/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav")
-            temp = subprocess.run(["rm", '/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav.gz"])
-            temp = subprocess.run(["rm", '/shared/workspaces/anuragkumar95/compressions/'+filename[:-5]+".wav"])
+                                   fname_in, fname_in[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            temp = subprocess.run(["gzip", "-k", fname_in[:-5]+".wav"])
+            fsize = os.path.getsize(fname_in[:-5]+".wav")
+            fsize_comp = os.path.getsize(fname_in[:-5]+".wav.gz")
+            temp = subprocess.run(["rm", fname_in[:-5]+".wav.gz"])
+            temp = subprocess.run(["rm", fname_in[:-5]+".wav"])
             try:
                 CR = fsize_comp/fsize
             except Exception as e:
