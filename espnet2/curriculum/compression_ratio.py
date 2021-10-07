@@ -20,18 +20,16 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
             fname = row['path']
             filename = row['filename']
             fname_in = os.path.join(p, fname)
-            copyfile(fname_in, '/shared/workspaces/anuragkumar95/compressions/'+filename)
-            print(f"File copied at {'/shared/workspaces/anuragkumar95/compressions/'+filename}")
-            fname_in = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
+            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["sox", 
-                                   fname_in, fname_in[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                   fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(temp.stdout)
             print(temp.stderr)
-            temp = subprocess.run(["gzip", "-k", fname_in[:-5]+".wav"])
-            fsize = os.path.getsize(fname_in[:-5]+".wav")
-            fsize_comp = os.path.getsize(fname_in[:-5]+".wav.gz")
-            temp = subprocess.run(["rm", fname_in[:-5]+".wav.gz"])
-            temp = subprocess.run(["rm", fname_in[:-5]+".wav"])
+            temp = subprocess.run(["gzip", "-k", fname_out[:-5]+".wav"])
+            fsize = os.path.getsize(fname_out[:-5]+".wav")
+            fsize_comp = os.path.getsize(fname_out[:-5]+".wav.gz")
+            temp = subprocess.run(["rm", fname_out[:-5]+".wav.gz"])
+            temp = subprocess.run(["rm", fname_out[:-5]+".wav"])
             try:
                 CR = fsize_comp/fsize
             except Exception as e:
