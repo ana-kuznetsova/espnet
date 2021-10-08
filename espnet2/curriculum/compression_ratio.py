@@ -77,10 +77,8 @@ def save_file(map_, res_dir, db, wav_scp=None, compression=None):
                 print("Comparing wav_scp files.....")
                 for line in tqdm(open(wav_scp,'r').readlines()):
                     fname = line.split()[0].split('_')
-                    
                     """Remove leading 0s"""
                     fname = "_".join([i.lstrip('0') for i in fname[:-1]])+"_"+fname[-1]
-                    print(fname)
                     fo.write(fname + ' ' + map_[fname]+'\n')
                     #else:
                     #    fe.write(line+'\n')
@@ -116,7 +114,7 @@ def main(args):
         processes = []
         csv_path = os.path.join(args.data_dir, file_)
         csv = pd.read_csv(csv_path, sep = '\t')
-        csv_len = 10#len(csv)
+        csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
         print(f"starting processes for file {file_} with {rows_per_process} rows")
