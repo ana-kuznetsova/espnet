@@ -17,24 +17,25 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
     p = os.path.join(data_dir,'audio')
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for _, row in enumerate(data):
-            fpath = '/'.join(row.split('_')[1:-1]) + row.split(' ')[0][4:] + '.flac'
+            file = row.split(' ')[0]
+            fpath = '/'.join(file.split('_')[1:-1]) + '/' +file[4:] + '.flac'
             print(fpath)
             fname_in = os.path.join(p, fpath)
-            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
+            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',file[4:]+".wav")
             temp = subprocess.run(["ffmpeg","-i", 
-                                   fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                   fname_in, fname_out], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             temp = subprocess.run(["gzip", "-k", fname_out[:-5]+".wav"])
-            fsize = os.path.getsize(fname_out[:-5]+".wav")
-            fsize_comp = os.path.getsize(fname_out[:-5]+".wav.gz")
-            temp = subprocess.run(["rm", fname_out[:-5]+".wav.gz"])
-            temp = subprocess.run(["rm", fname_out[:-5]+".wav"])
+            fsize = os.path.getsize(fname_out)
+            fsize_comp = os.path.getsize(fname_out+".gz")
+            temp = subprocess.run(["rm", fname_out+".gz"])
+            temp = subprocess.run(["rm", fname_out])
             try:
                 CR = fsize_comp/fsize
             except Exception as e:
-                print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
+                print(f"File: {fname_in}, Ori:{fsize}, Compr:{fsize_comp}")
                 print(e)
                 raise ZeroDivisionError
-            files['mls_'+filename.split('.')[0]] = str(CR)
+            files[file] = str(CR)
             pbar.update(1)
 
 def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
