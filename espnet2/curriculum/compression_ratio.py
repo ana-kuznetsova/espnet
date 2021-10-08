@@ -16,27 +16,25 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
     data = file_[start:end]
     p = os.path.join(data_dir,'audio')
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for _, row in enumerate(data):
-            file = row.split(' ')[0]
-            fpath = '/'.join(file.split('_')[1:-1]) + '/' +file[4:] + '.flac'
-            print(fpath)
-            fname_in = os.path.join(p, fpath)
-            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',file[4:]+".wav")
+        for idx, row in data.iterrows():
+            fname = row['path']
+            filename = row['filename']
+            fname_in = os.path.join(p, fname)
+            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["ffmpeg","-i", 
-                                   fname_in, fname_out], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(temp.stderr)
+                                   fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             temp = subprocess.run(["gzip", "-k", fname_out[:-5]+".wav"])
-            fsize = os.path.getsize(fname_out)
-            fsize_comp = os.path.getsize(fname_out+".gz")
-            temp = subprocess.run(["rm", fname_out+".gz"])
-            temp = subprocess.run(["rm", fname_out])
+            fsize = os.path.getsize(fname_out[:-5]+".wav")
+            fsize_comp = os.path.getsize(fname_out[:-5]+".wav.gz")
+            temp = subprocess.run(["rm", fname_out[:-5]+".wav.gz"])
+            temp = subprocess.run(["rm", fname_out[:-5]+".wav"])
             try:
                 CR = fsize_comp/fsize
             except Exception as e:
-                print(f"File: {fname_in}, Ori:{fsize}, Compr:{fsize_comp}")
+                print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
                 print(e)
                 raise ZeroDivisionError
-            files[file] = str(CR)
+            files['mls_'+filename.split('.')[0]] = str(CR)
             pbar.update(1)
 
 def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
@@ -78,8 +76,10 @@ def save_file(map_, res_dir, db, wav_scp=None, compression=None):
                 fe = open(res_dir+'/extras', 'w') 
                 print("Comparing wav_scp files.....")
                 for line in tqdm(open(wav_scp,'r').readlines()):
-                    fname = line.split()[0]
-                    #if fname in map_:
+                    fname = line.split()[0].split('_')
+                    """Remove leading 0s"""
+                    fname = "_".join([i.lstrip('0') for i in fname])
+                    print(fname)
                     fo.write(fname + ' ' + map_[fname]+'\n')
                     #else:
                     #    fe.write(line+'\n')
@@ -115,9 +115,7 @@ def main(args):
         processes = []
         csv_path = os.path.join(args.data_dir, file_)
         csv = pd.read_csv(csv_path, sep = '\t')
-        if args.db == 'mls':
-            csv = open(args.wav_scp, 'r').readlines()
-        csv_len = 100#len(csv)
+        csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
         print(f"starting processes for file {file_} with {rows_per_process} rows")
