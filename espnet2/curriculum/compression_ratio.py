@@ -77,8 +77,9 @@ def save_file(map_, res_dir, db, wav_scp=None, compression=None):
                 print("Comparing wav_scp files.....")
                 for line in tqdm(open(wav_scp,'r').readlines()):
                     fname = line.split()[0].split('_')
+                    
                     """Remove leading 0s"""
-                    fname = "_".join([i.lstrip('0') for i in fname])
+                    fname = "_".join([i.lstrip('0') for i in fname[:-1]])+fname[-1]
                     print(fname)
                     fo.write(fname + ' ' + map_[fname]+'\n')
                     #else:
