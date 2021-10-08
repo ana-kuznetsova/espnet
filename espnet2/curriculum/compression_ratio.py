@@ -16,10 +16,10 @@ def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
     data = file_[start:end]
     p = os.path.join(data_dir,'audio')
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for idx, row in data.iterrows():
-            fname = row['path']
-            filename = row['filename']
-            fname_in = os.path.join(p, fname)
+        for _, row in enumerate(data):
+            fpath = '/'.join(row.split('_')[1:-1]) + row.split(' ')[0][4:] + '.flac'
+            print(fpath)
+            fname_in = os.path.join(p, fpath)
             fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             temp = subprocess.run(["ffmpeg","-i", 
                                    fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -113,6 +113,8 @@ def main(args):
         processes = []
         csv_path = os.path.join(args.data_dir, file_)
         csv = pd.read_csv(csv_path, sep = '\t')
+        if args.db == 'mls':
+            csv = open(args.wav_scp, 'r').readlines()
         csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
