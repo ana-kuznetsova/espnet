@@ -115,7 +115,7 @@ def main(args):
         csv = pd.read_csv(csv_path, sep = '\t')
         if args.db == 'mls':
             csv = open(args.wav_scp, 'r').readlines()
-        csv_len = len(csv)
+        csv_len = 100#len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
         print(f"starting processes for file {file_} with {rows_per_process} rows")
