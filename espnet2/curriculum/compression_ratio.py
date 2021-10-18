@@ -73,7 +73,7 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
             if type != 'wav':
                 convert_to_wav(fin=fpath, fout=fname_out)
                 fpath = fname_out
-            if segments != None:
+            if isinstance(segments, pd.DataFrame):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
                                   file_path=fpath, 
