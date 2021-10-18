@@ -147,41 +147,12 @@ def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
             pbar.update(1)
 
 
-def save_file(map_, res_dir, db, wav_scp=None, compression=None): 
-    print('\n') 
-    if not compression:
-        with open(os.path.join(res_dir, "compression_ratio_"+db), 'w') as fo:
-            if wav_scp:
-                fe = open(res_dir+'/extras', 'w') 
-                print("Comparing wav_scp files.....")
-                for line in tqdm(open(wav_scp,'r').readlines()):
-                    fname = line.split()[0]
-                    if args.db == 'mls':
-                        fname = line.split()[0].split('_')
-                        """Remove leading 0s"""
-                        fname = "_".join([i.lstrip('0') for i in fname[:-1]])+"_"+fname[-1]
-                    fo.write(fname + ' ' + map_[fname]+'\n')
-                    #else:
-                    #    fe.write(line+'\n')
-                fe.close()
-            else:
-                for file in map_:
-                    fo.write(file + ' ' + map_[file]+'\n')
-    else:
-        compressions = {}
-        wavs = {i.split()[0]: 1 for i in open(wav_scp,'r').readlines()}
-        #print(list(wavs.keys())[:10])
-        for line in tqdm(open(compression, 'r').readlines()):
-            #print(line)
-            fname = line.split()[0]
-            cr = line.split()[1]
-            #print("FNAME:",fname, "CR:",cr)
-            if fname in wavs:
-                compressions[fname] = cr
-        
-        with open(compression+'_new', 'w') as fo:
-            for fname in compressions:
-                fo.write(fname+' '+compressions[fname]+'\n')
+def save_file(map_, res_dir, db): 
+    p = os.path.join(res_dir, 'compression_'+db)
+    with open(p, 'w') as f:
+        for file in map_:
+            f.write("{} {}\n".format(file, map_[file]))
+
 
 def main(args):
     manager = Manager()
@@ -198,8 +169,9 @@ def main(args):
     for file_ in files: 
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
-        csv_path = os.path.join(args.data_dir, file_)
-        csv = pd.read_csv(csv_path, sep = sep)
+        csv = pd.read_csv(args.wav_scp, sep = sep)
+        if args.segments:
+            segments = ''.join(args.wav_scp.split('/')[:-1]) + 'segments'
         csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
@@ -225,18 +197,16 @@ def main(args):
             if args.db == 'others':
                 processes.append(pool.apply_async(calc_CR_scp, args=(i,
                                     map_, 
-                                    scp, 
-                                    args.type, 
-                                    args.segments, 
+                                    csv, 
+                                    args.extn, 
+                                    segments, 
                                     start, 
                                     end,)))
 
         pool.close()
         results = [job.get() for job in processes]
-    if args.wav_scp:
-        save_file(map_, args.res_dir, args.db, args.wav_scp)
-    else:
-        save_file(map_, args.res_dir,  args.db)
+   
+    save_file(map_, args.res_dir, args.db)
     print("compression ratio file created successfully...")
 
 
@@ -245,10 +215,10 @@ if __name__=="__main__":
     parser.add_argument("--db", type=str, required=True, help='Type of dataset, cv(commonvoice) or mls')
     parser.add_argument("--num_process", type=int, required=False)
     parser.add_argument('--wav_scp', type=str, required=False)
-    parser.add_argument('--data_dir', type=str, required=True,
-                        help='Path to audio dir.')
     parser.add_argument('--res_dir', type=str, required=True,
                         help='Path to dir where csv with the results will be stored.')
+    parser.add_argument('--extn', type=str, required=True, help='default audio files extension')
+    parser.add_argument('--segments', action='store_true')
     args = parser.parse_args()
     main(args)
 
