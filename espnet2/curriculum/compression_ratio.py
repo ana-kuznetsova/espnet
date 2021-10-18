@@ -87,63 +87,6 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
                               save_path=save_path)
             pbar.update(1)
 
-def calc_CR_MLS(pid, data_dir, map_, file_, start=None, end=None):
-    tqdm_text = "#"+"{}".format(pid).zfill(3)
-    files = map_
-    data = file_[start:end]
-    p = os.path.join(data_dir,'audio')
-    with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for idx, row in data.iterrows():
-            fname = row['path']
-            filename = row['filename']
-            fname_in = os.path.join(p, fname)
-            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
-            temp = subprocess.run(["ffmpeg","-i", 
-                                   fname_in, fname_out[:-5]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            temp = subprocess.run(["gzip", "-k", fname_out[:-5]+".wav"])
-            fsize = os.path.getsize(fname_out[:-5]+".wav")
-            fsize_comp = os.path.getsize(fname_out[:-5]+".wav.gz")
-            temp = subprocess.run(["rm", fname_out[:-5]+".wav.gz"])
-            temp = subprocess.run(["rm", fname_out[:-5]+".wav"])
-            try:
-                CR = fsize_comp/fsize
-            except Exception as e:
-                print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
-                print(e)
-                raise ZeroDivisionError
-            files['mls_'+filename.split('.')[0]] = str(CR)
-            pbar.update(1)
-
-def calc_CR_CV(pid, data_dir, map_, file_, start=None, end=None):
-    tqdm_text = "#"+"{}".format(pid).zfill(3)
-    #p = os.path.join(data_dir,'clips')
-    p = data_dir
-    files = map_
-    data = file_[start:end]
-    #for idx, row in tqdm(data.iterrows()): 
-    with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for idx, row in data.iterrows():
-            fname = row['path']
-            filename = row['filename']
-            fname_in = os.path.join(p, fname)
-            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
-            #temp = subprocess.run(["ffmpeg","-i", 
-            #                       fname_in, fname_out[:-4]+".wav"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #temp = subprocess.run(["gzip", "-k", fname_in[:-4]+".wav"])
-            temp = subprocess.run(["gzip", "-k", fname_in])
-            fsize = os.path.getsize(fname_in)
-            fsize_comp = os.path.getsize(fname_in+".gz")
-            temp = subprocess.run(["rm", fname_in+".gz"])
-            temp = subprocess.run(["rm", fname_in])
-            try:
-                CR = fsize_comp/fsize
-            except Exception as e:
-                print(f"File: {fname}, Ori:{fsize}, Compr:{fsize_comp}")
-                print(e)
-                raise ZeroDivisionError
-            files[fname.split('.')[0]] = str(CR)
-            pbar.update(1)
-
 
 def save_file(map_, res_dir, db): 
     p = os.path.join(res_dir, 'compression_'+db)
@@ -151,19 +94,11 @@ def save_file(map_, res_dir, db):
         for file in map_:
             f.write("{} {}\n".format(file, map_[file]))
 
-
 def main(args):
     manager = Manager()
     map_ = manager.dict()
-    if args.db == 'cv':
-        files = ['validated.tsv', 'invalidated.tsv']
-        sep = '\t'
-    if args.db == 'mls':
-        files = ['mls_files.tsv']
-        sep = '\t'
-    else:
-        files = ['wav.scp']
-        sep = ' '
+    files = ['wav.scp']
+    sep = ' '
     for file_ in files: 
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
@@ -177,30 +112,13 @@ def main(args):
         for i in range(args.num_process):
             start = int(i*rows_per_process)
             end = int(min(start + rows_per_process, csv_len))
-            if args.db == 'cv':
-                processes.append(pool.apply_async(calc_CR_CV, args=(i,
-                                    args.data_dir, 
-                                    map_, 
-                                    csv, 
-                                    start,
-                                    end,)))
-            if args.db == 'mls':
-                processes.append(pool.apply_async(calc_CR_MLS, args=(i,
-                                    args.data_dir, 
-                                    map_, 
-                                    csv, 
-                                    start,
-                                    end,)))
-
-            else:
-                processes.append(pool.apply_async(calc_CR_scp, args=(i,
-                                    map_, 
-                                    csv, 
-                                    args.extn, 
-                                    segments, 
-                                    start, 
-                                    end,)))
-
+            processes.append(pool.apply_async(calc_CR_scp, args=(i,
+                                map_, 
+                                csv, 
+                                args.extn, 
+                                segments, 
+                                start, 
+                                end,)))
         pool.close()
         results = [job.get() for job in processes]
    
