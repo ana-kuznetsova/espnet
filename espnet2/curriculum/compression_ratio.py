@@ -163,7 +163,7 @@ def main(args):
     if args.db == 'mls':
         files = ['mls_files.tsv']
         sep = '\t'
-    if args.db == 'others':
+    else:
         files = ['wav.scp']
         sep = ' '
     for file_ in files: 
@@ -194,7 +194,7 @@ def main(args):
                                     start,
                                     end,)))
 
-            if args.db == 'others':
+            else:
                 processes.append(pool.apply_async(calc_CR_scp, args=(i,
                                     map_, 
                                     csv, 
