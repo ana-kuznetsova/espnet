@@ -171,7 +171,7 @@ def main(args):
         processes = []
         csv = pd.read_csv(args.wav_scp, sep = sep)
         if args.segments:
-            segments = ''.join(args.wav_scp.split('/')[:-1]) + 'segments'
+             segments = args.wav_scp[:-7] + 'segments'
         csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
