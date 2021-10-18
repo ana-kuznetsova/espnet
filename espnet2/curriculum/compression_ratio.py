@@ -15,14 +15,12 @@ def convert_to_wav(fin, fout):
     """
     Reads the file from fin and saves the file in wav format in fout
     """
-    print("ssss")
     temp = subprocess.run(["ffmpeg",
                            "-i", 
                            fin, 
                            fout], 
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
-    print("ddd")
     
 def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
@@ -65,7 +63,7 @@ def compress_file(map_, wav_id, name, file_path, save_path):
     print(save_path)
     print(wav_id)
     print(stem, save_path[:-len(stem)])
-    temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
+    #temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
 
