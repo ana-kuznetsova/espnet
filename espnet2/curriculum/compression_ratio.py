@@ -5,6 +5,7 @@ import os
 from shutil import copyfile
 import pandas as pd
 from pydub import AudioSegment
+from pathlib import Path
 import subprocess
 from tqdm import tqdm
 import argparse
@@ -57,7 +58,9 @@ def compress_file(map_, wav_id, name, file_path, save_path):
         print(f"File: {save_path}, Ori:{size}, Compr:{cr_size}")
         print(e)
         raise ZeroDivisionError
-    temp = subprocess.run(["rm", ])
+    p = Path(save_path)
+    stem = p.stem
+    temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
 
