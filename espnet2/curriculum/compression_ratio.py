@@ -68,6 +68,7 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in enumerate(data):
             vals = row.split(' ')
+            print(vals)
             wav_id = vals[0]
             fpath = vals[8]
             filename = fpath.split('/')[-1]
