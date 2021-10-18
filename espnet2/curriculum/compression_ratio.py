@@ -62,11 +62,12 @@ def compress_file(map_, name, file_path, save_path):
 def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
+    print("data",data[0])
     if segments:
         segments = pd.read_csv(segments, sep = ' ')
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for idx, row in enumerate(data):
-            vals = row.split(' ')
+        for idx, row in data.iterrows():
+            print(row)
             wav_id = vals[0]
             fpath = vals[8]
             filename = fpath.split('/')[-1]
@@ -169,6 +170,7 @@ def main(args):
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
         csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
+        print(csv.head())
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
         csv_len = len(csv)
