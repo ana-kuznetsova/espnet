@@ -63,7 +63,7 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
     if segments:
-        segments = pd.read_csv(segments, sep = ' ')
+        segments = pd.read_csv(segments, sep = ' ', header=None)
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in data.iterrows():
             wav_id = row[0]
@@ -168,7 +168,6 @@ def main(args):
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
         csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
-        print(csv.head())
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
         csv_len = len(csv)
