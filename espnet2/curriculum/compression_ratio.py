@@ -67,7 +67,7 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in data.iterrows():
             wav_id = row[0]
-            fpath = row[8]
+            fpath = row[6]
             filename = fpath.split('/')[-1]
             fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             if type != 'wav':
