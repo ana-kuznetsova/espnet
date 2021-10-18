@@ -69,8 +69,8 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
             wav_id = row[0]
             fpath = row[6]
             filename = fpath.split('/')[-1]
-            fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename)
             if type != 'wav':
+                fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
                 convert_to_wav(fin=fpath, fout=fname_out)
                 fpath = fname_out
             if isinstance(segments, pd.DataFrame):
