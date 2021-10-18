@@ -21,7 +21,7 @@ def convert_to_wav(fin, fout):
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
     
-def compress_segments(map_, file_path, segments, outpath):
+def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
     Accepts the wav audio file and list of segment time stamps.
     Chunks the audio and calculates CR for each segment.
@@ -38,12 +38,13 @@ def compress_segments(map_, file_path, segments, outpath):
         audio_chunk = audio[start:end]
         save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, filename, start, end)
         audio_chunk.export(save_path)
-        compress_file(map_=map_, 
+        compress_file(map_=map_,
+                      wav_id=wav_id, 
                       name=row[1],
                       file_path=save_path,
                       save_path=save_path)
 
-def compress_file(map_, name, file_path, save_path):
+def compress_file(map_, wav_id, name, file_path, save_path):
     """
     Compresses the file and calculates CR.
     """
@@ -56,6 +57,7 @@ def compress_file(map_, name, file_path, save_path):
         print(f"File: {save_path}, Ori:{size}, Compr:{cr_size}")
         print(e)
         raise ZeroDivisionError
+    temp = subprocess.run(["rm", ])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
 
@@ -76,12 +78,14 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
             if isinstance(segments, pd.DataFrame):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
+                                  wav_id=wav_id, 
                                   file_path=fpath, 
                                   segments=segs, 
                                   outpath="/shared/workspaces/anuragkumar95/compressions/")
             else:
                 save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",filename)
                 compress_file(map_=map_, 
+                              wav_id=wav_id, 
                               name=row[0],
                               file_path=fpath,
                               save_path=save_path)
