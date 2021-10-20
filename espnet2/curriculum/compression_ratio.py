@@ -42,17 +42,14 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
         compress_file(map_=map_,
                       wav_id=wav_id, 
                       name=row[1],
-                      file_path=save_path,
                       save_path=save_path)
 
-def compress_file(map_, wav_id, name, file_path, save_path):
+def compress_file(map_, wav_id, name, save_path):
     """
     Compresses the file and calculates CR.
     """
     print(save_path)
-    print(wav_id)
-    
-    size = os.path.getsize(file_path)
+    size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
     try:
@@ -89,16 +86,16 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if isinstance(segments, pd.DataFrame):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
-                                  wav_id=wav_id, 
-                                  file_path=fpath, 
+                                  wav_id=wav_id,
+                                  file_path=fpath,
                                   segments=segs, 
                                   outpath="/shared/workspaces/anuragkumar95/compressions/")
             else:
                 save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",filename)
+                copyfile(fpath, save_path)
                 compress_file(map_=map_, 
                               wav_id=wav_id, 
                               name=row[0],
-                              file_path=fpath,
                               save_path=save_path)
             pbar.update(1)
 
