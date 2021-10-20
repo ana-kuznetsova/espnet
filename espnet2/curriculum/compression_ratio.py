@@ -59,11 +59,9 @@ def compress_file(map_, wav_id, args, name, save_path):
         print(e)
         raise ZeroDivisionError
     p = Path(save_path)
-    stem = p.stem
-    #print(stem, save_path[:-(len(stem+'.'+args.extn))], wav_id)
-    #temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
-    temp = subprocess.run(["rm", save_path])
-    temp = subprocess.run(["rm", save_path+".gz"])
+
+def clean_dir(dir):
+    temp = subprocess.run(["rm", "*wav*"], cwd=dir)
 
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
@@ -110,6 +108,9 @@ def save_file(map_, args):
         for file in map_:
             f.write("{} {}\n".format(file, map_[file]))
 
+def clean_dir(dir):
+    temp = subprocess.run(["rm", "*wav*"], cwd=dir)
+
 def main(args):
     manager = Manager()
     map_ = manager.dict()
@@ -141,6 +142,7 @@ def main(args):
         results = [job.get() for job in processes]
    
     save_file(map_, args)
+    clean_dir(dir="/shared/workspaces/anuragkumar95/compressions")
     print("compression ratio file created successfully...")
 
 
