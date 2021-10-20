@@ -40,7 +40,7 @@ def compress_segments(map_, wav_id, args, file_path, segments, outpath):
         audio_chunk = audio[start:end]
         print("Audio:",len(audio), "Chunk:", len(audio_chunk))
         save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, filename, start, end)
-        audio_chunk.export(save_path)
+        audio_chunk.export(save_path, format='wav')
         compress_file(map_=map_,
                       wav_id=wav_id,
                       args=args, 
@@ -62,7 +62,7 @@ def compress_file(map_, wav_id, args, name, save_path):
         print(f"File: {save_path}, Ori:{size}, Compr:{cr_size}")
         print(e)
         raise ZeroDivisionError
-    p = Path(save_path)
+    
 
 def clean_dir(dir):
     temp = subprocess.run(["rm", "*wav*"], cwd=dir)
