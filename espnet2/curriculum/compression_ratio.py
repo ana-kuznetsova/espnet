@@ -152,7 +152,7 @@ def main(args):
         pool.close()
         results = [job.get() for job in processes]
    
-    for i in range(args.num_process/2):
+    for i in range(args.num_process):
         print('\n')
     save_file(map_, args)
     print("compression ratio file created successfully...")
