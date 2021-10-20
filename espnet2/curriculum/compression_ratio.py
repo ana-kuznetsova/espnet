@@ -23,7 +23,7 @@ def convert_to_wav(fin, fout):
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
     
-def compress_segments(map_, wav_id, args, file_path, segments, outpath):
+def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
     Accepts the wav audio file and list of segment time stamps.
     Chunks the audio and calculates CR for each segment.
@@ -33,20 +33,18 @@ def compress_segments(map_, wav_id, args, file_path, segments, outpath):
     outpath   : path to save chunks
     """
     audio = AudioSegment.from_wav(file_path)
-    filename = file_path.split('/')[-3]+"_"+file_path.split('/')[-2]+"_"+file_path.split('/')[-1][:-4]
+    #filename = file_path.split('/')[-3]+"_"+file_path.split('/')[-2]+"_"+file_path.split('/')[-1][:-4]
     for _, row in segments.iterrows():
         start = row[2] * 1000
         end = row[3] * 1000
         audio_chunk = audio[start:end]
-        save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, filename, start, end)
+        save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, wav_id, start, end)
         audio_chunk.export(save_path, format='wav')
-        compress_file(map_=map_,
-                      wav_id=wav_id,
-                      args=args, 
+        compress_file(map_=map_, 
                       name=row[1],
                       save_path=save_path)
 
-def compress_file(map_, wav_id, args, name, save_path):
+def compress_file(map_, name, save_path):
     """
     Compresses the file and calculates CR.
     """
@@ -83,8 +81,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 filename = fpath.split('/')[-1]
                 print(filename)
                 id_ = filename[:-len(args.extn)]
-            
-            save_path = os.path.join(args.res_dir,id_+"wav")
+
+            save_path = "{}/{}.wav".format(args.res_dir, wav_id)
             print("SAVE:", save_path, id_)   
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
@@ -93,7 +91,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
                                   wav_id=wav_id,
-                                  args=args,
                                   file_path=fpath,
                                   segments=segs, 
                                   outpath=args.res_dir)
@@ -101,9 +98,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 if args.extn == 'wav':
                     copyfile(fpath, save_path)
                 compress_file(map_=map_, 
-                              wav_id=wav_id,
-                              args=args, 
-                              name=row[0],
+                              name=wav_id,
                               save_path=save_path)
             pbar.update(1)
 
