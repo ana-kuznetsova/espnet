@@ -32,7 +32,7 @@ def compress_segments(map_, wav_id, args, file_path, segments, outpath):
     outpath   : path to save chunks
     """
     audio = AudioSegment.from_wav(file_path)
-    filename = file_path.split('/')[-1][:-4]
+    filename = file_path.split('/')[-3]+"_"+file_path.split('/')[-2]+"_"+file_path.split('/')[-1][:-4]
     for _, row in segments.iterrows():
         start = row[2] * 1000
         end = row[3] * 1000
