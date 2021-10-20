@@ -32,6 +32,7 @@ def compress_segments(map_, wav_id, args, file_path, segments, outpath):
     outpath   : path to save chunks
     """
     audio = AudioSegment.from_wav(file_path)
+    print("OG:",os.path.getsize(file_path))
     filename = file_path.split('/')[-1][:-4]
     for _, row in segments.iterrows():
         start = row[2] * 1000
@@ -50,9 +51,11 @@ def compress_file(map_, wav_id, args, name, save_path):
     """
     Compresses the file and calculates CR.
     """
+    
     size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
+    print("NEW:",size)
     try:
         map_[name] = cr_size / size
     except Exception as e:
