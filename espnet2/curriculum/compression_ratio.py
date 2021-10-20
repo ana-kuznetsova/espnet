@@ -66,6 +66,8 @@ def clean_dir(dir):
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
+    print(data.iloc[0])
+    print(data.iloc[-1])
     if segments:
         segments = pd.read_csv(segments, sep = ' ', header=None)
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
