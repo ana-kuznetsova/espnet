@@ -22,7 +22,7 @@ def convert_to_wav(fin, fout):
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
     
-def compress_segments(map_, wav_id, file_path, segments, outpath):
+def compress_segments(map_, wav_id, args, file_path, segments, outpath):
     """
     Accepts the wav audio file and list of segment time stamps.
     Chunks the audio and calculates CR for each segment.
@@ -40,15 +40,15 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
         save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, filename, start, end)
         audio_chunk.export(save_path)
         compress_file(map_=map_,
-                      wav_id=wav_id, 
+                      wav_id=wav_id,
+                      args=args, 
                       name=row[1],
                       save_path=save_path)
 
-def compress_file(map_, wav_id, name, save_path):
+def compress_file(map_, wav_id, args, name, save_path):
     """
     Compresses the file and calculates CR.
     """
-    print(save_path)
     size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
@@ -60,7 +60,7 @@ def compress_file(map_, wav_id, name, save_path):
         raise ZeroDivisionError
     p = Path(save_path)
     stem = p.stem
-    print(stem, save_path[:-len(stem)])
+    print(stem, save_path[:-(len(stem+'.'+args.extn)])
     #temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
@@ -82,11 +82,11 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
                 convert_to_wav(fin=fpath, fout=fname_out)
                 fpath = fname_out
-            
             if isinstance(segments, pd.DataFrame):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
                                   wav_id=wav_id,
+                                  args=args,
                                   file_path=fpath,
                                   segments=segs, 
                                   outpath="/shared/workspaces/anuragkumar95/compressions/")
@@ -94,7 +94,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",filename)
                 copyfile(fpath, save_path)
                 compress_file(map_=map_, 
-                              wav_id=wav_id, 
+                              wav_id=wav_id,
+                              args=args, 
                               name=row[0],
                               save_path=save_path)
             pbar.update(1)
