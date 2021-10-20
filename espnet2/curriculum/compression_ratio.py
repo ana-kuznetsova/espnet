@@ -77,12 +77,12 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[8]
                 filename = fpath.split('/')[-1]
                 folder = fpath.split('/')[-3]+"_"+fpath.split('/')[-2]
-                id_ = + folder + "_" + filename[:len(args.extn)]
+                id_ = + folder + "_" + filename[:-len(args.extn)]
             if args.db == 'mls':
                 fpath = row[6]
                 filename = fpath.split('/')[-1]
                 print(filename)
-                id_ = filename[:len(args.extn)]
+                id_ = filename[:-len(args.extn)]
             
             save_path = os.path.join(args.res_dir,id_+"wav")
             print("SAVE:", save_path, id_)   
