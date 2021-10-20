@@ -115,10 +115,12 @@ def save_file(map_, args):
             f.write("{} {}\n".format(file, map_[file]))
 
 def clean_dir(dir):
+    """
+    Removes all files with certain pattern in the specified directory.
+    """
     files = glob.glob(dir)
     for file in files:
         os.remove(file)
-    #temp = subprocess.run(["rm", "/shared/workspaces/anuragkumar95/compressions/*wav*"])
 
 def main(args):
     manager = Manager()
@@ -150,6 +152,8 @@ def main(args):
         pool.close()
         results = [job.get() for job in processes]
    
+    for i in range(args.num_process/2):
+        print('\n')
     save_file(map_, args)
     print("compression ratio file created successfully...")
     print("cleaning temporary files..")
