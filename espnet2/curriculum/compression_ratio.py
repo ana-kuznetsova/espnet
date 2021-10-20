@@ -96,7 +96,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                                   segments=segs, 
                                   outpath=args.res_dir)
             else:
-                if args.extn != 'wav':
+                if args.extn == 'wav':
                     copyfile(fpath, save_path)
                 compress_file(map_=map_, 
                               wav_id=wav_id,
