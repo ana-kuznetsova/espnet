@@ -60,7 +60,7 @@ def compress_file(map_, wav_id, args, name, save_path):
         raise ZeroDivisionError
     p = Path(save_path)
     stem = p.stem
-    print(stem, save_path[:-(len(stem+'.'+args.extn))])
+    print(stem, save_path[:-(len(stem+'.'+args.extn))], wav_id)
     #temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
