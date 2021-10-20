@@ -115,6 +115,8 @@ def main(args):
         csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
+        else:
+            segments = None
         csv_len = len(csv)
         rows_per_process = int(csv_len/args.num_process) + 1
         print('\n')
