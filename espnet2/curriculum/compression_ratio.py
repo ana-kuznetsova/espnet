@@ -78,7 +78,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if args.db == 'mls':
                 fpath = row[6]
                 filename = fpath.split('/')[-1]
-                folder = fpath.split('/')[-2]+"_"+fpath.split('/')[-2]
+                folder = fpath.split('/')[-3]+"_"+fpath.split('/')[-2]
             id_ = filename + folder
             if args.extn != 'wav':
                 fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
