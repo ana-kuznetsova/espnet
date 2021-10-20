@@ -78,6 +78,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if args.db == 'mls':
                 fpath = row[6]
             filename = fpath.split('/')[-1]
+            folder = fpath.split('/')[-2]
             if args.extn != 'wav':
                 fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
                 convert_to_wav(fin=fpath, fout=fname_out)
@@ -91,7 +92,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                                   segments=segs, 
                                   outpath="/shared/workspaces/anuragkumar95/compressions/")
             else:
-                save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",filename)
+                save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",folder+"_"+filename)
                 copyfile(fpath, save_path)
                 compress_file(map_=map_, 
                               wav_id=wav_id,
