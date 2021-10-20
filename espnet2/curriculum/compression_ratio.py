@@ -67,7 +67,7 @@ def compress_file(map_, wav_id, name, file_path, save_path):
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
 
-def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
+def calc_CR_scp(pid, map_, file_, type, args, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
     if segments:
@@ -75,7 +75,10 @@ def calc_CR_scp(pid, map_, file_, type, segments=None, start=None, end=None):
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in data.iterrows():
             wav_id = row[0]
-            fpath = row[6]
+            if args.db == 'heroico':
+                fpath = row[8]
+            if args.db == 'mls':
+                fpath = row[6]
             filename = fpath.split('/')[-1]
             if type != 'wav':
                 fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
