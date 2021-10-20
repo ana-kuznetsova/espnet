@@ -37,6 +37,7 @@ def compress_segments(map_, wav_id, args, file_path, segments, outpath):
         start = row[2] * 1000
         end = row[3] * 1000
         audio_chunk = audio[start:end]
+        print("Audio:",len(audio), "Chunk:", len(audio_chunk))
         save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, filename, start, end)
         audio_chunk.export(save_path)
         compress_file(map_=map_,
