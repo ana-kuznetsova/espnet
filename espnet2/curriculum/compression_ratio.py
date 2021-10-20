@@ -49,6 +49,9 @@ def compress_file(map_, wav_id, name, file_path, save_path):
     """
     Compresses the file and calculates CR.
     """
+    print(save_path)
+    print(wav_id)
+    print(stem, save_path[:-len(stem)])
     size = os.path.getsize(file_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
@@ -60,9 +63,7 @@ def compress_file(map_, wav_id, name, file_path, save_path):
         raise ZeroDivisionError
     p = Path(save_path)
     stem = p.stem
-    print(save_path)
-    print(wav_id)
-    print(stem, save_path[:-len(stem)])
+  
     #temp = subprocess.run(["rm", save_path[:-len(stem)], wav_id])
     temp = subprocess.run(["rm", save_path])
     temp = subprocess.run(["rm", save_path+".gz"])
@@ -80,7 +81,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if args.db == 'mls':
                 fpath = row[6]
             filename = fpath.split('/')[-1]
-            print("EXTN:",args.extn)
             if args.extn != 'wav':
                 fname_out = os.path.join('/shared/workspaces/anuragkumar95/compressions/',filename[:-len(type)]+"wav")
                 convert_to_wav(fin=fpath, fout=fname_out)
@@ -95,7 +95,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                                   outpath="/shared/workspaces/anuragkumar95/compressions/")
             else:
                 save_path = os.path.join("/shared/workspaces/anuragkumar95/compressions/",filename)
-                print("FPATH:",fpath)
                 compress_file(map_=map_, 
                               wav_id=wav_id, 
                               name=row[0],
