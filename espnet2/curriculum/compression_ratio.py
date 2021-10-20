@@ -76,7 +76,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if args.db == 'mls':
                 fpath = row[6]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)
-            print("SAVE:", save_path, id_)   
+            print("SAVE:", save_path)   
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
                 fpath = save_path
