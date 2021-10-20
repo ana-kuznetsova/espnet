@@ -48,7 +48,6 @@ def compress_file(map_, name, save_path):
     """
     Compresses the file and calculates CR.
     """
-    print("SAVEPATH:", save_path)
     size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
@@ -75,8 +74,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[8]
             if args.db == 'mls':
                 fpath = row[6]
-            save_path = "{}/{}.wav".format(args.res_dir, wav_id)
-            print("SAVE:", save_path)   
+            save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
                 fpath = save_path
