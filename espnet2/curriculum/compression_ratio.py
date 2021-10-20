@@ -50,7 +50,7 @@ def compress_file(map_, wav_id, args, name, save_path):
     """
     Compresses the file and calculates CR.
     """
-    
+    print("SAVEPATH:", save_path)
     size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
     cr_size = os.path.getsize(save_path+".gz")
