@@ -2,6 +2,7 @@
 Author: Anurag Kumar
 """
 import os
+import glob
 from shutil import copyfile
 import pandas as pd
 from pydub import AudioSegment
@@ -113,8 +114,11 @@ def save_file(map_, args):
         for file in map_:
             f.write("{} {}\n".format(file, map_[file]))
 
-def clean_dir():
-    temp = subprocess.run(["rm", "/shared/workspaces/anuragkumar95/compressions/*wav*"])
+def clean_dir(dir):
+    files = glob.glob(dir)
+    for file in files:
+        os.remove(file)
+    #temp = subprocess.run(["rm", "/shared/workspaces/anuragkumar95/compressions/*wav*"])
 
 def main(args):
     manager = Manager()
@@ -147,8 +151,9 @@ def main(args):
         results = [job.get() for job in processes]
    
     save_file(map_, args)
-    clean_dir()
     print("compression ratio file created successfully...")
+    print("cleaning temporary files..")
+    clean_dir(dir="/shared/workspaces/anuragkumar95/compressions/*wav*")
 
 
 if __name__=="__main__":
