@@ -112,8 +112,8 @@ def save_file(map_, args):
         for file in map_:
             f.write("{} {}\n".format(file, map_[file]))
 
-def clean_dir(dir):
-    temp = subprocess.run(["rm", "*wav*"], cwd=dir)
+def clean_dir():
+    temp = subprocess.run(["rm", "/shared/workspaces/anuragkumar95/compressions/*wav*"])
 
 def main(args):
     manager = Manager()
@@ -146,7 +146,7 @@ def main(args):
         results = [job.get() for job in processes]
    
     save_file(map_, args)
-    clean_dir(dir="/shared/workspaces/anuragkumar95/compressions")
+    clean_dir()
     print("compression ratio file created successfully...")
 
 
