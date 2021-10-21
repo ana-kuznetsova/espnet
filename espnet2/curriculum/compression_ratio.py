@@ -22,10 +22,10 @@ def convert_to_wav(fin, fout):
                            fout], 
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
-    output = temp.stdout.decode()
-    err = temp.stderr.decode()
-    print("OUT:",output)
-    print("ERR:",err)
+    #output = temp.stdout.decode()
+    #err = temp.stderr.decode()
+    #print("OUT:",output)
+    #print("ERR:",err)
     
     
 def compress_segments(map_, wav_id, file_path, segments, outpath):
