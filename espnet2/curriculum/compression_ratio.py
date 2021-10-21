@@ -57,10 +57,7 @@ def compress_file(map_, name, save_path):
         print(f"File: {save_path}, Ori:{size}, Compr:{cr_size}")
         print(e)
         raise ZeroDivisionError
-    
 
-def clean_dir(dir):
-    temp = subprocess.run(["rm", "*wav*"], cwd=dir)
 
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     tqdm_text = "#"+"{}".format(pid).zfill(3)
@@ -74,6 +71,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[8]
             if args.db == 'mls':
                 fpath = row[6]
+            if args.db == 'mai':
+                fpath = row[1]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
