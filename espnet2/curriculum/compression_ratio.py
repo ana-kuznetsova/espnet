@@ -83,6 +83,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[2]
             if args.db == 'tedx':
                 fpath = row[1]
+            if args.db == 'cp':
+                fpath = row[1]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 #print("PATH:", fpath, save_path)
