@@ -73,6 +73,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[6]
             if args.db == 'mai':
                 fpath = row[1]
+            if args.db == 'cv':
+                fpath = row[2]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
