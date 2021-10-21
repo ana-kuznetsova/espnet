@@ -72,6 +72,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in data.iterrows():
             wav_id = row[0]
+            print("ROW:", row)
             if args.db == 'heroico':
                 fpath = row[8]
             if args.db == 'mls':
