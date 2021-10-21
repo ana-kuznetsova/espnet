@@ -26,7 +26,7 @@ def convert_to_wav(fin, fout):
     err = temp.stderr.decode()
     print("OUT:",output)
     print("ERR:",err)
-    print("PATH:", fin, fout)
+    
     
 def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
@@ -72,6 +72,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for idx, row in data.iterrows():
             wav_id = row[0]
+            print("ROW:",row)
             if args.db == 'heroico':
                 fpath = row[8]
             if args.db == 'mls':
@@ -82,6 +83,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[2]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
+                print("PATH:", fpath, save_path)
                 convert_to_wav(fin=fpath, fout=save_path)
                 fpath = save_path
             if isinstance(segments, pd.DataFrame):
