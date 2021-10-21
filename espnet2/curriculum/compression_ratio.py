@@ -126,6 +126,8 @@ def main(args):
     map_ = manager.dict()
     files = ['wav.scp']
     sep = ' '
+    if args.db == '6dial':
+        sep = '\t'
     for file_ in files: 
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
