@@ -95,7 +95,9 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
-                fpath = save_path
+            else:
+                copyfile(fpath, save_path)
+            fpath = save_path
             if isinstance(segments, pd.DataFrame):
                 segs = segments[segments[0] == wav_id]
                 compress_segments(map_=map_, 
@@ -103,9 +105,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                                   file_path=fpath,
                                   segments=segs, 
                                   outpath=args.res_dir)
-            else:
-                if args.extn == 'wav':
-                    copyfile(fpath, save_path)
+            else:    
                 compress_file(map_=map_, 
                               name=wav_id,
                               save_path=save_path)
