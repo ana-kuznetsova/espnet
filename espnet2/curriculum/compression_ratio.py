@@ -65,6 +65,9 @@ def compress_file(map_, name, save_path):
 
 
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
+    """
+    Main function run by each process.
+    """
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
     if segments:
@@ -78,6 +81,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 if val[:3] == '/db':
                     fpath = val
                     args.extn = val.split('.')[-1]
+                    break
 
             """
             if args.db == 'heroico':
@@ -171,7 +175,7 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--db", type=str, required=True, help='Type of dataset, cv(commonvoice) or mls')
+    parser.add_argument("--db", type=str, required=False, help='Type of dataset, cv(commonvoice) or mls')
     parser.add_argument("--num_process", type=int, required=False)
     parser.add_argument('--wav_scp', type=str, required=False)
     parser.add_argument('--res_dir', type=str, required=True,
