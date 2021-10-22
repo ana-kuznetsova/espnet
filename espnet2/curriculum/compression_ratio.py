@@ -88,12 +88,12 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 sep = '\t'
             for val in row.split(sep):
                 if val[:3] == '/db':
-                    fpath = val
-                    args.extn = val.split('.')[-1]
+                    fpath = val.strip()
+                    args.extn = val.strip().split('.')[-1]
                     break
             wav_id = row.split(sep)[0]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
-            if 'wav' not in args.extn:
+            if args.extn == 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
             else:
                 copyfile(fpath, save_path)
