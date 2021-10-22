@@ -96,6 +96,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
             else:
+                print("BLABLABLA")
                 copyfile(fpath, save_path)
             fpath = save_path
             if isinstance(segments, pd.DataFrame):
