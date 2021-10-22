@@ -73,11 +73,14 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     if segments:
         segments = pd.read_csv(segments, sep = ' ', header=None)
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
-        for idx, row in data.iterrows():
+        for row in data:
             wav_id = row[0]
             #print("ROW:",row)
-            for col in row:
-                val = row[col]
+            if len(row.split(' ')) > 1:
+                sep = ' '
+            else:
+                sep = '\t'
+            for val in row.split(sep):
                 if val[:3] == '/db':
                     fpath = val
                     args.extn = val.split('.')[-1]
@@ -143,7 +146,8 @@ def main(args):
     for file_ in files: 
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
-        csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
+        #csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
+        csv = open(args.wav_scp, 'r').readlines()
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
         else:
