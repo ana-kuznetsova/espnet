@@ -73,8 +73,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
         segments = pd.read_csv(segments, sep = ' ', header=None)
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for row in data:
-            wav_id = row[0]
-            #print("ROW:",row)
             if len(row.split(' ')) > 1:
                 sep = ' '
             else:
@@ -84,6 +82,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                     fpath = val
                     args.extn = val.split('.')[-1]
                     break
+            wav_id = row.split(sep)[0]
             print("FPATH:", fpath, "EXTN:", args.extn)
             """
             if args.db == 'heroico':
