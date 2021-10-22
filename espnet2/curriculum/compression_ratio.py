@@ -83,19 +83,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                     args.extn = val.split('.')[-1]
                     break
             wav_id = row.split(sep)[0]
-            print("FPATH:", fpath, "EXTN:", args.extn)
-            """
-            if args.db == 'heroico':
-                fpath = row[8]
-            if args.db == 'mls':
-                fpath = row[6]
-            if args.db == 'mai':
-                fpath = row[1]
-            if args.db == 'cv':
-                fpath = row[2]
-            if args.db in ['tedx', 'cp', '6dial', 'vox']:
-                fpath = row[1]
-            """
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 convert_to_wav(fin=fpath, fout=save_path)
