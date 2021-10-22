@@ -22,10 +22,6 @@ def convert_to_wav(fin, fout):
                            fout], 
                            stdout=subprocess.PIPE, 
                            stderr=subprocess.PIPE)
-    #output = temp.stdout.decode()
-    #err = temp.stderr.decode()
-    #print("OUT:",output)
-    #print("ERR:",err)
     
     
 def compress_segments(map_, wav_id, file_path, segments, outpath):
@@ -51,6 +47,10 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
 def compress_file(map_, name, save_path):
     """
     Compresses the file and calculates CR.
+
+    map_: common map {uttid : CR} across processes
+    name: utt_id
+    save_path: temp path to store converted wavs/ compressed files.
     """
     size = os.path.getsize(save_path)
     temp = subprocess.run(["gzip", "-k", save_path])
@@ -68,6 +68,13 @@ def compress_file(map_, name, save_path):
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     """
     Main function run by each process.
+
+    pid     : process_id
+    map_    : common map {uttid : CR} across processes
+    file_   : entire wav.scp to be read
+    segments: segment file if exists
+    start   : start index for process
+    end     : end index for process
     """
     tqdm_text = "#"+"{}".format(pid).zfill(3)
     data = file_[start:end]
@@ -160,7 +167,7 @@ def main(args):
     save_file(map_, args)
     print("compression ratio file created successfully...")
     print("cleaning temporary files..")
-    #clean_dir(dir="/shared/workspaces/anuragkumar95/compressions/*wav*")
+    clean_dir(dir="/shared/workspaces/anuragkumar95/compressions/*wav*")
 
 
 if __name__=="__main__":
