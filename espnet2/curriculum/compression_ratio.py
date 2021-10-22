@@ -93,7 +93,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                     break
             wav_id = row.split(sep)[0]
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
-            print("PATH:", fpath, "EXTN:", args.extn)
+            print("PATH:", fpath, "EXTN:", args.extn, 'wav', args.extn == 'wav')
             if args.extn != 'wav':
                 print("ABLABLABLABL")
                 convert_to_wav(fin=fpath, fout=save_path)
