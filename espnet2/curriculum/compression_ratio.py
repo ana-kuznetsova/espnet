@@ -61,6 +61,8 @@ def compress_file(map_, name, save_path):
         print(f"File: {save_path}, Ori:{size}, Compr:{cr_size}")
         print(e)
         raise ZeroDivisionError
+    temp = subprocess.run(["rm", save_path])
+    temp = subprocess.run(["rm", save_path+".gz"])
 
 
 def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
@@ -158,7 +160,7 @@ def main(args):
     save_file(map_, args)
     print("compression ratio file created successfully...")
     print("cleaning temporary files..")
-    clean_dir(dir="/shared/workspaces/anuragkumar95/compressions/*wav*")
+    #clean_dir(dir="/shared/workspaces/anuragkumar95/compressions/*wav*")
 
 
 if __name__=="__main__":
