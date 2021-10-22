@@ -85,7 +85,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                     fpath = val
                     args.extn = val.split('.')[-1]
                     break
-
+            print("FPATH:", fpath, "EXTN:", args.extn)
             """
             if args.db == 'heroico':
                 fpath = row[8]
