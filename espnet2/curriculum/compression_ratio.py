@@ -38,6 +38,7 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
     outpath   : path to save chunks
     """
     audio = AudioSegment.from_wav(file_path)
+    print(segments.head())
     for _, row in segments.iterrows():
         start = row[2] * 1000
         end = row[3] * 1000
@@ -71,7 +72,6 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
     data = file_[start:end]
     if segments:
         segments = pd.read_csv(segments, sep = ' ', header=None)
-        print(segments.head())
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for row in data:
             wav_id = row[0]
