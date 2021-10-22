@@ -147,7 +147,7 @@ def main(args):
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
         #csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
-        csv = open(args.wav_scp, 'r').readlines()
+        csv = open(args.wav_scp, 'r').readlines()[:100]
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
         else:
