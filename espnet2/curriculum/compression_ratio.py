@@ -73,6 +73,13 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
         for idx, row in data.iterrows():
             wav_id = row[0]
             #print("ROW:",row)
+            for col in row:
+                val = row[col]
+                if val[:3] == '/db':
+                    fpath = val
+                    args.extn = val.split('.')[-1]
+
+            """
             if args.db == 'heroico':
                 fpath = row[8]
             if args.db == 'mls':
@@ -83,6 +90,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 fpath = row[2]
             if args.db in ['tedx', 'cp', '6dial', 'vox']:
                 fpath = row[1]
+            """
             save_path = "{}/{}.wav".format(args.res_dir, wav_id)  
             if args.extn != 'wav':
                 #print("PATH:", fpath, save_path)
@@ -168,7 +176,7 @@ if __name__=="__main__":
     parser.add_argument('--wav_scp', type=str, required=False)
     parser.add_argument('--res_dir', type=str, required=True,
                         help='Path to dir where csv with the results will be stored.')
-    parser.add_argument('--extn', type=str, required=True, help='default audio files extension')
+    parser.add_argument('--extn', type=str, required=False, help='default audio files extension')
     parser.add_argument('--segments', action='store_true')
     args = parser.parse_args()
     main(args)
