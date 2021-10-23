@@ -100,8 +100,8 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
                 copyfile(fpath, save_path)
             fpath = save_path
             if isinstance(segments, pd.DataFrame):
-                segs = segments[segments[0] == wav_id]
-                print(wav_id, wav_id in segments[0].values)
+                segs = segments[segments[1] == wav_id]
+                #print(wav_id, wav_id in segments[0].values)
                 compress_segments(map_=map_, 
                                   wav_id=wav_id,
                                   file_path=fpath,
