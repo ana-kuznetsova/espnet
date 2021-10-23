@@ -112,7 +112,11 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
             pbar.update(1)
 
 
-def save_file(map_, args): 
+def save_file(map_, args):
+    """
+    Saves the mapping of utt_id to cr in a file. 
+    map_ : mapping of utt_id to cr
+    """ 
     if args.segments:
         p = os.path.join(args.res_dir, 'compression_'+args.db+"_seg")
     else:
