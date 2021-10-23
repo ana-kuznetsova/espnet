@@ -176,12 +176,12 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--db", type=str, required=False, help='Type of dataset, cv(commonvoice) or mls')
-    parser.add_argument("--num_process", type=int, required=False)
-    parser.add_argument('--wav_scp', type=str, required=False)
+    parser.add_argument("--db", type=str, required=True, help='Type of dataset, cv(commonvoice) or mls/ identifies for compression file')
+    parser.add_argument("--num_process", type=int, required=True)
+    parser.add_argument('--wav_scp', type=str, required=True)
     parser.add_argument('--res_dir', type=str, required=True,
-                        help='Path to dir where csv with the results will be stored.')
-    parser.add_argument('--extn', type=str, required=False, help='default audio files extension')
+                        help='Path to dir where the results will be stored.')
+    parser.add_argument('--extn', type=str, required=False, help='default audio files extension, if not mentioned sets it internally.')
     parser.add_argument('--segments', action='store_true')
     args = parser.parse_args()
     main(args)
