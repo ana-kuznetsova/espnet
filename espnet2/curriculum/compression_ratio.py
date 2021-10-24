@@ -34,17 +34,21 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
     segments  : list  of segments time stamps
     outpath   : path to save chunks
     """
-    audio = AudioSegment.from_wav(file_path)
-    print("\nSegments:", len(segments))
-    for _, row in segments.iterrows():
-        start = row[2] * 1000
-        end = row[3] * 1000
-        audio_chunk = audio[start:end]
-        save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, wav_id, start, end)
-        audio_chunk.export(save_path, format='wav')
-        compress_file(map_=map_, 
-                      name=row[1],
-                      save_path=save_path)
+    try:
+        audio = AudioSegment.from_wav(file_path)
+        print("\nSegments:", len(segments))
+        for _, row in segments.iterrows():
+            start = row[2] * 1000
+            end = row[3] * 1000
+            audio_chunk = audio[start:end]
+            save_path = "{}/{}_chunk_{}_{}.wav".format(outpath, wav_id, start, end)
+            audio_chunk.export(save_path, format='wav')
+            compress_file(map_=map_, 
+                        name=row[0],
+                        save_path=save_path)
+    except Exception as e:
+        print("ERR:",e)
+        print("Failed files:", file_path)
 
 def compress_file(map_, name, save_path):
     """
