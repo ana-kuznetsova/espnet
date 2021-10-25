@@ -42,6 +42,8 @@ class SoundScpReader(collections.abc.Mapping):
     def __getitem__(self, key):
         wav = self.data[key]
         cmd = wav.split(' ')[1:-2]
+        print("CMD:", cmd)
+        print("WAV:", wav)
         temp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for val in wav.split(' '):
             if '/db' in val:
@@ -56,6 +58,7 @@ class SoundScpReader(collections.abc.Mapping):
             )
         os.remove(wav)
         return rate, array
+
 
     def get_path(self, key):
         return self.data[key]
