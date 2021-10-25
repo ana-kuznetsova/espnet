@@ -1,7 +1,7 @@
 import collections.abc
 from pathlib import Path
 from typing import Union
-
+import os
 import numpy as np
 import soundfile
 import subprocess
@@ -54,7 +54,7 @@ class SoundScpReader(collections.abc.Mapping):
             array, rate = soundfile.read(
                 wav, dtype=self.dtype, always_2d=self.always_2d
             )
-
+        os.remove(wav)
         return rate, array
 
     def get_path(self, key):
