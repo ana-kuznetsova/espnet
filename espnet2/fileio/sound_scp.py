@@ -44,10 +44,13 @@ class SoundScpReader(collections.abc.Mapping):
         cmd = wav.split(' ')[1:-2]
         print("CMD:", cmd)
         print("WAV:", wav)
-        temp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if cmd[-1] == '-':
+            cmd = cmd[:-1]
+        if len(cmd) > 0:
+            temp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         for val in wav.split(' '):
             if '/db' in val:
-                wav = val.split('.')[:-1] + '.wav'
+                wav = val.split('.')[:-1].strip() + '.wav'
                 break
         if self.normalize:
             # soundfile.read normalizes data to [-1,1] if dtype is not given
