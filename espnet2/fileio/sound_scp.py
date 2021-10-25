@@ -41,6 +41,7 @@ class SoundScpReader(collections.abc.Mapping):
 
     def __getitem__(self, key):
         wav = self.data[key]
+        """
         cmd = wav.split(' ')[1:-2]
         print("CMD:", cmd)
         print("WAV:", wav)
@@ -52,6 +53,7 @@ class SoundScpReader(collections.abc.Mapping):
             if '/db' in val:
                 wav = val.split('.')[:-1].strip() + '.wav'
                 break
+        """
         if self.normalize:
             # soundfile.read normalizes data to [-1,1] if dtype is not given
             array, rate = soundfile.read(wav, always_2d=self.always_2d)
