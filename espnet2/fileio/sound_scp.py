@@ -4,6 +4,7 @@ from typing import Union
 
 import numpy as np
 import soundfile
+import subprocess
 from typeguard import check_argument_types
 
 from espnet2.fileio.read_text import read_2column_text
@@ -40,6 +41,12 @@ class SoundScpReader(collections.abc.Mapping):
 
     def __getitem__(self, key):
         wav = self.data[key]
+        cmd = wav.split(' ')[1:-2]
+        temp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for val in wav.split(' '):
+            if '/db' in val:
+                wav = val.split('.')[:-1] + '.wav'
+                break
         if self.normalize:
             # soundfile.read normalizes data to [-1,1] if dtype is not given
             array, rate = soundfile.read(wav, always_2d=self.always_2d)
