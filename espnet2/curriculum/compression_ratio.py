@@ -36,7 +36,7 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
     try:
         audio = AudioSegment.from_wav(file_path)
-        print("\nSegments:", len(segments))
+        #print("\nSegments:", len(segments))
         for _, row in segments.iterrows():
             start = row[2] * 1000
             end = row[3] * 1000
