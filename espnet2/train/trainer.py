@@ -675,7 +675,7 @@ class Trainer:
                     logging.warning(
                         f"The grad norm is {grad_norm}. Skipping updating the model."
                     )
-                    logging.info("Reached here infinite grad")
+                 
                     # Must invoke scaler.update() if unscale_() is used in the iteration
                     # to avoid the following error:
                     #   RuntimeError: unscale_() has already been called
@@ -724,7 +724,9 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
-        return all_steps_are_invalid    
+                return all_steps_are_invalid
+            else:
+                return False     
 
     @classmethod
     def get_loss_eval_mode(cls,
@@ -1024,7 +1026,7 @@ class Trainer:
                                             start_time
                                             )
           
-            if accum_grad > 1 and (iiter+1) % accum_grad != 0:
+            if accum_grad > 1 and iiter % accum_grad != 0:
             #When we need to accumulate gradient we do not update curriculum
                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                     loss_before += loss1.item()
