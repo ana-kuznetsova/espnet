@@ -791,7 +791,8 @@ class Trainer:
         ngpu = options.ngpu
         use_wandb = options.use_wandb
         distributed = distributed_option.distributed
-
+        loss_before = 0
+        loss_after = 0
         if log_interval is None:
             try:
                 log_interval = max(len(iterator) // 20, 10)
@@ -813,16 +814,18 @@ class Trainer:
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
-        
+        k = np.random.choice(curriculum_generator.K)[0]
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
+
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))
             else:
-                k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                if (iiter+1) % accum_grad == 0:
+                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
                 _, batch = tasks[k].next()
@@ -958,6 +961,7 @@ class Trainer:
                     #Add else condition for exhaust task option
 
                 batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
+                
                 loss1 = cls.get_loss_eval_mode(
                             batch_eval_gpu,
                             model,
@@ -969,7 +973,7 @@ class Trainer:
                             accum_grad 
                             )
                 del batch_eval_gpu
-
+                
                 batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
@@ -1018,13 +1022,22 @@ class Trainer:
                                             start_time
                                             )
 
-
-            if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            if (iiter+1) % accum_grad != 0:
+            #When we need to accumulate gradient we do not update curriculum
+                if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                    loss_before += loss1.item()
+                    loss_after += loss2.item()
+                continue
+            
+            #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            loss_before /= accum_grad
+            loss_after /= accum_grad
+            if options.curriculum_algo!='manual':
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
                     iiter=iiter,
                     k=k, 
-                    losses=(loss1.item(), loss2.item()), 
+                    losses=(loss_before, loss_after), 
                     #losses=(loss1, loss2)
                     batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
                     algo=options.curriculum_algo,
@@ -1033,6 +1046,9 @@ class Trainer:
                 )
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
+
+            
+
             
 
 

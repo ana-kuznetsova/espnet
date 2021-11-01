@@ -36,7 +36,7 @@ def compress_segments(map_, wav_id, file_path, segments, outpath):
     """
     try:
         audio = AudioSegment.from_wav(file_path)
-        print("\nSegments:", len(segments))
+        #print("\nSegments:", len(segments))
         for _, row in segments.iterrows():
             start = row[2] * 1000
             end = row[3] * 1000
@@ -88,10 +88,7 @@ def calc_CR_scp(pid, map_, file_, args, segments=None, start=None, end=None):
         segments = pd.read_csv(segments, sep = ' ', header=None)
     with tqdm(total=end-start, desc=tqdm_text, position=pid+1) as pbar:
         for row in data:
-            if len(row.split(' ')) > 1:
-                sep = ' '
-            else:
-                sep = '\t'
+            sep = ' ' if len(row.split(' ')) > 1 else '\t'
             for val in row.split(sep):
                 if val[:3] == '/db':
                     fpath = val.strip()
@@ -149,7 +146,6 @@ def main(args):
     for file_ in files: 
         pool = Pool(processes=args.num_process, initargs=(RLock(), ), initializer=tqdm.set_lock)
         processes = []
-        #csv = pd.read_csv(args.wav_scp, sep = sep, header = None)
         csv = open(args.wav_scp, 'r').readlines()
         if args.segments:
              segments = args.wav_scp[:-7] + 'segments'
@@ -185,8 +181,7 @@ if __name__=="__main__":
     parser.add_argument("--db", type=str, required=True, help='Type of dataset, cv(commonvoice) or mls/ identifies for compression file')
     parser.add_argument("--num_process", type=int, required=True)
     parser.add_argument('--wav_scp', type=str, required=True)
-    parser.add_argument('--res_dir', type=str, required=True,
-                        help='Path to dir where the results will be stored.')
+    parser.add_argument('--res_dir', type=str, required=True, help='Path to dir where the results will be stored.')
     parser.add_argument('--extn', type=str, required=False, help='default audio files extension, if not mentioned sets it internally.')
     parser.add_argument('--segments', action='store_true')
     args = parser.parse_args()
