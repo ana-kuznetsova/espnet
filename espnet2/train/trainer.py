@@ -642,7 +642,7 @@ class Trainer:
 
             loss.detach()
             torch.cuda.empty_cache()
-
+            all_steps_are_invalid = False
             if iiter % accum_grad == 0:
                 if scaler is not None:
                     # Unscales the gradients of optimizer's assigned params in-place
@@ -690,7 +690,7 @@ class Trainer:
                             scaler.update()
 
                 else:
-                    all_steps_are_invalid = False
+                    
                     logging.info("Reached here no infinite grad")
                     with reporter.measure_time("optim_step_time"):
                         for iopt, (optimizer, scheduler) in enumerate(
@@ -724,9 +724,8 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
-                return all_steps_are_invalid
-            else:
-                return None    
+        return all_steps_are_invalid
+                
 
     @classmethod
     def get_loss_eval_mode(cls,
