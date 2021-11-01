@@ -828,7 +828,7 @@ class Trainer:
                 probs = np.ones(curriculum_generator.K)/len(arr)
                 k = int(np.random.choice(arr, size=1, p=probs))
             else:
-                if (iiter+1) % accum_grad == 0:
+                if iiter % accum_grad == 0:
                     k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
@@ -1026,51 +1026,40 @@ class Trainer:
                                             start_time
                                             )
           
-            if accum_grad > 1 and iiter % accum_grad != 0:
-            #When we need to accumulate gradient we do not update curriculum
+            if iiter % accum_grad == 0:
                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                    loss_before += loss1.item()
-                    loss_after += loss2.item()
-                continue
+                    loss_before = loss1.item()
+                    loss_after = loss2.item()
             
-            #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-            if accum_grad == 1 and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
-                loss_before = loss1.item()
-                loss_after = loss2.item()
+                #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                if options.curriculum_algo!='manual':
+                    curriculum_generator.update_policy(
+                        iepoch=iepoch,
+                        iiter=iiter,
+                        k=k, 
+                        losses=(loss_before, loss_after), 
+                        #losses=(loss1, loss2)
+                        batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                        algo=options.curriculum_algo,
+                        start_curriculum=options.start_curriculum,
+                        gain_type=options.gain_type,
+                    )
+                else:
+                    curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
+            
 
-            loss_before /= accum_grad
-            loss_after /= accum_grad
+                start_time = time.perf_counter()
 
-            if options.curriculum_algo!='manual':
-                curriculum_generator.update_policy(
-                    iepoch=iepoch,
-                    iiter=iiter,
-                    k=k, 
-                    losses=(loss_before, loss_after), 
-                    #losses=(loss1, loss2)
-                    batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
-                    algo=options.curriculum_algo,
-                    start_curriculum=options.start_curriculum,
-                    gain_type=options.gain_type,
-                )
-            else:
-                curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
-            #reset losses after policy update
-            loss_before = 0
-            loss_after = 0
+                # NOTE(kamo): Call log_message() after next()
+                reporter.next()
+                if iiter % log_interval == 0:
+                    logging.info(reporter.log_message(-log_interval))
+                    if summary_writer is not None:
+                        reporter.tensorboard_add_scalar(summary_writer, -log_interval)
+                    if use_wandb:
+                        reporter.wandb_log()
 
-            start_time = time.perf_counter()
-
-            # NOTE(kamo): Call log_message() after next()
-            reporter.next()
-            if iiter % log_interval == 0:
-                logging.info(reporter.log_message(-log_interval))
-                if summary_writer is not None:
-                    reporter.tensorboard_add_scalar(summary_writer, -log_interval)
-                if use_wandb:
-                    reporter.wandb_log()
-
-            torch.cuda.empty_cache()            
+                torch.cuda.empty_cache()            
 
         else:
             if distributed:
