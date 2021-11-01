@@ -815,6 +815,7 @@ class Trainer:
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
         k = np.random.choice(curriculum_generator.K)
+        logging.info(f"Start k:{k}")
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
 
