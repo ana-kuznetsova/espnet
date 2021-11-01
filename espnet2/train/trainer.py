@@ -691,8 +691,6 @@ class Trainer:
                         scaler.update()
 
             else:
-                
-                logging.info("Reached here no infinite grad")
                 with reporter.measure_time("optim_step_time"):
                     for iopt, (optimizer, scheduler) in enumerate(
                         zip(optimizers, schedulers)
@@ -978,7 +976,7 @@ class Trainer:
                             accum_grad 
                             )
                 del batch_eval_gpu
-                logging.info(f"We reached at train_one_batch")
+               
                 batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
@@ -1028,7 +1026,6 @@ class Trainer:
                                             )
           
             if iiter % accum_grad == 0:
-                logging.info(f"IITER:{iiter}")
                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                     loss_before = loss1.item()
                     loss_after = loss2.item()

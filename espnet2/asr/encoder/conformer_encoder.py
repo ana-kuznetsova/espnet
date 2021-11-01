@@ -100,6 +100,7 @@ class ConformerEncoder(AbsEncoder):
         zero_triu: bool = False,
         cnn_module_kernel: int = 31,
         padding_idx: int = -1,
+        global_cmvn: torch.nn.Module = None
     ):
         assert check_argument_types()
         super().__init__()
@@ -132,7 +133,8 @@ class ConformerEncoder(AbsEncoder):
             )
         else:
             raise ValueError("unknown pos_enc_layer: " + pos_enc_layer_type)
-
+        
+        self.global_cmvn = global_cmvn
         if input_layer == "linear":
             self.embed = torch.nn.Sequential(
                 torch.nn.Linear(input_size, output_size),
@@ -277,7 +279,8 @@ class ConformerEncoder(AbsEncoder):
 
         """
         masks = (~make_pad_mask(ilens)[:, None, :]).to(xs_pad.device)
-
+        if self.global_cmvn is not None:
+            xs_pad = self.global_cmvn(xs_pad)
         if (
             isinstance(self.embed, Conv2dSubsampling)
             or isinstance(self.embed, Conv2dSubsampling6)
