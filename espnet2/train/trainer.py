@@ -1046,7 +1046,8 @@ class Trainer:
                 )
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
-
+            loss_before = 0
+            loss_after = 0
             
 
             
