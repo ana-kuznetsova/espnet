@@ -691,6 +691,7 @@ class Trainer:
 
                 else:
                     all_steps_are_invalid = False
+                    logging.info("Reached here no infinite grad")
                     with reporter.measure_time("optim_step_time"):
                         for iopt, (optimizer, scheduler) in enumerate(
                             zip(optimizers, schedulers)
@@ -974,7 +975,7 @@ class Trainer:
                             accum_grad 
                             )
                 del batch_eval_gpu
-                logging.info(f"We reached at train_one_batch")
+                logging.DEBUG(f"We reached at train_one_batch")
                 batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
