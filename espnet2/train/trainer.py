@@ -814,7 +814,7 @@ class Trainer:
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
-        k = np.random.choice(curriculum_generator.K)[0]
+        k = np.random.choice(curriculum_generator.K)
         while iiter < iterator.num_iters_per_epoch:
             iiter+=1
 
@@ -1036,7 +1036,7 @@ class Trainer:
 
             loss_before /= accum_grad
             loss_after /= accum_grad
-            
+
             if options.curriculum_algo!='manual':
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
