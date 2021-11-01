@@ -628,7 +628,8 @@ class Trainer:
                 loss *= torch.distributed.get_world_size()
 
             loss /= accum_grad
-        reporter.next()
+        #reporter.next()
+        reporter.register(stats, weight)
         with reporter.measure_time("backward_time"):
             if scaler is not None:
                 # Scales loss.  Calls backward() on scaled loss
