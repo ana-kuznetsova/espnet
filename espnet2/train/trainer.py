@@ -675,7 +675,7 @@ class Trainer:
                     logging.warning(
                         f"The grad norm is {grad_norm}. Skipping updating the model."
                     )
-
+                    logging.info("Reached here infinite grad")
                     # Must invoke scaler.update() if unscale_() is used in the iteration
                     # to avoid the following error:
                     #   RuntimeError: unscale_() has already been called
