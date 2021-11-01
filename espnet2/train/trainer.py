@@ -1021,8 +1021,8 @@ class Trainer:
                                             schedulers,
                                             start_time
                                             )
-
-            if (iiter+1) % accum_grad != 0:
+          
+            if accum_grad > 1 and (iiter+1) % accum_grad != 0:
             #When we need to accumulate gradient we do not update curriculum
                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                     loss_before += loss1.item()
@@ -1030,8 +1030,13 @@ class Trainer:
                 continue
             
             #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+            if accum_grad == 1 and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                loss_before = loss1.item()
+                loss_after = loss2.item()
+
             loss_before /= accum_grad
             loss_after /= accum_grad
+            
             if options.curriculum_algo!='manual':
                 curriculum_generator.update_policy(
                     iepoch=iepoch,
@@ -1046,12 +1051,9 @@ class Trainer:
                 )
             else:
                 curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
+            #reset losses after policy update
             loss_before = 0
             loss_after = 0
-            
-
-            
-
 
             start_time = time.perf_counter()
 
