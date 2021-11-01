@@ -1027,6 +1027,7 @@ class Trainer:
                                             )
           
             if iiter % accum_grad == 0:
+                logging.info(f"IITER:{iiter}")
                 if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
                     loss_before = loss1.item()
                     loss_after = loss2.item()
