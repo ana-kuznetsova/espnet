@@ -726,7 +726,7 @@ class Trainer:
                 )
                 return all_steps_are_invalid
             else:
-                return False     
+                return None    
 
     @classmethod
     def get_loss_eval_mode(cls,
