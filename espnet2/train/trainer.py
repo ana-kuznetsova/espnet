@@ -975,7 +975,7 @@ class Trainer:
                             accum_grad 
                             )
                 del batch_eval_gpu
-                logging.DEBUG(f"We reached at train_one_batch")
+                logging.info(f"We reached at train_one_batch")
                 batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
                 all_steps_are_invalid = cls.train_one_batch(
                                             batch,
