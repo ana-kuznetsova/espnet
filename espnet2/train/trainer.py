@@ -724,6 +724,8 @@ class Trainer:
                         train_time=time.perf_counter() - start_time,
                     ),
                 )
+            else:
+                reporter.next()
         return all_steps_are_invalid
                 
 
