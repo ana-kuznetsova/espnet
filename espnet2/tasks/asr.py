@@ -445,8 +445,8 @@ class ASRTask(AbsTask):
         CMVN_ISTD = 1/np.sqrt(CMVN_VAR) 
 
         cmvn = {
-                    'mean':torch.tensor(CMVN_MEAN, requires_grad=False),
-                    'istd':torch.tensor(CMVN_ISTD, requires_grad=False)
+                    'mean':torch.tensor([i/CMVN_MEAN[-1] for i in CMVN_MEAN[:-1]], requires_grad=False),
+                    'istd':torch.tensor([i/CMVN_ISTD[-1] for i in CMVN_ISTD[:-1]], requires_grad=False)
                }
 
 
