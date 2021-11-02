@@ -1386,17 +1386,18 @@ class Trainer:
                         ),
                     )
                     start_time = time.perf_counter()
-
-                # NOTE(kamo): Call log_message() after next()
+                    logging.info(f'IITER:{iiter}, interval:{log_interval}')
+                    # NOTE(kamo): Call log_message() after next()
+                    if iiter % log_interval == 0:
+                        logging.info(reporter.log_message(-log_interval))
+                        if summary_writer is not None:
+                            reporter.tensorboard_add_scalar(summary_writer, -log_interval)
+                        if use_wandb:
+                            reporter.wandb_log()
+                    torch.cuda.empty_cache()
                 reporter.next()
-                logging.info(f"Reached here after reporter.next()")
-                if iiter % log_interval == 0:
-                    logging.info(reporter.log_message(-log_interval))
-                    if summary_writer is not None:
-                        reporter.tensorboard_add_scalar(summary_writer, -log_interval)
-                    if use_wandb:
-                        reporter.wandb_log()
-                torch.cuda.empty_cache()            
+                
+                            
 
 
         else:
