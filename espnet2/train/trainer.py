@@ -1386,7 +1386,7 @@ class Trainer:
                         ),
                     )
                     start_time = time.perf_counter()
-                    logging.info(f'IITER:{iiter}, interval:{log_interval}')
+                    #logging.info(f'IITER:{iiter}, interval:{log_interval}')
                     # NOTE(kamo): Call log_message() after next()
                     if iiter % log_interval == 0:
                         logging.info(reporter.log_message(-log_interval))
