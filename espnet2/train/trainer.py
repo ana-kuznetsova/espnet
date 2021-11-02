@@ -1143,6 +1143,8 @@ class Trainer:
                         updates +=1
                     else:
                         k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+            
+            iiter += 1
             try:
                 _, batch = tasks[k].next()
             except StopIteration as e:
@@ -1399,7 +1401,7 @@ class Trainer:
                             reporter.wandb_log()
                     torch.cuda.empty_cache()
                 reporter.next()
-            iiter += 1
+            
                 
                             
 
