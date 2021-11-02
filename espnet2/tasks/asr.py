@@ -395,6 +395,10 @@ class ASRTask(AbsTask):
         # 4. Encoder
         encoder_class = encoder_choices.get_class(args.encoder)
 
+        """
+        Crude quick implementation of reading CMVN feature for global_cmvn layer. 
+        """
+
         CMVN_MEAN = [1.4468033e+10, 1.5240311e+10, 1.7055031e+10, 1.8193644e+10,
                     1.9046334e+10, 1.9452332e+10, 1.9597212e+10, 1.9623459e+10,
                     1.9738087e+10, 1.9741936e+10, 2.0114055e+10, 2.0487289e+10,
