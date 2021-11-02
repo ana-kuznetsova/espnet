@@ -630,7 +630,7 @@ class Trainer:
             loss /= accum_grad
         #reporter.next()
         all_steps_are_invalid = True
-        reporter.register(stats, weight)
+        #reporter.register(stats, weight)
         with reporter.measure_time("backward_time"):
             if scaler is not None:
                 # Scales loss.  Calls backward() on scaled loss
