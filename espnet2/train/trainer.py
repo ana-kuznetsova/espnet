@@ -1130,7 +1130,7 @@ class Trainer:
         #    reporter.measure_iter_time(iterator, "iter_time"), 1
         #):
         while iiter < iterator.num_iters_per_epoch:
-
+            iiter += 1
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
