@@ -405,7 +405,7 @@ class ASRTask(AbsTask):
 
 
         global_cmvn = GlobalCMVN(**cmvn)
-        encoder = encoder_class(input_size=input_size, global_cmvn=global_cmvn, **args.encoder_conf)
+        encoder = encoder_class(input_size=input_size, global_cmvn=None, **args.encoder_conf)
 
         # 5. Decoder
         decoder_class = decoder_choices.get_class(args.decoder)
