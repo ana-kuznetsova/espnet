@@ -1123,8 +1123,9 @@ class Trainer:
         iiter = 0
         #Reset the exausted tasks list
         curriculum_generator.reset_exhausted() 
-        k = np.random.choice(curriculum_generator.K)
-
+        
+        #counter for making sure that first K updates use the K tasks respectively.
+        updates = 0
 
         #for iiter, (_, batch) in enumerate(
         #    reporter.measure_iter_time(iterator, "iter_time"), 1
@@ -1138,7 +1139,11 @@ class Trainer:
                 k = int(np.random.choice(arr, size=1, p=probs))
             else:
                 if iiter % accum_grad == 0:
-                    k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
+                    if updates < curriculum_generator.K:
+                        k = curriculum_generator.get_next_task_ind(iiter=updates, iepoch=iepoch)
+                        updates +=1
+                    else:
+                        k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
 
             try:
                 _, batch = tasks[k].next()

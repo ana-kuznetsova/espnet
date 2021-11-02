@@ -446,7 +446,11 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             return kwargs['iiter']-1
         policy = {i:self.policy[i] for i in range(self.K) if not self.exhausted[i]}
         #logging.info("Policy:{}")
-        return max(policy.items(), key=lambda x:x[1])[0]
+        max_policy_val = max(policy.values())
+        best_tasks = [task for task in policy if policy[task] == max_policy_val]
+        if len(best_tasks) > 1:
+            return np.random.choice(best_tasks)
+        return best_tasks[0]
 
 
 class ManualCurriculumGenerator(AbsCurriculumGenerator):
