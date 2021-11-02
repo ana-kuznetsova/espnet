@@ -629,100 +629,101 @@ class Trainer:
 
             loss /= accum_grad
         #reporter.next()
-        #reporter.register(stats, weight)
-        #with reporter.measure_time("backward_time"):
-        if scaler is not None:
-            # Scales loss.  Calls backward() on scaled loss
-            # to create scaled gradients.
-            # Backward passes under autocast are not recommended.
-            # Backward ops run in the same dtype autocast chose
-            # for corresponding forward ops.
-            scaler.scale(loss).backward()
-        else:
-            loss.backward()
-
-        loss.detach()
-        torch.cuda.empty_cache()
-        all_steps_are_invalid = False
-        if iiter % accum_grad == 0:
+        all_steps_are_invalid = True
+        reporter.register(stats, weight)
+        with reporter.measure_time("backward_time"):
             if scaler is not None:
-                # Unscales the gradients of optimizer's assigned params in-place
-                for iopt, optimizer in enumerate(optimizers):
-                    if optim_idx is not None and iopt != optim_idx:
-                        continue
-                    scaler.unscale_(optimizer)
+                # Scales loss.  Calls backward() on scaled loss
+                # to create scaled gradients.
+                # Backward passes under autocast are not recommended.
+                # Backward ops run in the same dtype autocast chose
+                # for corresponding forward ops.
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
 
-            # gradient noise injection
-            if grad_noise:
-                add_gradient_noise(
-                    model,
-                    reporter.get_total_count(),
-                    duration=100,
-                    eta=1.0,
-                    scale_factor=0.55,
-                )
-
-            # compute the gradient norm to check if it is normal or not
-            grad_norm = torch.nn.utils.clip_grad_norm_(
-                model.parameters(),
-                max_norm=grad_clip,
-                norm_type=grad_clip_type,
-            )
-            # PyTorch<=1.4, clip_grad_norm_ returns float value
-            if not isinstance(grad_norm, torch.Tensor):
-                grad_norm = torch.tensor(grad_norm)
-
-            if not torch.isfinite(grad_norm):
-                logging.warning(
-                    f"The grad norm is {grad_norm}. Skipping updating the model."
-                )
-                
-                # Must invoke scaler.update() if unscale_() is used in the iteration
-                # to avoid the following error:
-                #   RuntimeError: unscale_() has already been called
-                #   on this optimizer since the last update().
-                # Note that if the gradient has inf/nan values,
-                # scaler.step skips optimizer.step().
+            loss.detach()
+            torch.cuda.empty_cache()
+            
+            if iiter % accum_grad == 0:
                 if scaler is not None:
+                    # Unscales the gradients of optimizer's assigned params in-place
                     for iopt, optimizer in enumerate(optimizers):
                         if optim_idx is not None and iopt != optim_idx:
                             continue
-                        scaler.step(optimizer)
-                        scaler.update()
+                        scaler.unscale_(optimizer)
 
-            else:
-                with reporter.measure_time("optim_step_time"):
-                    for iopt, (optimizer, scheduler) in enumerate(
-                        zip(optimizers, schedulers)
-                    ):
-                        if optim_idx is not None and iopt != optim_idx:
-                            continue
-                        if scaler is not None:
-                            # scaler.step() first unscales the gradients of
-                            # the optimizer's assigned params.
+                # gradient noise injection
+                if grad_noise:
+                    add_gradient_noise(
+                        model,
+                        reporter.get_total_count(),
+                        duration=100,
+                        eta=1.0,
+                        scale_factor=0.55,
+                    )
+
+                # compute the gradient norm to check if it is normal or not
+                grad_norm = torch.nn.utils.clip_grad_norm_(
+                    model.parameters(),
+                    max_norm=grad_clip,
+                    norm_type=grad_clip_type,
+                )
+                # PyTorch<=1.4, clip_grad_norm_ returns float value
+                if not isinstance(grad_norm, torch.Tensor):
+                    grad_norm = torch.tensor(grad_norm)
+
+                if not torch.isfinite(grad_norm):
+                    logging.warning(
+                        f"The grad norm is {grad_norm}. Skipping updating the model."
+                    )
+                    
+                    # Must invoke scaler.update() if unscale_() is used in the iteration
+                    # to avoid the following error:
+                    #   RuntimeError: unscale_() has already been called
+                    #   on this optimizer since the last update().
+                    # Note that if the gradient has inf/nan values,
+                    # scaler.step skips optimizer.step().
+                    if scaler is not None:
+                        for iopt, optimizer in enumerate(optimizers):
+                            if optim_idx is not None and iopt != optim_idx:
+                                continue
                             scaler.step(optimizer)
-                            # Updates the scale for next iteration.
                             scaler.update()
-                        else:
-                            optimizer.step()
-                        if isinstance(scheduler, AbsBatchStepScheduler):
-                            scheduler.step()
-                        optimizer.zero_grad()
 
-            reporter.register(stats, weight)
-            # Register lr and train/load time[sec/step],
-            # where step refers to accum_grad * mini-batch
-            reporter.register(
-                dict(
-                    {
-                        f"optim{i}_lr{j}": pg["lr"]
-                        for i, optimizer in enumerate(optimizers)
-                        for j, pg in enumerate(optimizer.param_groups)
-                        if "lr" in pg
-                    },
-                    train_time=time.perf_counter() - start_time,
-                ),
-            )
+                else:
+                    with reporter.measure_time("optim_step_time"):
+                        for iopt, (optimizer, scheduler) in enumerate(
+                            zip(optimizers, schedulers)
+                        ):
+                            if optim_idx is not None and iopt != optim_idx:
+                                continue
+                            if scaler is not None:
+                                # scaler.step() first unscales the gradients of
+                                # the optimizer's assigned params.
+                                scaler.step(optimizer)
+                                # Updates the scale for next iteration.
+                                scaler.update()
+                            else:
+                                optimizer.step()
+                            if isinstance(scheduler, AbsBatchStepScheduler):
+                                scheduler.step()
+                            optimizer.zero_grad()
+
+                reporter.register(stats, weight)
+                # Register lr and train/load time[sec/step],
+                # where step refers to accum_grad * mini-batch
+                reporter.register(
+                    dict(
+                        {
+                            f"optim{i}_lr{j}": pg["lr"]
+                            for i, optimizer in enumerate(optimizers)
+                            for j, pg in enumerate(optimizer.param_groups)
+                            if "lr" in pg
+                        },
+                        train_time=time.perf_counter() - start_time,
+                    ),
+                )
             
         return all_steps_are_invalid
                 
