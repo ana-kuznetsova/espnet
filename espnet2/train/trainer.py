@@ -1183,203 +1183,220 @@ class Trainer:
                         tasks.insert(k, iter(iterator.refill_task(k)))
                         _, batch_eval = tasks[k].next()
                     #Add else condition for exhaust task option
-
-                batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
                 
-                loss1 = cls.get_loss_eval_mode(
-                            batch_eval_gpu,
-                            model,
-                            scaler,
-                            ngpu,
-                            distributed,
-                            reporter,
-                            iiter,
-                            accum_grad 
-                            )
-                del batch_eval_gpu
+                if iiter % accum_grad == 0:
+
+                    batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
+                    loss1 = cls.get_loss_eval_mode(
+                                batch_eval_gpu,
+                                model,
+                                scaler,
+                                ngpu,
+                                distributed,
+                                reporter,
+                                iiter,
+                                accum_grad 
+                                )
+                    del batch_eval_gpu
                
                 batch = to_device(batch, "cuda" if ngpu > 0 else "cpu")
-                all_steps_are_invalid = cls.train_one_batch(
-                                            batch,
-                                            model,
-                                            scaler,
-                                            ngpu,
-                                            distributed,
-                                            reporter,
-                                            iiter,
-                                            accum_grad,
-                                            grad_noise,
-                                            grad_clip,
-                                            grad_clip_type,
-                                            optimizers,
-                                            schedulers,
-                                            start_time
+
+                with autocast(scaler is not None):
+                    with reporter.measure_time("forward_time"):
+                        retval = model(**batch)
+
+                        # Note(kamo):
+                        # Supporting two patterns for the returned value from the model
+                        #   a. dict type
+                        if isinstance(retval, dict):
+                            loss = retval["loss"]
+                            stats = retval["stats"]
+                            weight = retval["weight"]
+                            optim_idx = retval.get("optim_idx")
+                            if optim_idx is not None and not isinstance(optim_idx, int):
+                                if not isinstance(optim_idx, torch.Tensor):
+                                    raise RuntimeError(
+                                        "optim_idx must be int or 1dim torch.Tensor, "
+                                        f"but got {type(optim_idx)}"
+                                    )
+                                if optim_idx.dim() >= 2:
+                                    raise RuntimeError(
+                                        "optim_idx must be int or 1dim torch.Tensor, "
+                                        f"but got {optim_idx.dim()}dim tensor"
+                                    )
+                                if optim_idx.dim() == 1:
+                                    for v in optim_idx:
+                                        if v != optim_idx[0]:
+                                            raise RuntimeError(
+                                                "optim_idx must be 1dim tensor "
+                                                "having same values for all entries"
                                             )
+                                    optim_idx = optim_idx[0].item()
+                                else:
+                                    optim_idx = optim_idx.item()
 
+                        #   b. tuple or list type
+                        else:
+                            loss, stats, weight = retval
+                            optim_idx = None
+
+                    stats = {k: v for k, v in stats.items() if v is not None}
+                    if ngpu > 1 or distributed:
+                        # Apply weighted averaging for loss and stats
+                        loss = (loss * weight.type(loss.dtype)).sum()
+
+                        # if distributed, this method can also apply all_reduce()
+                        stats, weight = recursive_average(stats, weight, distributed)
+
+                        # Now weight is summation over all workers
+                        loss /= weight
+                    if distributed:
+                        # NOTE(kamo): Multiply world_size because DistributedDataParallel
+                        # automatically normalizes the gradient by world_size.
+                        loss *= torch.distributed.get_world_size()
+
+                    loss /= accum_grad
+
+                reporter.register(stats, weight)
                 
-
-            with autocast(scaler is not None):
-                with reporter.measure_time("forward_time"):
-                    retval = model(**batch)
-
-                    # Note(kamo):
-                    # Supporting two patterns for the returned value from the model
-                    #   a. dict type
-                    if isinstance(retval, dict):
-                        loss = retval["loss"]
-                        stats = retval["stats"]
-                        weight = retval["weight"]
-                        optim_idx = retval.get("optim_idx")
-                        if optim_idx is not None and not isinstance(optim_idx, int):
-                            if not isinstance(optim_idx, torch.Tensor):
-                                raise RuntimeError(
-                                    "optim_idx must be int or 1dim torch.Tensor, "
-                                    f"but got {type(optim_idx)}"
-                                )
-                            if optim_idx.dim() >= 2:
-                                raise RuntimeError(
-                                    "optim_idx must be int or 1dim torch.Tensor, "
-                                    f"but got {optim_idx.dim()}dim tensor"
-                                )
-                            if optim_idx.dim() == 1:
-                                for v in optim_idx:
-                                    if v != optim_idx[0]:
-                                        raise RuntimeError(
-                                            "optim_idx must be 1dim tensor "
-                                            "having same values for all entries"
-                                        )
-                                optim_idx = optim_idx[0].item()
-                            else:
-                                optim_idx = optim_idx.item()
-
-                    #   b. tuple or list type
-                    else:
-                        loss, stats, weight = retval
-                        optim_idx = None
-
-                stats = {k: v for k, v in stats.items() if v is not None}
-                if ngpu > 1 or distributed:
-                    # Apply weighted averaging for loss and stats
-                    loss = (loss * weight.type(loss.dtype)).sum()
-
-                    # if distributed, this method can also apply all_reduce()
-                    stats, weight = recursive_average(stats, weight, distributed)
-
-                    # Now weight is summation over all workers
-                    loss /= weight
-                if distributed:
-                    # NOTE(kamo): Multiply world_size because DistributedDataParallel
-                    # automatically normalizes the gradient by world_size.
-                    loss *= torch.distributed.get_world_size()
-
-                loss /= accum_grad
-
-            reporter.register(stats, weight)
-            
-            with reporter.measure_time("backward_time"):
-                if scaler is not None:
-                    # Scales loss.  Calls backward() on scaled loss
-                    # to create scaled gradients.
-                    # Backward passes under autocast are not recommended.
-                    # Backward ops run in the same dtype autocast chose
-                    # for corresponding forward ops.
-                    scaler.scale(loss).backward()
-                else:
-                    loss.backward()
-
-            if iiter % accum_grad == 0:
-                if scaler is not None:
-                    # Unscales the gradients of optimizer's assigned params in-place
-                    for iopt, optimizer in enumerate(optimizers):
-                        if optim_idx is not None and iopt != optim_idx:
-                            continue
-                        scaler.unscale_(optimizer)
-
-                # gradient noise injection
-                if grad_noise:
-                    add_gradient_noise(
-                        model,
-                        reporter.get_total_count(),
-                        duration=100,
-                        eta=1.0,
-                        scale_factor=0.55,
-                    )
-
-                # compute the gradient norm to check if it is normal or not
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    model.parameters(),
-                    max_norm=grad_clip,
-                    norm_type=grad_clip_type,
-                )
-                # PyTorch<=1.4, clip_grad_norm_ returns float value
-                if not isinstance(grad_norm, torch.Tensor):
-                    grad_norm = torch.tensor(grad_norm)
-
-                if not torch.isfinite(grad_norm):
-                    logging.warning(
-                        f"The grad norm is {grad_norm}. Skipping updating the model."
-                    )
-
-                    # Must invoke scaler.update() if unscale_() is used in the iteration
-                    # to avoid the following error:
-                    #   RuntimeError: unscale_() has already been called
-                    #   on this optimizer since the last update().
-                    # Note that if the gradient has inf/nan values,
-                    # scaler.step skips optimizer.step().
+                with reporter.measure_time("backward_time"):
                     if scaler is not None:
+                        # Scales loss.  Calls backward() on scaled loss
+                        # to create scaled gradients.
+                        # Backward passes under autocast are not recommended.
+                        # Backward ops run in the same dtype autocast chose
+                        # for corresponding forward ops.
+                        scaler.scale(loss).backward()
+                    else:
+                        loss.backward()
+
+                if iiter % accum_grad == 0:
+                    if scaler is not None:
+                        # Unscales the gradients of optimizer's assigned params in-place
                         for iopt, optimizer in enumerate(optimizers):
                             if optim_idx is not None and iopt != optim_idx:
                                 continue
-                            scaler.step(optimizer)
-                            scaler.update()
+                            scaler.unscale_(optimizer)
 
-                else:
-                    all_steps_are_invalid = False
-                    with reporter.measure_time("optim_step_time"):
-                        for iopt, (optimizer, scheduler) in enumerate(
-                            zip(optimizers, schedulers)
-                        ):
-                            if optim_idx is not None and iopt != optim_idx:
-                                continue
-                            if scaler is not None:
-                                # scaler.step() first unscales the gradients of
-                                # the optimizer's assigned params.
+                    # gradient noise injection
+                    if grad_noise:
+                        add_gradient_noise(
+                            model,
+                            reporter.get_total_count(),
+                            duration=100,
+                            eta=1.0,
+                            scale_factor=0.55,
+                        )
+
+                    # compute the gradient norm to check if it is normal or not
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        model.parameters(),
+                        max_norm=grad_clip,
+                        norm_type=grad_clip_type,
+                    )
+                    # PyTorch<=1.4, clip_grad_norm_ returns float value
+                    if not isinstance(grad_norm, torch.Tensor):
+                        grad_norm = torch.tensor(grad_norm)
+
+                    if not torch.isfinite(grad_norm):
+                        logging.warning(
+                            f"The grad norm is {grad_norm}. Skipping updating the model."
+                        )
+
+                        # Must invoke scaler.update() if unscale_() is used in the iteration
+                        # to avoid the following error:
+                        #   RuntimeError: unscale_() has already been called
+                        #   on this optimizer since the last update().
+                        # Note that if the gradient has inf/nan values,
+                        # scaler.step skips optimizer.step().
+                        if scaler is not None:
+                            for iopt, optimizer in enumerate(optimizers):
+                                if optim_idx is not None and iopt != optim_idx:
+                                    continue
                                 scaler.step(optimizer)
-                                # Updates the scale for next iteration.
                                 scaler.update()
-                            else:
-                                optimizer.step()
-                            if isinstance(scheduler, AbsBatchStepScheduler):
-                                scheduler.step()
-                for iopt, optimizer in enumerate(optimizers):
-                    if optim_idx is not None and iopt != optim_idx:
-                        continue
-                    optimizer.zero_grad()
 
-                # Register lr and train/load time[sec/step],
-                # where step refers to accum_grad * mini-batch
-                reporter.register(
-                    dict(
-                        {
-                            f"optim{i}_lr{j}": pg["lr"]
-                            for i, optimizer in enumerate(optimizers)
-                            for j, pg in enumerate(optimizer.param_groups)
-                            if "lr" in pg
-                        },
-                        train_time=time.perf_counter() - start_time,
-                    ),
-                )
-                start_time = time.perf_counter()
+                    else:
+                        all_steps_are_invalid = False
+                        with reporter.measure_time("optim_step_time"):
+                            for iopt, (optimizer, scheduler) in enumerate(
+                                zip(optimizers, schedulers)
+                            ):
+                                if optim_idx is not None and iopt != optim_idx:
+                                    continue
+                                if scaler is not None:
+                                    # scaler.step() first unscales the gradients of
+                                    # the optimizer's assigned params.
+                                    scaler.step(optimizer)
+                                    # Updates the scale for next iteration.
+                                    scaler.update()
+                                else:
+                                    optimizer.step()
+                                if isinstance(scheduler, AbsBatchStepScheduler):
+                                    scheduler.step()
+                    for iopt, optimizer in enumerate(optimizers):
+                        if optim_idx is not None and iopt != optim_idx:
+                            continue
+                        optimizer.zero_grad()
 
-            # NOTE(kamo): Call log_message() after next()
-            reporter.next()
-            if iiter % log_interval == 0:
-                logging.info(reporter.log_message(-log_interval))
-                if summary_writer is not None:
-                    reporter.tensorboard_add_scalar(summary_writer, -log_interval)
-                if use_wandb:
-                    reporter.wandb_log()
-            torch.cuda.empty_cache()            
+                    batch_eval_gpu = to_device(batch_eval, "cuda" if ngpu > 0 else "cpu")
+                    loss2 = cls.get_loss_eval_mode(
+                                batch_eval_gpu,
+                                model,
+                                scaler,
+                                ngpu,
+                                distributed,
+                                reporter,
+                                iiter,
+                                accum_grad 
+                                )
+                    del batch_eval_gpu
+
+
+                    if not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                        loss_before = loss1.item()
+                        loss_after = loss2.item()
+                
+                        #if options.curriculum_algo!='manual' and not (np.isinf(loss1.item()) or np.isinf(loss2.item())):
+                        if options.curriculum_algo!='manual':
+                            curriculum_generator.update_policy(
+                                iepoch=iepoch,
+                                iiter=iiter,
+                                k=k, 
+                                losses=(loss_before, loss_after), 
+                                batch_lens=batch['speech_lengths'].detach().cpu().numpy(),
+                                algo=options.curriculum_algo,
+                                start_curriculum=options.start_curriculum,
+                                gain_type=options.gain_type,
+                            )
+                        else:
+                            curriculum_generator.update_policy(iepoch, iiter, algo='manual', k=k)
+
+                    # Register lr and train/load time[sec/step],
+                    # where step refers to accum_grad * mini-batch
+                    reporter.register(
+                        dict(
+                            {
+                                f"optim{i}_lr{j}": pg["lr"]
+                                for i, optimizer in enumerate(optimizers)
+                                for j, pg in enumerate(optimizer.param_groups)
+                                if "lr" in pg
+                            },
+                            train_time=time.perf_counter() - start_time,
+                        ),
+                    )
+                    start_time = time.perf_counter()
+
+                # NOTE(kamo): Call log_message() after next()
+                reporter.next()
+                logging.info(f"Reached here after reporter.next()")
+                if iiter % log_interval == 0:
+                    logging.info(reporter.log_message(-log_interval))
+                    if summary_writer is not None:
+                        reporter.tensorboard_add_scalar(summary_writer, -log_interval)
+                    if use_wandb:
+                        reporter.wandb_log()
+                torch.cuda.empty_cache()            
 
 
         else:
