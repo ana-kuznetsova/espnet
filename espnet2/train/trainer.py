@@ -1131,7 +1131,6 @@ class Trainer:
         #    reporter.measure_iter_time(iterator, "iter_time"), 1
         #):
         while iiter < iterator.num_iters_per_epoch:
-            iiter += 1
             # For pretraining select task from a uniform distribution
             if (options.start_curriculum > 0) and (iepoch < options.start_curriculum):
                 arr = np.arange(curriculum_generator.K)
@@ -1144,7 +1143,6 @@ class Trainer:
                         updates +=1
                     else:
                         k = curriculum_generator.get_next_task_ind(iiter=iiter, iepoch=iepoch)
-
             try:
                 _, batch = tasks[k].next()
             except StopIteration as e:
@@ -1401,6 +1399,7 @@ class Trainer:
                             reporter.wandb_log()
                     torch.cuda.empty_cache()
                 reporter.next()
+            iiter += 1
                 
                             
 
