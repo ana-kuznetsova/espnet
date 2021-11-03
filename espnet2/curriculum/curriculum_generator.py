@@ -249,23 +249,26 @@ class SWUCBCurriculumGenerator(AbsCurriculumGenerator):
             self.slow_k = slow_k
 
         self.exhausted = [False for i in range(self.K)]
-
+        restart_training = not restore
         if restore:
             self.log_dir = log_dir
-            #Read history files, restore the last iter from iepoch
-            generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
-                                      allow_pickle=True).item()
+            try:
+                #Read history files, restore the last iter from iepoch
+                generator_state = np.load(os.path.join(self.log_dir, "generator_state_"+str(kwargs['iepoch']-1)+".npy"),
+                                        allow_pickle=True).item()
 
-            self.policy = generator_state["policy"]
-            self.arm_rewards = generator_state["arm_rewards"]
-            self.reward_history = generator_state["reward_hist"]
-            self.env_mode = generator_state["env_mode"]
-            iepoch = generator_state["iepoch"]
-            iiter = generator_state["iiter"]
-
-            logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
-            
-        else:
+                self.policy = generator_state["policy"]
+                self.arm_rewards = generator_state["arm_rewards"]
+                self.reward_history = generator_state["reward_hist"]
+                self.env_mode = generator_state["env_mode"]
+                iepoch = generator_state["iepoch"]
+                iiter = generator_state["iiter"]
+                logging.info(f"Loaded generator state. Epoch: {iepoch} Iter: {iiter}. {self.policy}")
+            except Exception as e:
+                logging.info(f"ERR:{e}, Can't load from generator_state...restarting training.")
+                restart_training = True
+        
+        if restart_training:
             self.reward_history = []
             self.arm_rewards = {i:{'rewards':[], 'count':[]} for i in range(self.K)}
             self.policy = np.zeros(self.K)
