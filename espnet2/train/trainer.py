@@ -308,11 +308,11 @@ class Trainer:
             #wandb.init(project='curriculum_learning_2.0', entity='anakuzne')
             #wandb.watch(model)
 
-            #restore_curriculum = False
-            #if start_epoch > 1:
-            #    restore_curriculum = True
+            restore_curriculum = False
+            if start_epoch > 1:
+                restore_curriculum = True
 
-            restore_curriculum = True
+            #restore_curriculum = True
         
             if trainer_options.curriculum_algo=='exp3s':
                 curriculum_generator = EXP3SCurriculumGenerator(
