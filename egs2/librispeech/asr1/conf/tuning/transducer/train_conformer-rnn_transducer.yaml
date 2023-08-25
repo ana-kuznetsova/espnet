@@ -80,3 +80,5 @@ specaug_conf:
     - 0
     - 40
     num_time_mask: 2
+
+dac_pretrained_model: /home/anakuzne/.cache/descript/dac/weights_16khz_8kbps_0.0.5.pth
