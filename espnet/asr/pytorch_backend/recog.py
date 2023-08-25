@@ -4,10 +4,9 @@ import json
 import logging
 
 import torch
+from packaging.version import parse as V
 
-from espnet.asr.asr_utils import add_results_to_json
-from espnet.asr.asr_utils import get_model_conf
-from espnet.asr.asr_utils import torch_load
+from espnet.asr.asr_utils import add_results_to_json, get_model_conf, torch_load
 from espnet.asr.pytorch_backend.asr import load_trained_model
 from espnet.nets.asr_interface import ASRInterface
 from espnet.nets.batch_beam_search import BatchBeamSearch
@@ -42,6 +41,7 @@ def recog_v2(args):
     set_deterministic_pytorch(args)
     model, train_args = load_trained_model(args.model)
     assert isinstance(model, ASRInterface)
+
     if args.quantize_config is not None:
         q_config = set([getattr(torch.nn, q) for q in args.quantize_config])
     else:
@@ -49,8 +49,27 @@ def recog_v2(args):
 
     if args.quantize_asr_model:
         logging.info("Use quantized asr model for decoding")
+
+        # See https://github.com/espnet/espnet/pull/3616 for more information.
+        if (
+            V(torch.__version__) < V("1.4.0")
+            and "lstm" in train_args.etype
+            and torch.nn.LSTM in q_config
+        ):
+            raise ValueError(
+                "Quantized LSTM in ESPnet is only supported with torch 1.4+."
+            )
+
+        if args.quantize_dtype == "float16" and V(torch.__version__) < V("1.5.0"):
+            raise ValueError(
+                "float16 dtype for dynamic quantization is not supported with torch "
+                "version < 1.5.0. Switching to qint8 dtype instead."
+            )
+
         dtype = getattr(torch, args.quantize_dtype)
+
         model = torch.quantization.quantize_dynamic(model, q_config, dtype=dtype)
+
     model.eval()
     load_inputs_and_targets = LoadInputsAndTargets(
         mode="asr",
@@ -78,8 +97,7 @@ def recog_v2(args):
         lm = None
 
     if args.ngram_model:
-        from espnet.nets.scorers.ngram import NgramFullScorer
-        from espnet.nets.scorers.ngram import NgramPartScorer
+        from espnet.nets.scorers.ngram import NgramFullScorer, NgramPartScorer
 
         if args.ngram_scorer == "full":
             ngram = NgramFullScorer(args.ngram_model, train_args.char_list)

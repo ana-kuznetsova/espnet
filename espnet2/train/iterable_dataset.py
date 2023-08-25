@@ -1,27 +1,26 @@
+"""Iterable dataset module."""
 import copy
-from distutils.version import LooseVersion
 from io import StringIO
 from pathlib import Path
-from typing import Callable
-from typing import Collection
-from typing import Dict
-from typing import Iterable
-from typing import Tuple
-from typing import Union
+from typing import Callable, Collection, Dict, Iterator, Tuple, Union
 
 import kaldiio
 import numpy as np
 import soundfile
 import torch
+from torch.utils.data.dataset import IterableDataset
 from typeguard import check_argument_types
 
 from espnet2.train.dataset import ESPnetDataset
 
+<<<<<<< HEAD
 if LooseVersion(torch.__version__) >= LooseVersion("1.2") and LooseVersion(torch.__version__) < LooseVersion("1.9"):
     from torch.utils.data.dataset import IterableDataset
 else:
     from torch.utils.data.dataset import Dataset as IterableDataset
 
+=======
+>>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 def load_kaldi(input):
     retval = kaldiio.load_mat(input)
@@ -51,9 +50,11 @@ DATA_TYPES = {
     "kaldi_ark": load_kaldi,
     "npy": np.load,
     "text_int": lambda x: np.loadtxt(
-        StringIO(x), ndmin=1, dtype=np.long, delimiter=" "
+        StringIO(x), ndmin=1, dtype=np.int64, delimiter=" "
     ),
-    "csv_int": lambda x: np.loadtxt(StringIO(x), ndmin=1, dtype=np.long, delimiter=","),
+    "csv_int": lambda x: np.loadtxt(
+        StringIO(x), ndmin=1, dtype=np.int64, delimiter=","
+    ),
     "text_float": lambda x: np.loadtxt(
         StringIO(x), ndmin=1, dtype=np.float32, delimiter=" "
     ),
@@ -142,7 +143,7 @@ class IterableESPnetDataset(IterableDataset):
         _mes += f"\n  preprocess: {self.preprocess})"
         return _mes
 
-    def __iter__(self) -> Iterable[Tuple[Union[str, int], Dict[str, np.ndarray]]]:
+    def __iter__(self) -> Iterator[Tuple[Union[str, int], Dict[str, np.ndarray]]]:
         if self.key_file is not None:
             uid_iter = (
                 line.rstrip().split(maxsplit=1)[0]

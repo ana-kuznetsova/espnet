@@ -26,6 +26,7 @@ test_spm.model
 .vscode*
 *.vim
 *.swp
+*.nfs*
 
 # recipe related
 egs*/*/*/data*
@@ -39,8 +40,14 @@ egs*/*/*/mfcc
 egs*/*/*/stft
 egs*/*/*/tensorboard
 egs*/*/*/wav*
+egs*/*/*/score*
+egs*/*/*/nltk*
+egs*/*/*/.cache*
+egs*/*/*/pretrained_models*
+egs*/fisher_callhome_spanish/*/local/mapping*
 
 # tools related
+tools/chainer
 tools/bin
 tools/include
 tools/lib
@@ -48,6 +55,7 @@ tools/lib64
 tools/bats-core
 tools/chainer_ctc/
 tools/kaldi*
+tools/activate_python.sh
 tools/miniconda.sh
 tools/moses/
 tools/mwerSegmenter/
@@ -62,6 +70,8 @@ tools/PESQ*
 tools/hts_engine_API*
 tools/open_jtalk*
 tools/pyopenjtalk*
+tools/tdmelodic_openjtalk*
+tools/s3prl
 tools/sctk*
 tools/sph2pipe*
 tools/espeak-ng*
@@ -69,4 +79,14 @@ tools/MBROLA*
 tools/festival*
 tools/speech_tools*
 tools/phonemizer*
-curriculum/test.py
+tools/py3mmseg
+tools/anaconda
+tools/ice-g2p
+tools/fairseq
+tools/RawNet
+tools/._*
+tools/ice-g2p*
+tools/fairseq*
+tools/featbin*
+tools/Miniconda*
+tools/miniconda

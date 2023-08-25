@@ -1,14 +1,14 @@
-from distutils.version import LooseVersion
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import Optional, Tuple, Union
 
+import librosa
+import numpy as np
 import torch
 from torch_complex.tensor import ComplexTensor
 from typeguard import check_argument_types
 
-from espnet.nets.pytorch_backend.nets_utils import make_pad_mask
+from espnet2.enh.layers.complex_utils import to_complex
 from espnet2.layers.inversible_interface import InversibleInterface
+from espnet.nets.pytorch_backend.nets_utils import make_pad_mask
 
 
 class Stft(torch.nn.Module, InversibleInterface):
@@ -81,16 +81,71 @@ class Stft(torch.nn.Module, InversibleInterface):
             )
         else:
             window = None
-        output = torch.stft(
-            input,
-            n_fft=self.n_fft,
-            win_length=self.win_length,
-            hop_length=self.hop_length,
-            center=self.center,
-            window=window,
-            normalized=self.normalized,
-            onesided=self.onesided,
-        )
+
+        # For the compatibility of ARM devices, which do not support
+        # torch.stft() due to the lack of MKL (on older pytorch versions),
+        # there is an alternative replacement implementation with librosa.
+        # Note: pytorch >= 1.10.0 now has native support for FFT and STFT
+        # on all cpu targets including ARM.
+        if input.is_cuda or torch.backends.mkl.is_available():
+            stft_kwargs = dict(
+                n_fft=self.n_fft,
+                win_length=self.win_length,
+                hop_length=self.hop_length,
+                center=self.center,
+                window=window,
+                normalized=self.normalized,
+                onesided=self.onesided,
+            )
+            stft_kwargs["return_complex"] = True
+            output = torch.stft(input, **stft_kwargs)
+            output = torch.view_as_real(output)
+        else:
+            if self.training:
+                raise NotImplementedError(
+                    "stft is implemented with librosa on this device, which does not "
+                    "support the training mode."
+                )
+
+            # use stft_kwargs to flexibly control different PyTorch versions' kwargs
+            # note: librosa does not support a win_length that is < n_ftt
+            # but the window can be manually padded (see below).
+            stft_kwargs = dict(
+                n_fft=self.n_fft,
+                win_length=self.n_fft,
+                hop_length=self.hop_length,
+                center=self.center,
+                window=window,
+                pad_mode="reflect",
+            )
+
+            if window is not None:
+                # pad the given window to n_fft
+                n_pad_left = (self.n_fft - window.shape[0]) // 2
+                n_pad_right = self.n_fft - window.shape[0] - n_pad_left
+                stft_kwargs["window"] = torch.cat(
+                    [torch.zeros(n_pad_left), window, torch.zeros(n_pad_right)], 0
+                ).numpy()
+            else:
+                win_length = (
+                    self.win_length if self.win_length is not None else self.n_fft
+                )
+                stft_kwargs["window"] = torch.ones(win_length)
+
+            output = []
+            # iterate over istances in a batch
+            for i, instance in enumerate(input):
+                stft = librosa.stft(input[i].numpy(), **stft_kwargs)
+                output.append(torch.tensor(np.stack([stft.real, stft.imag], -1)))
+            output = torch.stack(output, 0)
+            if not self.onesided:
+                len_conj = self.n_fft - output.shape[1]
+                conj = output[:, 1 : 1 + len_conj].flip(1)
+                conj[:, :, :, -1].data *= -1
+                output = torch.cat([output, conj], 1)
+            if self.normalized:
+                output = output * (stft_kwargs["window"].shape[0] ** (-0.5))
+
         # output: (Batch, Freq, Frames, 2=real_imag)
         # -> (Batch, Frames, Freq, 2=real_imag)
         output = output.transpose(1, 2)
@@ -103,10 +158,13 @@ class Stft(torch.nn.Module, InversibleInterface):
 
         if ilens is not None:
             if self.center:
-                pad = self.win_length // 2
+                pad = self.n_fft // 2
                 ilens = ilens + 2 * pad
 
-            olens = (ilens - self.win_length) // self.hop_length + 1
+            olens = (
+                torch.div(ilens - self.n_fft, self.hop_length, rounding_mode="trunc")
+                + 1
+            )
             output.masked_fill_(make_pad_mask(olens, output, 1), 0.0)
         else:
             olens = None
@@ -125,36 +183,18 @@ class Stft(torch.nn.Module, InversibleInterface):
             wavs: (batch, samples)
             ilens: (batch,)
         """
-        if LooseVersion(torch.__version__) >= LooseVersion("1.6.0"):
-            istft = torch.functional.istft
-        else:
-            try:
-                import torchaudio
-            except ImportError:
-                raise ImportError(
-                    "Please install torchaudio>=0.3.0 or use torch>=1.6.0"
-                )
-
-            if not hasattr(torchaudio.functional, "istft"):
-                raise ImportError(
-                    "Please install torchaudio>=0.3.0 or use torch>=1.6.0"
-                )
-            istft = torchaudio.functional.istft
+        input = to_complex(input)
 
         if self.window is not None:
             window_func = getattr(torch, f"{self.window}_window")
-            window = window_func(
-                self.win_length, dtype=input.dtype, device=input.device
-            )
+            datatype = input.real.dtype
+            window = window_func(self.win_length, dtype=datatype, device=input.device)
         else:
             window = None
 
-        if isinstance(input, ComplexTensor):
-            input = torch.stack([input.real, input.imag], dim=-1)
-        assert input.shape[-1] == 2
         input = input.transpose(1, 2)
 
-        wavs = istft(
+        wavs = torch.functional.istft(
             input,
             n_fft=self.n_fft,
             hop_length=self.hop_length,
@@ -164,6 +204,7 @@ class Stft(torch.nn.Module, InversibleInterface):
             normalized=self.normalized,
             onesided=self.onesided,
             length=ilens.max() if ilens is not None else ilens,
+            return_complex=False,
         )
 
         return wavs, ilens

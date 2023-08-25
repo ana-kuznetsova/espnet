@@ -4,27 +4,22 @@
 """F0 extractor using DIO + Stonemask algorithm."""
 
 import logging
-
-from typing import Any
-from typing import Dict
-from typing import Tuple
-from typing import Union
+from typing import Any, Dict, Tuple, Union
 
 import humanfriendly
 import numpy as np
 import pyworld
 import torch
 import torch.nn.functional as F
-
 from scipy.interpolate import interp1d
 from typeguard import check_argument_types
 
-from espnet.nets.pytorch_backend.nets_utils import pad_list
 from espnet2.tts.feats_extract.abs_feats_extract import AbsFeatsExtract
+from espnet.nets.pytorch_backend.nets_utils import pad_list
 
 
 class Dio(AbsFeatsExtract):
-    """F0 estimation with dio + stonemask algortihm.
+    """F0 estimation with dio + stonemask algorithm.
 
     This is f0 extractor based on dio + stonmask algorithm introduced in `WORLD:
     a vocoder-based high-quality speech synthesis system for real-time applications`_.
@@ -155,7 +150,7 @@ class Dio(AbsFeatsExtract):
     @staticmethod
     def _convert_to_continuous_f0(f0: np.array) -> np.array:
         if (f0 == 0).all():
-            logging.warn("All frames seems to be unvoiced.")
+            logging.warning("All frames seems to be unvoiced.")
             return f0
 
         # padding start and end of f0 sequence

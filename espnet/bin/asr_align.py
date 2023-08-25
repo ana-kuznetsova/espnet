@@ -41,23 +41,26 @@ Selected parameters:
         with the option `--gratis-blank`.
 """
 
-import configargparse
+import json
 import logging
 import os
 import sys
+
+import configargparse
+import torch
+
+# imports for CTC segmentation
+from ctc_segmentation import (
+    CtcSegmentationParameters,
+    ctc_segmentation,
+    determine_utterance_segments,
+    prepare_text,
+)
 
 # imports for inference
 from espnet.asr.pytorch_backend.asr_init import load_trained_model
 from espnet.nets.asr_interface import ASRInterface
 from espnet.utils.io_utils import LoadInputsAndTargets
-import json
-import torch
-
-# imports for CTC segmentation
-from ctc_segmentation import ctc_segmentation
-from ctc_segmentation import CtcSegmentationParameters
-from ctc_segmentation import determine_utterance_segments
-from ctc_segmentation import prepare_text
 
 
 # NOTE: you need this func to generate our sphinx doc
@@ -285,7 +288,7 @@ def ctc_align(args, device):
         subsampling_factor = args.subsampling_factor
     if args.frame_duration is not None:
         frame_duration_ms = args.frame_duration
-    # Backwards compability to ctc_segmentation <= 1.5.3
+    # Backwards compatibility to ctc_segmentation <= 1.5.3
     if hasattr(config, "index_duration"):
         config.index_duration = frame_duration_ms * subsampling_factor / 1000
     else:

@@ -1,8 +1,6 @@
-from typing import Any
-from typing import Dict
-from typing import Union
-
 import logging
+from typing import Any, Dict, Union
+
 import torch
 import torch.nn
 import torch.optim
@@ -25,12 +23,26 @@ def filter_state_dict(
             match_state[key] = value
         """
         else:
+<<<<<<< HEAD
             logging.warning(
                 f"Filter out {key} from pretrained dict"
                 + " because of name/size"
                 + f"({dst_state[key].size()}-{src_state[key].size()})"
             )
         """
+=======
+            if key not in dst_state:
+                logging.warning(
+                    f"Filter out {key} from pretrained dict"
+                    + " because of name not found in target dict"
+                )
+            else:
+                logging.warning(
+                    f"Filter out {key} from pretrained dict"
+                    + " because of size mismatch"
+                    + f"({dst_state[key].size()}-{src_state[key].size()})"
+                )
+>>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
     return match_state
 
 

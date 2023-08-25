@@ -5,33 +5,31 @@
 
 import argparse
 import logging
-from pathlib import Path
 import sys
-from typing import Optional
-from typing import TextIO
-from typing import Union
+from pathlib import Path
+from typing import List, Optional, TextIO, Union
 
 import numpy as np
 import soundfile
 import torch
-from typeguard import check_argument_types
-from typeguard import check_return_type
-from typing import List
 
-# imports for inference
-from espnet.utils.cli_utils import get_commandline_args
+# imports for CTC segmentation
+from ctc_segmentation import (
+    CtcSegmentationParameters,
+    ctc_segmentation,
+    determine_utterance_segments,
+    prepare_text,
+    prepare_token_list,
+)
+from typeguard import check_argument_types, check_return_type
+
 from espnet2.tasks.asr import ASRTask
 from espnet2.torch_utils.device_funcs import to_device
 from espnet2.utils import config_argparse
-from espnet2.utils.types import str2bool
-from espnet2.utils.types import str_or_none
+from espnet2.utils.types import str2bool, str_or_none
 
-# imports for CTC segmentation
-from ctc_segmentation import ctc_segmentation
-from ctc_segmentation import CtcSegmentationParameters
-from ctc_segmentation import determine_utterance_segments
-from ctc_segmentation import prepare_text
-from ctc_segmentation import prepare_token_list
+# imports for inference
+from espnet.utils.cli_utils import get_commandline_args
 
 
 class CTCSegmentationTask:
@@ -155,7 +153,7 @@ class CTCSegmentation:
         (2) ``prepare_segmentation_task``: prepare the task, and
         (3) ``get_segments``: perform CTC segmentation.
         Note that the function `get_segments` is a staticmethod and therefore
-        independent of an already initialized CTCSegmentation obj́ect.
+        independent of an already initialized CTCSegmentation object.
 
     References:
         CTC-Segmentation of Large Corpora for German End-to-end Speech Recognition
@@ -417,7 +415,7 @@ class CTCSegmentation:
             speech = torch.tensor(speech)
         # data: (Nsamples,) -> (1, Nsamples)
         speech = speech.unsqueeze(0).to(getattr(torch, self.dtype))
-        # lenghts: (1,)
+        # lengths: (1,)
         lengths = speech.new_full([1], dtype=torch.long, fill_value=speech.size(1))
         batch = {"speech": speech, "speech_lengths": lengths}
         batch = to_device(batch, device=self.device)

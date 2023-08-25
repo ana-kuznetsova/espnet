@@ -2,9 +2,8 @@
 
 import numpy
 import torch
-from torch import nn
 import torch.nn.functional as F
-
+from torch import nn
 
 MIN_VALUE = float(numpy.finfo(numpy.float32).min)
 
@@ -50,7 +49,7 @@ class DynamicConvolution(nn.Module):
         self.linear1 = nn.Linear(n_feat, n_feat * 2)
         self.linear2 = nn.Linear(n_feat, n_feat)
         self.linear_weight = nn.Linear(n_feat, self.wshare * 1 * kernel_size)
-        nn.init.xavier_uniform(self.linear_weight.weight)
+        nn.init.xavier_uniform_(self.linear_weight.weight)
         self.act = nn.GLU()
 
         # dynamic conv related
@@ -71,7 +70,7 @@ class DynamicConvolution(nn.Module):
             mask (torch.Tensor): (batch, time1, time2) mask
 
         Return:
-            x (torch.Tensor): (batch, time1, d_model) ouput
+            x (torch.Tensor): (batch, time1, d_model) output
 
         """
         # linear -> GLU -- -> lightconv -> linear

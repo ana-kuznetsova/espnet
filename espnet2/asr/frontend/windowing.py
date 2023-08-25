@@ -4,10 +4,12 @@
 
 """Sliding Window for raw audio input data."""
 
-from espnet2.asr.frontend.abs_frontend import AbsFrontend
+from typing import Tuple
+
 import torch
 from typeguard import check_argument_types
-from typing import Tuple
+
+from espnet2.asr.frontend.abs_frontend import AbsFrontend
 
 
 class SlidingWindow(AbsFrontend):
@@ -73,7 +75,12 @@ class SlidingWindow(AbsFrontend):
         # (T, B, C, D) --> (B, T, C, D)
         output = windowed.permute(1, 0, 2, 3).contiguous()
         # After unfold(), windowed lengths change:
-        output_lengths = (input_lengths - self.win_length) // self.hop_length + 1
+        output_lengths = (
+            torch.div(
+                input_lengths - self.win_length, self.hop_length, rounding_mode="trunc"
+            )
+            + 1
+        )
         return output, output_lengths
 
     def output_size(self) -> int:
