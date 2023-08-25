@@ -1,12 +1,7 @@
 import collections.abc
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Union
-import os
-=======
 from typing import List, Tuple, Union
 
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 import numpy as np
 import soundfile
 import subprocess
@@ -137,12 +132,6 @@ class SoundScpReader(collections.abc.Mapping):
         if multi_columns:
             self.data, _ = read_multi_columns_text(fname)
         else:
-<<<<<<< HEAD
-            array, rate = soundfile.read(
-                wav, dtype=self.dtype, always_2d=self.always_2d
-            )
-        os.remove(wav)
-=======
             self.data = read_2columns_text(fname)
         self.multi_columns = multi_columns
         self.concat_axis = concat_axis
@@ -157,7 +146,6 @@ class SoundScpReader(collections.abc.Mapping):
             concat_axis=self.concat_axis,
         )
         # Returned as scipy.io.wavread's order
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
         return rate, array
 
 

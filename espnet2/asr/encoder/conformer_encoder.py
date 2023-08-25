@@ -104,15 +104,11 @@ class ConformerEncoder(AbsEncoder):
         zero_triu: bool = False,
         cnn_module_kernel: int = 31,
         padding_idx: int = -1,
-<<<<<<< HEAD
-        global_cmvn: torch.nn.Module = None
-=======
         interctc_layer_idx: List[int] = [],
         interctc_use_conditioning: bool = False,
         stochastic_depth_rate: Union[float, List[float]] = 0.0,
         layer_drop_rate: float = 0.0,
         max_pos_emb_len: int = 5000,
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
     ):
         assert check_argument_types()
         super().__init__()
