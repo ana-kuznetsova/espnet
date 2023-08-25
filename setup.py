@@ -117,50 +117,8 @@ requirements = {
         "sphinx-markdown-tables>=0.0.12",
     ],
 }
-<<<<<<< HEAD
-try:
-    # NOTE(kamo): These packages are not listed if installing from the PyPI server
-    import torch
-
-    if LooseVersion(torch.__version__) >= LooseVersion("1.1.0"):
-        requirements["install"].append("torch_optimizer")
-    if LooseVersion(torch.__version__) >= LooseVersion("1.5.1"):
-        requirements["install"].append("fairscale")
-
-    if LooseVersion(torch.__version__) >= LooseVersion("1.9.0"):
-        requirements["install"].append("torchaudio==0.9.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.8.1"):
-        requirements["install"].append("torchaudio==0.8.1")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.8.0"):
-        requirements["install"].append("torchaudio==0.8.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.7.1"):
-        requirements["install"].append("torchaudio==0.7.2")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.7.0"):
-        requirements["install"].append("torchaudio==0.7.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.6.0"):
-        # Due to https://github.com/pytorch/pytorch/issues/42213,
-        # use torchaudio.functional.istft instead of torch.functional.istft
-        requirements["install"].append("torchaudio==0.6.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.5.1"):
-        requirements["install"].append("torchaudio==0.5.1")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.5.0"):
-        requirements["install"].append("torchaudio==0.5.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.4.0"):
-        requirements["install"].append("torchaudio==0.4.0")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.3.1"):
-        requirements["install"].append("torchaudio==0.3.2")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.3.0"):
-        requirements["install"].append("torchaudio==0.3.1")
-    elif LooseVersion(torch.__version__) >= LooseVersion("1.2.0"):
-        requirements["install"].append("torchaudio==0.3.0")
-
-    del torch
-except ImportError:
-    pass
-=======
 requirements["all"].extend(requirements["train"] + requirements["recipe"])
 requirements["test"].extend(requirements["train"])
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 install_requires = requirements["install"]
 setup_requires = requirements["setup"]

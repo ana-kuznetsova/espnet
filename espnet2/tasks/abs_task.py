@@ -2143,20 +2143,6 @@ class AbsTask(ABC):
         else:
             kwargs = {}
 
-<<<<<<< HEAD
-        # IterableDataset is supported from pytorch=1.2
-        if False: #LooseVersion(torch.__version__) >= LooseVersion("1.2"):
-            dataset = IterableESPnetDataset(
-                data_path_and_name_and_type,
-                float_dtype=dtype,
-                preprocess=preprocess_fn,
-                key_file=key_file,
-            )
-            if dataset.apply_utt2category:
-                kwargs.update(batch_size=1)
-            else:
-                kwargs.update(batch_size=batch_size)
-=======
         dataset = IterableESPnetDataset(
             data_path_and_name_and_type,
             float_dtype=dtype,
@@ -2165,7 +2151,6 @@ class AbsTask(ABC):
         )
         if dataset.apply_utt2category:
             kwargs.update(batch_size=1)
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
         else:
             kwargs.update(batch_size=batch_size)
 

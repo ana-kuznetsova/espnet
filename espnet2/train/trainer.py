@@ -1,28 +1,12 @@
 """Trainer module."""
 import argparse
-<<<<<<< HEAD
-import sys
-from contextlib import contextmanager
-=======
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 import dataclasses
 import logging
 import time
-<<<<<<< HEAD
-from typing import Dict
-from typing import Iterable
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
-from typing import Union
-from typing import Any
-=======
 from contextlib import contextmanager
 from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 import humanfriendly
 import numpy as np
@@ -49,13 +33,7 @@ from espnet2.train.abs_espnet_model import AbsESPnetModel
 from espnet2.train.distributed_utils import DistributedOption
 from espnet2.train.reporter import Reporter, SubReporter
 from espnet2.utils.build_dataclass import build_dataclass
-<<<<<<< HEAD
-from espnet2.curriculum.curriculum_generator import AbsCurriculumGenerator
-from espnet2.curriculum.curriculum_generator import EXP3SCurriculumGenerator, SWUCBCurriculumGenerator, ManualCurriculumGenerator
-from espnet2.curriculum.curriculum_iter_factory import CurriculumIterFactory
-=======
 from espnet2.utils.kwargs2args import kwargs2args
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 if torch.distributed.is_available():
     from torch.distributed import ReduceOp
@@ -128,12 +106,7 @@ class TrainerOptions:
     beta: Optional[float]
     start_curriculum: Optional[int]
     wandb_model_log_interval: int
-<<<<<<< HEAD
-    man_curr_file: Optional[str]
-    epochs_per_stage: Optional[int]
-=======
     create_graph_in_tensorboard: bool
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 
 class Trainer:
@@ -394,61 +367,6 @@ class Trainer:
             reporter.set_epoch(iepoch)
             # 1. Train and validation for one-epoch
             with reporter.observe("train") as sub_reporter:
-<<<<<<< HEAD
-                if trainer_options.use_curriculum==True:
-
-                    if (iepoch==1) or (trainer_options.resume)==True:
-                        trainer_options.resume=False
-                        logging.info(f"Loading data for iterators...") 
-                        tasks = train_iter_factory.build_iter(iepoch)
-
-                    if trainer_options.gain_type=='VPG':
-
-                        all_steps_are_invalid, train_iter_factory, valid_iter_factory, tasks = cls.train_one_epoch_curriculum(
-                            model=dp_model,
-                            optimizers=optimizers,
-                            schedulers=schedulers,
-                            iterator=train_iter_factory,
-                            tasks=tasks,
-                            reporter=sub_reporter,
-                            curriculum_generator=curriculum_generator,   
-                            scaler=scaler,
-                            summary_writer=summary_writer,
-                            options=trainer_options,
-                            distributed_option=distributed_option,
-                            iepoch=iepoch,
-                            valid_iterator=valid_iter_factory,
-                        )
-                    else:    
-
-                        all_steps_are_invalid, train_iter_factory, tasks = cls.train_one_epoch_curriculum(
-                                model=dp_model,
-                                optimizers=optimizers,
-                                schedulers=schedulers,
-                                iterator=train_iter_factory,
-                                tasks=tasks,
-                                reporter=sub_reporter,
-                                curriculum_generator=curriculum_generator,   
-                                scaler=scaler,
-                                summary_writer=summary_writer,
-                                options=trainer_options,
-                                distributed_option=distributed_option,
-                                iepoch=iepoch,
-                            )
-
-                else:
-                    all_steps_are_invalid = cls.train_one_epoch(
-                        model=dp_model,
-                        optimizers=optimizers,
-                        schedulers=schedulers,
-                        iterator=train_iter_factory.build_iter(iepoch),
-                        reporter=sub_reporter,
-                        scaler=scaler,
-                        summary_writer=summary_writer,
-                        options=trainer_options,
-                        distributed_option=distributed_option,
-                    )
-=======
                 all_steps_are_invalid = cls.train_one_epoch(
                     model=dp_model,
                     optimizers=optimizers,
@@ -460,7 +378,6 @@ class Trainer:
                     options=trainer_options,
                     distributed_option=distributed_option,
                 )
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
             
             with reporter.observe("valid") as sub_reporter:

@@ -3,4 +3,4 @@
 if [ -z "${PS1:-}" ]; then
     PS1=__dummy__
 fi
-. /N/slate/ak16/miniconda3/etc/profile.d/conda.sh && conda deactivate && conda activate espnet
+. /home/anakuzne/miniconda3/etc/profile.d/conda.sh && conda deactivate && conda activate enc_asr
