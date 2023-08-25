@@ -13,14 +13,6 @@ from typeguard import check_argument_types
 
 from espnet2.train.dataset import ESPnetDataset
 
-<<<<<<< HEAD
-if LooseVersion(torch.__version__) >= LooseVersion("1.2") and LooseVersion(torch.__version__) < LooseVersion("1.9"):
-    from torch.utils.data.dataset import IterableDataset
-else:
-    from torch.utils.data.dataset import Dataset as IterableDataset
-
-=======
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
 
 def load_kaldi(input):
     retval = kaldiio.load_mat(input)

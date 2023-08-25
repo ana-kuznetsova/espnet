@@ -21,16 +21,7 @@ def filter_state_dict(
     for key, value in src_state.items():
         if key in dst_state and (dst_state[key].size() == src_state[key].size()):
             match_state[key] = value
-        """
         else:
-<<<<<<< HEAD
-            logging.warning(
-                f"Filter out {key} from pretrained dict"
-                + " because of name/size"
-                + f"({dst_state[key].size()}-{src_state[key].size()})"
-            )
-        """
-=======
             if key not in dst_state:
                 logging.warning(
                     f"Filter out {key} from pretrained dict"
@@ -42,7 +33,6 @@ def filter_state_dict(
                     + " because of size mismatch"
                     + f"({dst_state[key].size()}-{src_state[key].size()})"
                 )
->>>>>>> bcd20948db7846ee523443ef9fd78c7a1248c95e
     return match_state
 
 
