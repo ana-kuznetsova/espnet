@@ -666,6 +666,21 @@ class AbsTask(ABC):
             "  --init_param some/where/model.pth:decoder:decoder:decoder.embed\n"
             "  --init_param some/where/model.pth:decoder:decoder:decoder.embed\n",
         )
+        #Add DAC related parameters since it's gonna be used independently from the main encoder
+        group.add_argument(
+            "--dac_pretrained_model",
+            type=str,
+            default=[],
+            nargs="*",
+            help="Specify the file path used for initialization of DAC codec."
+        )
+        group.add_argument(
+            "--freeze_dac_param",
+            type=str,
+            default=[],
+            nargs="*",
+            help="Freeze DAC parameters",
+        )
         group.add_argument(
             "--ignore_init_mismatch",
             type=str2bool,
