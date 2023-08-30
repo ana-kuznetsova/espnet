@@ -5,8 +5,6 @@ set -e
 set -u
 set -o pipefail
 
-CUDA_VISIBLE_DEVICES=4,5
-
 train_set="train_960"
 valid_set="dev"
 test_sets="test_clean test_other dev_clean dev_other"
@@ -17,8 +15,9 @@ inference_config=conf/tuning/transducer/decode.yaml
 
 ./asr.sh \
     --lang en \
-    --ngpu 2 \
+    --ngpu 1 \
     --stage 7 \
+    --nj 4 \
     --nbpe 5000 \
     --max_wav_duration 30 \
     --speed_perturb_factors "0.9 1.0 1.1" \
