@@ -19,7 +19,7 @@ inference_config=conf/tuning/transducer/decode.yaml
     --stage 11\
     --nj 1 \
     --nbpe 5000 \
-    --max_wav_duration 30 \
+    --max_wav_duration 10 \
     --speed_perturb_factors "0.9 1.0 1.1" \
     --asr_config "${asr_config}" \
     --lm_config "${lm_config}" \
