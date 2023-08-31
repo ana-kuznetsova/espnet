@@ -26,6 +26,7 @@ from espnet2.asr.decoder.whisper_decoder import OpenAIWhisperDecoder
 from espnet2.asr.encoder.abs_encoder import AbsEncoder
 from espnet2.asr.encoder.branchformer_encoder import BranchformerEncoder
 from espnet2.asr.encoder.conformer_encoder import ConformerEncoder
+from espnet2.asr.encoder.codec_conformer import CodecConformerEncoder
 from espnet2.asr.encoder.contextual_block_conformer_encoder import (
     ContextualBlockConformerEncoder,
 )
@@ -50,6 +51,7 @@ from espnet2.asr.encoder.whisper_encoder import OpenAIWhisperEncoder
 from espnet2.asr.espnet_model import ESPnetASRModel
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
 from espnet2.asr.frontend.default import DefaultFrontend
+from espnet2.asr.frontend.codec import CodecFrontend
 from espnet2.asr.frontend.fused import FusedFrontends
 from espnet2.asr.frontend.s3prl import S3prlFrontend
 from espnet2.asr.frontend.whisper import WhisperFrontend
@@ -89,6 +91,7 @@ from espnet2.utils.types import float_or_none, int_or_none, str2bool, str_or_non
 frontend_choices = ClassChoices(
     name="frontend",
     classes=dict(
+        codec=CodecFrontend,
         default=DefaultFrontend,
         sliding_window=SlidingWindow,
         s3prl=S3prlFrontend,
