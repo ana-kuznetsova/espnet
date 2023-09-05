@@ -201,7 +201,6 @@ class Trainer:
                 scaler = GradScaler()
         else:
             scaler = None
-
         if trainer_options.resume and (output_dir / "checkpoint.pth").exists():
             cls.resume(
                 checkpoint=output_dir / "checkpoint.pth",

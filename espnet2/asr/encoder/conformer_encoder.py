@@ -317,6 +317,7 @@ class ConformerEncoder(AbsEncoder):
             torch.Tensor: Not to be used now.
 
         """
+        ilens = torch.Tensor([int(i) for i in ilens]).long()
         masks = (~make_pad_mask(ilens)[:, None, :]).to(xs_pad.device)
 
         if (

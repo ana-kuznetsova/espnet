@@ -1,7 +1,4 @@
 # Trained with Tesla V100 (32GB) x 4 GPUs. It takes about 3.5 days.
-batch_bins: 1400000
-accum_grad: 1
-max_epoch: 35
 patience: none
 init: none
 best_model_criterion:
@@ -53,15 +50,15 @@ scheduler_conf:
 
 # Remove frontend to get raw audio features for dac
 frontend: codec
-#frontend_conf:
-#  n_fft: 512
-#  hop_length: 160
+frontend_conf:
+  trainable: False
+  fs: 16000
 
 use_amp: true
 num_workers: 4
 batch_type: numel
-batch_bins: 35000000
-accum_grad: 4
+batch_bins: 350000
+accum_grad: 16
 max_epoch: 50
 patience: none
 init: none
@@ -70,6 +67,7 @@ best_model_criterion:
     - acc
     - max
 keep_nbest_models: 10
+unused_parameters: true
 
 optim: adam
 optim_conf:

@@ -281,7 +281,7 @@ run_args=$(scripts/utils/print_args.sh $0 "$@")
 
 if [ $# -ne 0 ]; then
     log "${help_message}"
-    log "Error: No positional arguments are required."
+    log "Error: No positional arguments are required." 
     exit 2
 fi
 
@@ -424,6 +424,8 @@ fi
 
 
 # Set tag for naming of model directory
+echo "--------------"
+echo "${asr_config}"
 if [ -z "${asr_tag}" ]; then
     if [ -n "${asr_config}" ]; then
         asr_tag="$(basename "${asr_config}" .yaml)_${feats_type}"

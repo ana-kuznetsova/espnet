@@ -11,12 +11,12 @@ test_sets="test_clean test_other dev_clean dev_other"
 
 asr_config=conf/tuning/train_asr_codec_conformer6.yaml
 lm_config=conf/tuning/train_lm_transformer2.yaml
-inference_config=conf/tuning/transducer/decode.yaml
+inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --ngpu 1 \
-    --stage 11\
+    --ngpu 3 \
+    --stage 11 \
     --nj 1 \
     --nbpe 5000 \
     --max_wav_duration 10 \

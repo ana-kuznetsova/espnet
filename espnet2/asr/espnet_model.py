@@ -408,7 +408,6 @@ class ESPnetASRModel(AbsESPnetModel):
             encoder_out, encoder_out_lens = self.postencoder(
                 encoder_out, encoder_out_lens
             )
-
         assert encoder_out.size(0) == speech.size(0), (
             encoder_out.size(),
             speech.size(0),

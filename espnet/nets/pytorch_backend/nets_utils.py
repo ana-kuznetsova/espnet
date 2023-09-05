@@ -159,7 +159,6 @@ def make_pad_mask(lengths, xs=None, length_dim=-1, maxlen=None):
             + "If you try to trace this function with type(lengths) == list, "
             + "please change the type of lengths to torch.LongTensor."
         )
-
     if (
         (xs is None or xs.dim() in (2, 3))
         and length_dim <= 2
