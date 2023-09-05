@@ -22,10 +22,12 @@ class CodecFrontend(AbsFrontend):
         return self.feat_dim
 
     def forward(self, input: torch.Tensor, input_lengths: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        print("DEBUG INPUT", input.shape)
-        num_elements = input.shape[1]
-        input_lengths = torch.Tensor([self.feat_dim] * num_elements)
+        #print("Inp len", input_lengths)
         input = input.view(1, 1, -1)
-        assert len(input.size()) == 3, "Input should be of shape (B, C, L)"
         z, _, _, _, _ = self.codec.encode(input)
+        # Convert input to (B, L, Dim)
+        bsize, feat_dim, length = z.size()
+        z = z.view(bsize, length, feat_dim)
+        input_lengths = torch.Tensor([length] * bsize)
+        #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths

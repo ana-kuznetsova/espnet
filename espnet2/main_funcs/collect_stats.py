@@ -81,13 +81,19 @@ def collect_stats(
                         for i, (uttid, seq) in enumerate(zip(keys, v.cpu().numpy())):
                             # Truncate zero-padding region
                             if f"{key}_lengths" in data:
-                                length = data[f"{key}_lengths"][i]
+                                length = int(data[f"{key}_lengths"][i])
+                                #feat_shapes =data[f"{key}"].shape
+                                #print(f"DEBUG {feat_shapes}")
                                 # seq: (Length, Dim, ...)
+                                #print("DIM SEQ", seq.shape)
                                 seq = seq[:length]
+                                #print(seq.shape)
+
                             else:
                                 # seq: (Dim, ...) -> (1, Dim, ...)
                                 seq = seq[None]
                             # Accumulate value, its square, and count
+                            #print(seq)
                             sum_dict[key] += seq.sum(0)
                             sq_dict[key] += (seq**2).sum(0)
                             count_dict[key] += len(seq)
