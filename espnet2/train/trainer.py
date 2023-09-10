@@ -565,8 +565,8 @@ class Trainer:
                 with reporter.measure_time("forward_time"):
                     retval = model(**batch)
                     print('---------------------------')
-                    #print("DEBUG Batch", batch )
-                    print("DEBUG retval", retval)
+                    print("DEBUG Batch", batch )
+                    #print("DEBUG retval", retval)
                     print('---------------------------')
                     # Note(kamo):
                     # Supporting two patterns for the returned value from the model
