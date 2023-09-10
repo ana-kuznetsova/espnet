@@ -149,7 +149,7 @@ class BaseTransformerDecoder(AbsDecoder, BatchScorerInterface):
 
         olens = tgt_mask.sum(1)
 
-        print("DECODER OUT", olens)
+        #print("DECODER OUT", olens)
 
         if return_hs:
             return x, olens, hs_asr
