@@ -34,6 +34,8 @@ class CodecFrontend(AbsFrontend):
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
-        input_lengths = torch.Tensor([length] * bsize)
+        #Repeat each frame twice to match the original MFCC framerate
+        z = z.repeat_interleave(2, dim=-1)
+        input_lengths = torch.Tensor([length * 2] * bsize)
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
