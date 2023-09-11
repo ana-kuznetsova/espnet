@@ -33,16 +33,14 @@ class CodecFrontend(AbsFrontend):
         #print("Inp len", input_lengths)
         input = input.unsqueeze(1)
         z, _, _, _, _ = self.codec.encode(input, self.n_quantizers)
+        if self.normalize_codes:
+            max_val = z.max(dim=1)
+            z = z/max_val.values
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
         #Repeat each frame twice to match the original MFCC framerate
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
-        print("DEBUG Z", z.shape)
-        if self.normalize_codes:
-            max_val = z.max(dim=-1)
-            print(max_val.values.shape)
-            z = z[:,]/max_val.values
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
