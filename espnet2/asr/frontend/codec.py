@@ -39,8 +39,10 @@ class CodecFrontend(AbsFrontend):
         #Repeat each frame twice to match the original MFCC framerate
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
+        print("DEBUG Z", z.shape)
         if self.normalize_codes:
             max_val = z.max(dim=1)
+            print(max_val.values.shape)
             z = z/max_val.values
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
