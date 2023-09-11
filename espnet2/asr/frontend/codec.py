@@ -41,7 +41,7 @@ class CodecFrontend(AbsFrontend):
         input_lengths = torch.Tensor([length * 2] * bsize)
         print("DEBUG Z", z.shape)
         if self.normalize_codes:
-            max_val = z.max(dim=1)
+            max_val = z.max(dim=-1)
             print(max_val.values.shape)
             z = z/max_val.values
         #print("Inp lens out", bsize, input_lengths)
