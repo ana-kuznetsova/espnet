@@ -12,7 +12,8 @@ class CodecFrontend(AbsFrontend):
     '''
     def __init__(self, fs: int = 16000,
                        n_quantizers: int = 6,
-                       trainable: bool = False) -> None:
+                       trainable: bool = False,
+                       normalize_codes: bool = False) -> None:
         super().__init__()
         self.fs = fs
         self.feat_dim = 1024
@@ -23,6 +24,7 @@ class CodecFrontend(AbsFrontend):
             self.codec.train()
         else:
             self.codec.eval()
+        self.normalize_codes = normalize_codes
 
     def output_size(self) -> int:
         return self.feat_dim
@@ -37,5 +39,8 @@ class CodecFrontend(AbsFrontend):
         #Repeat each frame twice to match the original MFCC framerate
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
+        if self.normalize_codes:
+            max_val = z.max(dim=-1)
+            z = z/max_val.values
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
