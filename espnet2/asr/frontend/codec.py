@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, Union
 import torch
+import torch.nn.functional as F
 import dac
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
 
@@ -33,14 +34,13 @@ class CodecFrontend(AbsFrontend):
         #print("Inp len", input_lengths)
         input = input.unsqueeze(1)
         z, _, _, _, _ = self.codec.encode(input, self.n_quantizers)
-        if self.normalize_codes:
-            max_val = z.max(dim=1)
-            z = z/max_val.values
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
         #Repeat each frame twice to match the original MFCC framerate
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
+        if self.normalize_codes:
+            z = F.normalize(z, dim=1)
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
