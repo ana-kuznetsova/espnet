@@ -40,7 +40,7 @@ class CodecFrontend(AbsFrontend):
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
         if self.normalize_codes:
-            max_val = z.max(dim=-1)
+            max_val = z.max(dim=1)
             z = z/max_val.values
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
