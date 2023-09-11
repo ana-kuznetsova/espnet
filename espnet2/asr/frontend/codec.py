@@ -43,6 +43,6 @@ class CodecFrontend(AbsFrontend):
         if self.normalize_codes:
             max_val = z.max(dim=-1)
             print(max_val.values.shape)
-            z = z/max_val.values
+            z = z[:,]/max_val.values
         #print("Inp lens out", bsize, input_lengths)
         return z, input_lengths
