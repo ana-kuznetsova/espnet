@@ -652,6 +652,7 @@ class Trainer:
                     )
 
                 # compute the gradient norm to check if it is normal or not
+                print("DEBUG GRDA CLIP", grad_clip)
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
                     max_norm=grad_clip,
