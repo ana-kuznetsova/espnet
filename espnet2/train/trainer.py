@@ -485,6 +485,7 @@ class Trainer:
         grad_noise = options.grad_noise
         accum_grad = options.accum_grad
         grad_clip = options.grad_clip
+        print("GRAD CLIP", grad_clip)
         grad_clip_type = options.grad_clip_type
         log_interval = options.log_interval
         no_forward_run = options.no_forward_run
@@ -652,7 +653,6 @@ class Trainer:
                     )
 
                 # compute the gradient norm to check if it is normal or not
-                print("DEBUG GRDA CLIP", grad_clip)
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
                     max_norm=grad_clip,
