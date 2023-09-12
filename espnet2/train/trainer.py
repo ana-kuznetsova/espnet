@@ -652,38 +652,16 @@ class Trainer:
                     )
 
                 # compute the gradient norm to check if it is normal or not
-                print("DEBUG Grad clipping", grad_clip)
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    model.parameters(),
-                    max_norm=grad_clip,
-                    norm_type=grad_clip_type,
-                    error_if_nonfinite=True
-                )
-                print('After clipping', grad_norm)
-                # PyTorch<=1.4, clip_grad_norm_ returns float value
-                if not isinstance(grad_norm, torch.Tensor):
-                    grad_norm = torch.tensor(grad_norm)
-
-                if not torch.isfinite(grad_norm):
-                    logging.warning(
-                        f"The grad norm is {grad_norm}. Skipping updating the model."
+                # [anakuzne]: fixing the incorrect handling of gradient clipping
+                try:
+                    grad_norm = torch.nn.utils.clip_grad_norm_(
+                        model.parameters(),
+                        max_norm=grad_clip,
+                        norm_type=grad_clip_type,
+                        error_if_nonfinite=True
                     )
-
-                    # Must invoke scaler.update() if unscale_() is used in the iteration
-                    # to avoid the following error:
-                    #   RuntimeError: unscale_() has already been called
-                    #   on this optimizer since the last update().
-                    # Note that if the gradient has inf/nan values,
-                    # scaler.step skips optimizer.step().
-                    if scaler is not None:
-                        for iopt, optimizer in enumerate(optimizers):
-                            if optim_idx is not None and iopt != optim_idx:
-                                continue
-                            scaler.step(optimizer)
-                            scaler.update()
-
-                else:
                     reporter.register(
+                        #TODO [anakuzne] this is incorrect reporting, fix later
                         {
                             "grad_norm": grad_norm,
                             "clip": torch.where(
@@ -711,6 +689,26 @@ class Trainer:
                                 optimizer.step()
                             if isinstance(scheduler, AbsBatchStepScheduler):
                                 scheduler.step()
+
+                except RuntimeError:
+                    #If the grad_norm is not finite, then it cannot be clipped
+                    logging.warning(
+                        f"The grad norm is not finite {grad_norm}. Skipping updating the model."
+                    )
+
+                    # Must invoke scaler.update() if unscale_() is used in the iteration
+                    # to avoid the following error:
+                    #   RuntimeError: unscale_() has already been called
+                    #   on this optimizer since the last update().
+                    # Note that if the gradient has inf/nan values,
+                    # scaler.step skips optimizer.step().
+                    if scaler is not None:
+                        for iopt, optimizer in enumerate(optimizers):
+                            if optim_idx is not None and iopt != optim_idx:
+                                continue
+                            scaler.step(optimizer)
+                            scaler.update()
+
                 for iopt, optimizer in enumerate(optimizers):
                     if optim_idx is not None and iopt != optim_idx:
                         continue
