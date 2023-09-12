@@ -693,7 +693,7 @@ class Trainer:
                 except RuntimeError:
                     #If the grad_norm is not finite, then it cannot be clipped
                     logging.warning(
-                        f"The grad norm is not finite {grad_norm}. Skipping updating the model."
+                        f"The grad norm is not finite. Skipping updating the model."
                     )
 
                     # Must invoke scaler.update() if unscale_() is used in the iteration
