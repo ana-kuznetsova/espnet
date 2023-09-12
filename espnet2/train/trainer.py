@@ -657,6 +657,7 @@ class Trainer:
                     model.parameters(),
                     max_norm=grad_clip,
                     norm_type=grad_clip_type,
+                    error_if_nonfinite=True
                 )
                 print('After clipping', grad_norm)
                 # PyTorch<=1.4, clip_grad_norm_ returns float value
