@@ -33,6 +33,7 @@ class CodecFrontend(AbsFrontend):
     def forward(self, input: torch.Tensor, input_lengths: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         #print("Inp len", input_lengths)
         input = input.unsqueeze(1)
+        input = self.codec.preprocess(input, self.fs)
         z, _, _, _, _ = self.codec.encode(input, self.n_quantizers)
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
