@@ -549,6 +549,12 @@ class AbsTask(ABC):
             help="The number of gradient accumulation",
         )
         group.add_argument(
+            "--freeze_frontend",
+           type=str2bool,
+           default=False,
+           help="Freeze trainable frontend (only implemented for CodecFrontend)" 
+        )
+        group.add_argument(
             "--no_forward_run",
             type=str2bool,
             default=False,

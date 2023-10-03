@@ -90,6 +90,7 @@ class TrainerOptions:
     unused_parameters: bool
     wandb_model_log_interval: int
     create_graph_in_tensorboard: bool
+    freeze_frontend: bool
 
 
 class Trainer:
@@ -128,6 +129,12 @@ class Trainer:
     def add_arguments(cls, parser: argparse.ArgumentParser):
         """Reserved for future development of another Trainer"""
         pass
+
+    @staticmethod
+    def freeze_frontend(model: torch.nn.Module, frontend_name: str = "codec"):
+        for name, param in model.named_parameters():
+            if frontend_name in name:
+                param.requires_grad = False
 
     @staticmethod
     def resume(
@@ -500,6 +507,9 @@ class Trainer:
                 log_interval = 100
 
         model.train()
+        if options.freeze_frontend:
+            cls.freeze_frontend(model)
+
         all_steps_are_invalid = True
         # [For distributed] Because iteration counts are not always equals between
         # processes, send stop-flag to the other processes if iterator is finished
@@ -565,7 +575,6 @@ class Trainer:
                 with reporter.measure_time("forward_time"):
                     retval = model(**batch)
                     #print('---------------------------')
-                    #print("DEBUG Batch", batch )
                     #print("DEBUG retval", retval)
                     #print('---------------------------')
                     # Note(kamo):
@@ -695,6 +704,7 @@ class Trainer:
                     logging.warning(
                         f"The grad norm is not finite. Skipping updating the model."
                     )
+                    logging.info(f"Utt_ID %s", batch["utt_id"])
 
                     # Must invoke scaler.update() if unscale_() is used in the iteration
                     # to avoid the following error:

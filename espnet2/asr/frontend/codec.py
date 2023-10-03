@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 import dac
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
+import logging
 
 class CodecFrontend(AbsFrontend):
     '''DAC speech codec frontend.
@@ -13,7 +14,6 @@ class CodecFrontend(AbsFrontend):
     '''
     def __init__(self, fs: int = 16000,
                        n_quantizers: int = 6,
-                       trainable: bool = False,
                        normalize_codes: bool = False) -> None:
         super().__init__()
         self.fs = fs
@@ -21,10 +21,6 @@ class CodecFrontend(AbsFrontend):
         self.n_quantizers = n_quantizers
         codec_path = dac.utils.download(model_type="16khz")
         self.codec = dac.DAC.load(codec_path)
-        if trainable:
-            self.codec.train()
-        else:
-            self.codec.eval()
         self.normalize_codes = normalize_codes
 
     def output_size(self) -> int:
@@ -38,6 +34,7 @@ class CodecFrontend(AbsFrontend):
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
+        #logging.info(f"Z stats %.4f  %.4f", z.min().data, z.max().data)
         #Repeat each frame twice to match the original MFCC framerate
         z = z.repeat_interleave(2, dim=1)
         input_lengths = torch.Tensor([length * 2] * bsize)
