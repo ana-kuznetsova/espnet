@@ -9,15 +9,15 @@ train_set="train_clean_100"
 valid_set="dev"
 test_sets="test_clean test_other dev_clean dev_other"
 
-asr_config=conf/tuning/enc_asr/train_asr_conformer_nondet_codec_M.yaml
+asr_config=conf/tuning/enc_asr/train_asr_conformer_nondet_codec_S_6kbps.yaml
 inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_M_debug \
+    --asr_tag codec_frozen_S_6kbps \
     --stage 11 \
     --ngpu 1 \
-    --nj 1 \
+    --nj 11 \
     --gpu_inference true \
     --inference_nj 1 \
     --nbpe 5000 \
