@@ -9,6 +9,7 @@ import numpy as np
 import soundfile as sf
 import torch
 import torchaudio
+import dac
 
 from espnet2.asr.frontend.s3prl import S3prlFrontend
 from espnet2.iterators.sequence_iter_factory import SequenceIterFactory
@@ -27,14 +28,17 @@ logger = logging.getLogger("s3prl_feature_loader")
 
 
 def format_feature_conf_str(feature_conf: str):
+    import yaml
     # 1. removing any extraneous white spaces
     feature_conf = re.sub(r"\s", "", feature_conf)
     # Surrounding any word/path with "
-    feature_conf = re.sub(r"([\w\.\-/]+)", r'"\1"', feature_conf)
+    #feature_conf = re.sub(r"([\w\.\-/]+)", r'"\1"', feature_conf)
     # Replacing = with :
-    feature_conf = re.sub(r"=", ": ", feature_conf)
+    #feature_conf = re.sub(r"=", ": ", feature_conf)
     try:
-        feature_conf = json.loads(feature_conf)
+        #feature_conf = json.loads(feature_conf)
+        with open(feature_conf, "r") as fo:
+            feature_conf = yaml.safe_load(fo)
     except Exception as e:
         logger.warning(f"Failure in parsing feature_conf {feature_conf}")
         raise e
@@ -302,3 +306,34 @@ class S3PRLFeatureReader(BaseFeatureReader):
         feats = feats.cpu()
         feats_lens = feats_lens.cpu()
         return feats, feats_lens
+
+
+class CodecFeatureReader(BaseFeatureReader):
+    def __init__(
+        self,
+        num_codebooks: int = 12,
+        fs: int = 16000,
+        use_gpu: bool = True,
+    ):  
+        model_path = dac.utils.download(model_type="16khz")
+        model = dac.DAC.load(model_path)
+        self.model = model
+        self.device = "cuda" if use_gpu and torch.cuda.is_available() else "cpu"
+        self.model = self.model.to(self.device)
+        self.fs = fs
+        self.num_codebooks = num_codebooks
+
+    def get_feats(
+        self,
+        data: torch.Tensor,
+        data_lens: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        with torch.no_grad():
+            x = x.to(self.device)
+            x = self.model.preprocess(data, self.fs)
+            feats, _, _, _, _ = self.model.encode(x, n_quantizers=self.num_codebooks)
+
+        feats = feats.cpu()
+        feat_lens = feats.shape[0] * [feats.shape[1]]
+        feat_lens = torch.Tensor(feat_lens)
+        return feats, feat_lens
