@@ -178,7 +178,6 @@ def _crop_audio_label(
 
     return waveform, label, length
 
-import logging
 
 def common_collate_fn(
     data: Collection[Tuple[str, Dict[str, np.ndarray]]],

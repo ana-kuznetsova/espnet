@@ -30,7 +30,6 @@ def to_device(m, x):
         )
     return x.to(device)
 
-import logging
 def pad_list(xs, pad_value):
     """Perform padding for the list of tensors.
 
