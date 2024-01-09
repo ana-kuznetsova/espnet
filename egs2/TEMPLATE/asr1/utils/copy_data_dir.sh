@@ -132,8 +132,8 @@ done
 rm $destdir/spk_map $destdir/utt_map
 
 echo "$0: copied data from $srcdir to $destdir"
-
-for f in feats.scp cmvn.scp vad.scp utt2lang utt2uniq utt2dur utt2num_frames text wav.scp reco2file_and_channel frame_shift stm glm ctm; do
+#feats.scp
+for f in cmvn.scp vad.scp utt2lang utt2uniq utt2dur utt2num_frames text wav.scp reco2file_and_channel frame_shift stm glm ctm; do
   if [ -f $destdir/$f ] && [ ! -f $srcdir/$f ]; then
     echo "$0: file $f exists in dest $destdir but not in src $srcdir.  Moving it to"
     echo " ... $destdir/.backup/$f"

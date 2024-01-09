@@ -82,7 +82,7 @@ def dump_feature(
     assert os.path.exists(utt2num_samples), f"{utt2num_samples} does not exist."
 
     iterator = build_data_iterator(rspecifier, in_filetype, utt2num_samples, batch_bins)
-
+    print(f"Num utters total: {len(iterator)}")
     with file_writer_helper(
         wspecifier,
         filetype=out_filetype,
@@ -91,7 +91,10 @@ def dump_feature(
         for utt_ids, data in iterator:
             feats, feats_lens = reader.get_feats(data["speech"], data["speech_lengths"])
             for idx, utt in enumerate(utt_ids):
-                writer[utt] = feats[idx][: feats_lens[idx]].numpy()
+                if isinstance(reader, CodecFeatureReader):
+                    writer[utt] = feats[idx][:, :feats_lens[idx]].numpy()
+                else:
+                    writer[utt] = feats[idx][:feats_lens[idx]].numpy()
     logger.info("finished successfully")
 
 
@@ -329,11 +332,12 @@ class CodecFeatureReader(BaseFeatureReader):
         data_lens: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         with torch.no_grad():
-            x = x.to(self.device)
+            data = data.to(self.device)
+            data = data.unsqueeze(1)
             x = self.model.preprocess(data, self.fs)
             feats, _, _, _, _ = self.model.encode(x, n_quantizers=self.num_codebooks)
 
         feats = feats.cpu()
-        feat_lens = feats.shape[0] * [feats.shape[1]]
-        feat_lens = torch.Tensor(feat_lens)
+        feat_lens = feats.shape[0] * [feats.shape[-1]]
+        feat_lens = torch.Tensor(feat_lens).to(dtype=torch.long)
         return feats, feat_lens

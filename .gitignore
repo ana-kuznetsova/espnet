@@ -32,7 +32,7 @@ test_spm.model
 egs*/*/*/data*
 egs*/*/*/db
 egs*/*/*/downloads
-egs*/*/*/dump
+egs*/*/*/dump*
 egs*/*/*/enhan
 egs*/*/*/exp
 egs*/*/*/fbank
@@ -90,3 +90,4 @@ tools/fairseq*
 tools/featbin*
 tools/Miniconda*
 tools/miniconda
+kaldi/

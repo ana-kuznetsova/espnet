@@ -178,6 +178,7 @@ def _crop_audio_label(
 
     return waveform, label, length
 
+import logging
 
 def common_collate_fn(
     data: Collection[Tuple[str, Dict[str, np.ndarray]]],
@@ -226,6 +227,8 @@ def common_collate_fn(
         # Assume the first axis is length:
         # tensor_list: Batch x (Length, ...)
         tensor_list = [torch.from_numpy(a) for a in array_list]
+        # Reshape tensor to accomodate codec features
+        tensor_list = [t.view(-1, 1) for t in tensor_list]
         # tensor: (Batch, Length, ...)
         tensor = pad_list(tensor_list, pad_value)
         output[key] = tensor
