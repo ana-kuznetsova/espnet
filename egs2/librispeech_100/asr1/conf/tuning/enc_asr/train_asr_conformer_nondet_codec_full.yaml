@@ -1,9 +1,9 @@
 encoder: conformer
 encoder_conf:
     output_size: 256
-    attention_heads: 4
-    linear_units: 1024
-    num_blocks: 12
+    attention_heads: 2
+    linear_units: 64
+    num_blocks: 1
     dropout_rate: 0.1
     positional_dropout_rate: 0.1
     attention_dropout_rate: 0.1
@@ -15,13 +15,13 @@ encoder_conf:
     selfattention_layer_type: rel_selfattn
     activation_type: swish
     use_cnn_module: true
-    cnn_module_kernel: 31
+    cnn_module_kernel: 3
 
 decoder: transformer
 decoder_conf:
     attention_heads: 4
     linear_units: 2048
-    num_blocks: 3
+    num_blocks: 6
     dropout_rate: 0.1
     positional_dropout_rate: 0.1
     self_attention_dropout_rate: 0.1
@@ -32,12 +32,12 @@ model_conf:
     lsm_weight: 0.1
     length_normalized_loss: false
 
-frontend: codec
-frontend_conf:
-  n_quantizers: 6
-  trainable: False
-  fs: 16000
-  normalize_codes: False
+#frontend: codec
+#frontend_conf:
+#  n_quantizers: 6
+#  trainable: False
+#  fs: 16000
+#  normalize_codes: False
 
 seed: 2022
 log_interval: 100
@@ -46,9 +46,9 @@ num_workers: 2
 sort_in_batch: descending       # how to sort data in making batch
 sort_batch: descending          # how to sort created batches
 batch_type: numel
-batch_bins: 600000
+batch_bins: 16000000
 accum_grad: 4
-max_epoch: 70
+max_epoch: 100
 grad_clip: 20
 patience: none
 init: none
@@ -64,24 +64,26 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.002
-    weight_decay: 0.000001
-scheduler: warmuplr
-scheduler_conf:
-    warmup_steps: 15000
+    lr: 0.02
+#    weight_decay: 0.000001
+#scheduler: warmuplr
+#scheduler_conf:
+#    warmup_steps: 15000
 
-#specaug: specaug
-#specaug_conf:
-#    apply_time_warp: true
-#    time_warp_window: 5
-#    time_warp_mode: bicubic
-#    apply_freq_mask: true
-#    freq_mask_width_range:
-#    - 0
-#    - 27
-#    num_freq_mask: 2
-#    apply_time_mask: true
-#    time_mask_width_ratio_range:
-#    - 0.
-#    - 0.05
-#    num_time_mask: 5
+specaug: specaug
+specaug_conf:
+    apply_time_warp: true
+    time_warp_window: 5
+    time_warp_mode: bicubic
+    apply_freq_mask: true
+    freq_mask_width_range:
+    - 0
+    - 27
+    num_freq_mask: 2
+    apply_time_mask: true
+    time_mask_width_ratio_range:
+    - 0.    
+    - 0.05
+    num_time_mask: 5
+init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
+freeze_param: ["decoder"]

@@ -4,6 +4,7 @@ from typing import Collection, Dict, List, Tuple, Union
 import numpy as np
 import torch
 from typeguard import check_argument_types, check_return_type
+import logging
 
 from espnet.nets.pytorch_backend.nets_utils import pad_list
 
@@ -226,12 +227,10 @@ def common_collate_fn(
         # Assume the first axis is length:
         # tensor_list: Batch x (Length, ...)
         tensor_list = [torch.from_numpy(a) for a in array_list]
-        # Reshape tensor to accomodate codec features
-        tensor_list = [t.view(-1, 1) for t in tensor_list]
         # tensor: (Batch, Length, ...)
         tensor = pad_list(tensor_list, pad_value)
+        #logging.info("DEBUG collate_fn %s", tensor[0].shape)
         output[key] = tensor
-
         # lens: (Batch,)
         if key not in not_sequence:
             lens = torch.tensor([d[key].shape[0] for d in data], dtype=torch.long)

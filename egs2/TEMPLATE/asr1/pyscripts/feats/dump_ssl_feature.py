@@ -30,7 +30,6 @@ feature_reader_choice = dict(
     codec=CodecFeatureReader,
 )
 
-
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--feature_conf", type=str, default=None)
@@ -77,7 +76,6 @@ def main(args):
     logging.info("Loading Features")
 
     feature_conf = format_feature_conf_str(args.feature_conf)
-    logging.info(f"Feature configuration: {feature_conf}")
     reader_class = feature_reader_choice[feature_conf["type"]]
     reader_conf = feature_conf.get("conf", dict())
 

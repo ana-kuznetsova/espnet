@@ -10,6 +10,7 @@ import soundfile as sf
 import torch
 import torchaudio
 import dac
+import logging
 
 from espnet2.asr.frontend.s3prl import S3prlFrontend
 from espnet2.iterators.sequence_iter_factory import SequenceIterFactory
@@ -90,11 +91,10 @@ def dump_feature(
     ) as writer:
         for utt_ids, data in iterator:
             feats, feats_lens = reader.get_feats(data["speech"], data["speech_lengths"])
+            #logging.info("DUMP FEATURE %s %s", feats.shape, feats_lens)
             for idx, utt in enumerate(utt_ids):
-                if isinstance(reader, CodecFeatureReader):
-                    writer[utt] = feats[idx][:, :feats_lens[idx]].numpy()
-                else:
-                    writer[utt] = feats[idx][:feats_lens[idx]].numpy()
+                #logging.info("WRITABLE FEAT %s", feats[idx][:feats_lens[idx]].numpy().shape)
+                writer[utt] = feats[idx][:feats_lens[idx]].numpy()
     logger.info("finished successfully")
 
 
@@ -338,6 +338,10 @@ class CodecFeatureReader(BaseFeatureReader):
             feats, _, _, _, _ = self.model.encode(x, n_quantizers=self.num_codebooks)
 
         feats = feats.cpu()
-        feat_lens = feats.shape[0] * [feats.shape[-1]]
+        # Reshape feats to (batch, length, feat_dim)
+        bsize, feat_dim, feat_length = feats.size()
+        feats = feats.view(bsize, feat_length, feat_dim)
+        feat_lens = feats.shape[0] * [feats.shape[1]]
         feat_lens = torch.Tensor(feat_lens).to(dtype=torch.long)
+        logging.info("TEST feats %s %s", feats.shape, feat_lens)
         return feats, feat_lens

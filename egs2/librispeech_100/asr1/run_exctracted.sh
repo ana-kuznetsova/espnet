@@ -12,11 +12,12 @@ test_sets="test_clean test_other"
 asr_config=conf/tuning/enc_asr/train_asr_conformer_nondet_codec_S.yaml
 inference_config=conf/decode_asr.yaml
 dump_dir=/data/anakuzne/espnet/egs2/librispeech_100/asr1/dump_codec
+export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_S \
-    --stage 11 \
+    --asr_tag codec_frozen_S_preencoder_large_batch_warmup15k \
+    --stage 12 \
     --ngpu 1 \
     --nj 11 \
     --gpu_inference true \

@@ -1,3 +1,11 @@
+preencoder: linear
+preencoder_conf:
+    input_size: 1024
+    output_size: 80
+    dropout: 0.1
+
+#normalize: none
+
 encoder: conformer
 encoder_conf:
     output_size: 256
@@ -45,7 +53,7 @@ num_workers: 2
 sort_in_batch: descending       # how to sort data in making batch
 sort_batch: descending          # how to sort created batches
 batch_type: numel
-batch_bins: 1
+batch_bins: 16000000
 accum_grad: 4
 max_epoch: 70
 grad_clip: 20
@@ -64,11 +72,11 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.002
+    lr: 0.0002
     weight_decay: 0.000001
 scheduler: warmuplr
 scheduler_conf:
-    warmup_steps: 5000
+    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:

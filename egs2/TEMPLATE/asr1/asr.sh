@@ -1543,6 +1543,8 @@ if [ ${stage} -le 12 ] && [ ${stop_stage} -ge 12 ] && ! [[ " ${skip_stages} " =~
 
         # 1. Split the key file
         key_file=${_data}/${_scp}
+        #echo "DEBUG"
+        #echo $key_file
         split_scps=""
         if "${use_k2}"; then
           # Now only _nj=1 is verified if using k2
@@ -1571,22 +1573,22 @@ if [ ${stage} -le 12 ] && [ ${stop_stage} -ge 12 ] && ! [[ " ${skip_stages} " =~
                 --asr_model_file "${asr_exp}"/"${inference_asr_model}" \
                 --output_dir "${_logdir}"/output.JOB \
                 ${_opts} ${inference_args} || { cat $(grep -l -i error "${_logdir}"/asr_inference.*.log) ; exit 1; }
-
-        # 3. Calculate and report RTF based on decoding logs
-        if [ ${asr_task} == "asr" ] && [ -z ${inference_bin_tag} ]; then
-            log "Calculating RTF & latency... log: '${_logdir}/calculate_rtf.log'"
-            rm -f "${_logdir}"/calculate_rtf.log
-            _fs=$(python3 -c "import humanfriendly as h;print(h.parse_size('${fs}'))")
-            _sample_shift=$(python3 -c "print(1 / ${_fs} * 1000)") # in ms
-            ${_cmd} JOB=1 "${_logdir}"/calculate_rtf.log \
-                pyscripts/utils/calculate_rtf.py \
-                    --log-dir ${_logdir} \
-                    --log-name "asr_inference" \
-                    --input-shift ${_sample_shift} \
-                    --start-times-marker "speech length" \
-                    --end-times-marker "best hypo" \
-                    --inf-num ${num_inf} || { cat "${_logdir}"/calculate_rtf.log; exit 1; }
-        fi
+        #NOTE (anakuzne) skipping RTF calc because of the length mismatch
+        ## 3. Calculate and report RTF based on decoding logs
+        #if [ ${asr_task} == "asr" ] && [ -z ${inference_bin_tag} ]; then
+        #    log "Calculating RTF & latency... log: '${_logdir}/calculate_rtf.log'"
+        #    rm -f "${_logdir}"/calculate_rtf.log
+        #    _fs=$(python3 -c "import humanfriendly as h;print(h.parse_size('${fs}'))")
+        #    _sample_shift=$(python3 -c "print(1 / ${_fs} * 1000)") # in ms
+        #    ${_cmd} JOB=1 "${_logdir}"/calculate_rtf.log \
+        #        pyscripts/utils/calculate_rtf.py \
+        #            --log-dir ${_logdir} \
+        #            --log-name "asr_inference" \
+        #            --input-shift ${_sample_shift} \
+        #            --start-times-marker "speech length" \
+        #            --end-times-marker "best hypo" \
+        #            --inf-num ${num_inf} || { cat "${_logdir}"/calculate_rtf.log; exit 1; }
+        #fi
 
         # 4. Concatenates the output files from each jobs
         # shellcheck disable=SC2068
