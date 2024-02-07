@@ -1195,7 +1195,6 @@ class AbsTask(ABC):
             logging.info("Skipping model building in collect_stats stage.")
         else:
             # 2. Build model
-            logging.info("DEBUG %s", args)
             model = cls.build_model(args=args)
             if not isinstance(model, AbsESPnetModel):
                 raise RuntimeError(

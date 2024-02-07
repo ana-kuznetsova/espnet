@@ -68,12 +68,15 @@ class LinearEncoder(AbsEncoder):
                                                 out_features=hidden_dims[i][1]))
                 all_layers.append(torch.nn.SiLU())
 
-                if dropout:
-                    dropout_layer = torch.nn.Dropout(p=dropout)
-                    all_layers.append(dropout_layer)
             else:
                 all_layers.append(torch.nn.Linear(in_features=hidden_dims[i][0], 
                                                     out_features=hidden_dims[i][1]))
+        
+        all_layers.append(torch.nn.LayerNorm(output_size))
+
+        if dropout:
+                dropout_layer = torch.nn.Dropout(p=dropout)
+                all_layers.append(dropout_layer)
         
         self.enc = torch.nn.ModuleList(all_layers)
 
