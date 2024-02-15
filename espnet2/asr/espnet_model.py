@@ -53,6 +53,9 @@ class ESPnetASRModel(AbsESPnetModel):
         aux_ctc: dict = None,
         ctc_weight: float = 0.5,
         interctc_weight: float = 0.0,
+        use_vq_losses: bool = False,
+        commitment_weight: float = 1.0,
+        codebook_weight: float = 1.0,
         ignore_id: int = -1,
         lsm_weight: float = 0.0,
         length_normalized_loss: bool = False,
@@ -96,6 +99,9 @@ class ESPnetASRModel(AbsESPnetModel):
         self.token_list = token_list.copy()
 
         self.frontend = frontend
+        self.use_vq_losses = use_vq_losses
+        self.commitment_weight = commitment_weight
+        self.codebook_weight = codebook_weight
         self.specaug = specaug
         self.normalize = normalize
         self.preencoder = preencoder
@@ -234,7 +240,10 @@ class ESPnetASRModel(AbsESPnetModel):
         text = text[:, : text_lengths.max()]
 
         # 1. Encoder
-        encoder_out, encoder_out_lens = self.encode(speech, speech_lengths)
+        if self.use_vq_losses:
+            encoder_out, encoder_out_lens, commitment_loss, codebook_loss = self.encode(speech, speech_lengths)
+        else:
+            encoder_out, encoder_out_lens = self.encode(speech, speech_lengths)
         intermediate_outs = None
         if isinstance(encoder_out, tuple):
             intermediate_outs = encoder_out[1]
@@ -339,6 +348,15 @@ class ESPnetASRModel(AbsESPnetModel):
                 loss = loss_ctc
             else:
                 loss = self.ctc_weight * loss_ctc + (1 - self.ctc_weight) * loss_att
+            
+            if self.use_vq_losses:
+                #logging.info("DEBUG VQ loss %s %s %s", loss.shape, commitment_loss.shape, codebook_loss.shape)
+                commitment_loss = commitment_loss.mean()
+                codebook_loss = codebook_loss.mean()
+                loss = loss + (self.commitment_weight * commitment_loss) +  (self.codebook_weight * codebook_loss)
+                # Collect VQ loss stats
+                stats["commitment"] = commitment_loss.detach()
+                stats["codebook"] = codebook_loss.detach()
 
             # Collect Attn branch stats
             stats["loss_att"] = loss_att.detach() if loss_att is not None else None
@@ -375,7 +393,10 @@ class ESPnetASRModel(AbsESPnetModel):
         """
         with autocast(False):
             # 1. Extract feats
-            feats, feats_lengths = self._extract_feats(speech, speech_lengths)
+            if self.use_vq_losses:
+                feats, feats_lengths, commitment_loss, codebook_loss = self._extract_feats(speech, speech_lengths)
+            else:
+                feats, feats_lengths = self._extract_feats(speech, speech_lengths)
 
             # 2. Data augmentation
             if self.specaug is not None and self.training:
@@ -423,8 +444,10 @@ class ESPnetASRModel(AbsESPnetModel):
 
         if intermediate_outs is not None:
             return (encoder_out, intermediate_outs), encoder_out_lens
-
-        return encoder_out, encoder_out_lens
+        if self.use_vq_losses:
+            return encoder_out, encoder_out_lens, commitment_loss, codebook_loss
+        else:
+            return encoder_out, encoder_out_lens
 
     def _extract_feats(
         self, speech: torch.Tensor, speech_lengths: torch.Tensor
@@ -439,11 +462,17 @@ class ESPnetASRModel(AbsESPnetModel):
             #  e.g. STFT and Feature extract
             #       data_loader may send time-domain signal in this case
             # speech (Batch, NSamples) -> feats: (Batch, NFrames, Dim)
-            feats, feats_lengths = self.frontend(speech, speech_lengths)
+            if self.use_vq_losses:
+                feats, feats_lengths, commitment_loss, codebook_loss = self.frontend(speech, speech_lengths)
+            else:
+                feats, feats_lengths = self.frontend(speech, speech_lengths)
         else:
             # No frontend and no feature extract
             feats, feats_lengths = speech, speech_lengths
-        return feats, feats_lengths
+        if self.use_vq_losses:
+            return feats, feats_lengths, commitment_loss, codebook_loss
+        else:
+            return feats, feats_lengths
 
     def nll(
         self,

@@ -27,7 +27,7 @@ test_spm.model
 *.vim
 *.swp
 *.nfs*
-
+tools/enc_asr/
 # recipe related
 egs*/*/*/data*
 egs*/*/*/db

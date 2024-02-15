@@ -13,7 +13,7 @@ asr_config=conf/tuning/enc_asr/train_asr_conformer_lr2e-3_warmup15k_amp_nondeter
 inference_config=conf/decode_asr.yaml
 
 #Add path to sclite for scoring
-export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
+#export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
 
 ./asr.sh \
     --lang en \

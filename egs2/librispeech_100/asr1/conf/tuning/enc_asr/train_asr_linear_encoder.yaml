@@ -1,7 +1,7 @@
 encoder: linear
 encoder_conf:
     output_size: 256
-    num_layers: 6
+    num_layers: 2
     factor: false
     residual: false
     dropout: 0.2

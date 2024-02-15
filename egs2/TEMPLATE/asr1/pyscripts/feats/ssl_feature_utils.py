@@ -343,5 +343,4 @@ class CodecFeatureReader(BaseFeatureReader):
         feats = feats.view(bsize, feat_length, feat_dim)
         feat_lens = feats.shape[0] * [feats.shape[1]]
         feat_lens = torch.Tensor(feat_lens).to(dtype=torch.long)
-        logging.info("TEST feats %s %s", feats.shape, feat_lens)
         return feats, feat_lens

@@ -11,7 +11,9 @@ decoder_conf:
     src_attention_dropout_rate: 0.1
 
 model_conf:
-    ctc_weight: 0.3
+    # put ctc_weight = 1.0 to avoid computing label smoothing loss
+   #ctc_weight: 0.3
+    ctc_weight: 1.0
     lsm_weight: 0.1
     length_normalized_loss: false
 
@@ -51,9 +53,9 @@ optim: adam
 optim_conf:
     lr: 0.0002
     weight_decay: 0.000001
-#scheduler: warmuplr
-#scheduler_conf:
-#    warmup_steps: 15000
+scheduler: warmuplr
+scheduler_conf:
+    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:
@@ -70,5 +72,5 @@ specaug_conf:
     - 0.    
     - 0.05
     num_time_mask: 5
-init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_no_spec_augment_1024_enc_out/latest.pth:decoder:decoder:"]
+#init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_no_spec_augment_1024_enc_out/latest.pth:decoder:decoder:"]
 #freeze_param: ["decoder"]

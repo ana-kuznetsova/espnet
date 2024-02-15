@@ -283,6 +283,16 @@ class ASRTask(AbsTask):
             default=None,
             help="The keyword arguments for joint network class.",
         )
+        group.add_argument("--use_vq_losses",
+                           type=str2bool, 
+                           default=False)
+        
+        group.add_argument("--commitment_weight",
+                           type=float, 
+                           default=1.0)
+        group.add_argument("--codebook_weight",
+                           type=float, 
+                           default=1.0)
 
         group = parser.add_argument_group(description="Preprocess related")
         group.add_argument(
@@ -470,6 +480,7 @@ class ASRTask(AbsTask):
 
     @classmethod
     def build_model(cls, args: argparse.Namespace) -> ESPnetASRModel:
+        logging.info("DEBUG MODEL ARGS %s", args)
         assert check_argument_types()
         if isinstance(args.token_list, str):
             with open(args.token_list, encoding="utf-8") as f:
