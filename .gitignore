@@ -45,7 +45,7 @@ egs*/*/*/nltk*
 egs*/*/*/.cache*
 egs*/*/*/pretrained_models*
 egs*/fisher_callhome_spanish/*/local/mapping*
-
+egs2/librispeech/asr1/asr_stats_codec_en_bpe5000*
 # tools related
 tools/chainer
 tools/bin

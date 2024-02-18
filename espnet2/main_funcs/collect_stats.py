@@ -75,6 +75,7 @@ def collect_stats(
                             range(ngpu),
                             module_kwargs=batch,
                         )
+                        logging.info("DEBUG GPU %s", data)
 
                     # 3. Calculate sum and square sum
                     for key, v in data.items():

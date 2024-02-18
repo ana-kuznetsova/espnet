@@ -12,8 +12,8 @@ test_sets="test_clean test_other"
 
 asr_config=conf/tuning/enc_asr/train_asr_conformer_nondet_codec_full.yaml
 inference_config=conf/decode_asr.yaml
-dump_dir=/data/anakuzne/espnet/egs2/librispeech_100/asr1/dump_codec
-export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
+#dump_dir=/data/anakuzne/espnet/egs2/librispeech_100/asr1/dump_codec
+
 ./asr.sh \
     --lang en \
     --asr_tag asr_codec_frozen_from_pretrained_decoder_6layer_frozen_enc_reduced_conformer_lr2e-2_$(date -I) \
@@ -21,10 +21,11 @@ export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
     --ngpu 1 \
     --nj 11 \
     --gpu_inference true \
+    --speed_perturb_factors "0.9 1.0 1.1" \
     --inference_nj 11 \
     --nbpe 5000 \
     --audio_format "flac.ark" \
-    --feats_type extracted \
+    --feats_type raw \
     --dumpdir "${dump_dir}" \
     --use_lm false \
     --asr_config "${asr_config}" \

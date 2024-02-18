@@ -25,6 +25,8 @@ from espnet.nets.pytorch_backend.transformer.label_smoothing_loss import (  # no
     LabelSmoothingLoss,
 )
 
+from espnet2.asr.frontend. codec import CodecFrontend
+
 if V(torch.__version__) >= V("1.6.0"):
     from torch.cuda.amp import autocast
 else:
@@ -462,10 +464,14 @@ class ESPnetASRModel(AbsESPnetModel):
             #  e.g. STFT and Feature extract
             #       data_loader may send time-domain signal in this case
             # speech (Batch, NSamples) -> feats: (Batch, NFrames, Dim)
-            if self.use_vq_losses:
-                feats, feats_lengths, commitment_loss, codebook_loss = self.frontend(speech, speech_lengths)
+            if isinstance(self.frontend, CodecFrontend):
+                if self.use_vq_losses:
+                    feats, feats_lengths, commitment_loss, codebook_loss = self.frontend(speech, speech_lengths)
+                else:
+                    feats, feats_lengths, _, _ = self.frontend(speech, speech_lengths)
             else:
                 feats, feats_lengths = self.frontend(speech, speech_lengths)
+
         else:
             # No frontend and no feature extract
             feats, feats_lengths = speech, speech_lengths

@@ -22,13 +22,12 @@ model_conf:
     length_normalized_loss: false
 
 #normalize: none
-
-#frontend: codec
-#frontend_conf:
-#  n_quantizers: 6
-#  trainable: False
-#  fs: 16000
-#  normalize_codes: False
+freeze_frontend: true
+frontend: codec
+frontend_conf:
+  n_quantizers: 12
+  fs: 16000
+  normalize_codes: False
 
 seed: 2022
 log_interval: 100
@@ -55,11 +54,11 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.0002
+    lr: 0.002
     weight_decay: 0.000001
-#scheduler: warmuplr
-#scheduler_conf:
-#    warmup_steps: 15000
+scheduler: warmuplr
+scheduler_conf:
+    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:
@@ -76,5 +75,5 @@ specaug_conf:
     - 0.    
     - 0.05
     num_time_mask: 5
-init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
-freeze_param: ["decoder"]
+#init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
+#freeze_param: ["decoder"]
