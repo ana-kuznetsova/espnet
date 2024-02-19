@@ -15,6 +15,24 @@ from espnet2.torch_utils.device_funcs import to_device
 from espnet2.torch_utils.forward_adaptor import ForwardAdaptor
 from espnet2.train.abs_espnet_model import AbsESPnetModel
 
+def adjust_codec_batch(batch:Dict[str, torch.Tensor], ngpu:int) -> Dict[str, torch.Tensor]:
+    # Check divisibility
+    speech = batch["speech"]
+    speech_lengths = batch["speech_lengths"]
+
+    codec_factor = 320
+
+    logging.info("DEBUG adjust_bsize %s", speech.shape)
+
+    if speech.shape[0] % ngpu != 0:
+        speech = speech[:-1,]
+        speech_lengths = speech_lengths[:-1]
+    
+    if (speech.shape[1] // codec_factor) % ngpu != 0:
+        pass
+    
+    return batch
+
 
 @torch.no_grad()
 def collect_stats(
@@ -69,13 +87,16 @@ def collect_stats(
                         data = model.collect_feats(**batch)
                     else:
                         # Note that data_parallel can parallelize only "forward()"
+                        # Need a work around the data parallel bug in pytorch.
+                        # Batch length should be divisible by ngpus
+                        #logging.info("DEBUG batch brefore data_parallel %s", batch["speech"])
+                        #batch = adjust_bsize(batch, ngpu)
                         data = data_parallel(
                             ForwardAdaptor(model, "collect_feats"),
                             (),
                             range(ngpu),
                             module_kwargs=batch,
                         )
-                        logging.info("DEBUG GPU %s", data)
 
                     # 3. Calculate sum and square sum
                     for key, v in data.items():

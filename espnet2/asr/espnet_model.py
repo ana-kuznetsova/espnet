@@ -457,7 +457,9 @@ class ESPnetASRModel(AbsESPnetModel):
         assert speech_lengths.dim() == 1, speech_lengths.shape
 
         # for data-parallel
-        speech = speech[:, : speech_lengths.max()]
+        #logging.info("DEBUG extract feats before %s", speech.shape)
+        #speech = speech[:, : speech_lengths.max()]
+        #logging.info("DEBUG extract feats after %s", speech.shape)
 
         if self.frontend is not None:
             # Frontend

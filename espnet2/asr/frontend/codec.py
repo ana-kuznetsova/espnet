@@ -49,7 +49,6 @@ class CodecFrontend(AbsFrontend):
         return audio_data
 
     def forward(self, input: torch.Tensor, input_lengths: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        #print("Inp len", input_lengths)
         input = input.unsqueeze(1)
         if self.preprocess_signal:
             input = self.preprocess(input, self.fs)
@@ -60,12 +59,11 @@ class CodecFrontend(AbsFrontend):
         z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
         #z_q, commitment_loss, codebook_loss, indices, z_e
         z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
-        #logging.info("DEBUG codewords %s", z)
 
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
-        input_lengths = torch.Tensor([length] * bsize).long()
+        input_lengths = torch.Tensor([length] * bsize).long().to(z.device)
 
         bsize, feat_dim, length = commitment_loss.size()
         commitment_loss = commitment_loss.view(bsize, length, feat_dim).float().mean([1, 2])
