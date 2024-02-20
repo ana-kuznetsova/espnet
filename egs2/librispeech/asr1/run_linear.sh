@@ -13,21 +13,23 @@ asr_config=conf/tuning/enc_asr/train_asr_linear_new.yaml
 lm_config=conf/tuning/train_lm_transformer2.yaml
 inference_config=conf/decode_asr.yaml
 
+#CUBLAS_WORKSPACE_CONFIG=:4096:8
+
 ./asr.sh \
     --lang en \
     --ngpu 2 \
-    --stage 10 \
+    --stage 11 \
     --nj 1 \
     --nbpe 5000 \
     --max_wav_duration 30 \
     --speed_perturb_factors "0.9 1.0 1.1" \
     --gpu_inference true \
-    --asr_tag codec_frozen_linear_encoder_4layers_no_init_sp_$(date -I)\
+    --asr_tag codec_frozen_linear_encoder_no_init_sp_lm_trainable_decoder_$(date -I)\
     --asr_stats_dir asr_stats_codec_en_bpe5000 \
     --asr_config "${asr_config}" \
     --lm_config "${lm_config}" \
     --inference_config "${inference_config}" \
-    --inference_nj 11\
+    --inference_nj 1\
     --train_set "${train_set}" \
     --valid_set "${valid_set}" \
     --test_sets "${test_sets}" \

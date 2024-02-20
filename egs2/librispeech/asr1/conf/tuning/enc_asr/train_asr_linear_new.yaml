@@ -34,7 +34,7 @@ freeze_frontend: true
 use_amp: true
 num_workers: 4
 batch_type: numel
-batch_bins: 35000000
+batch_bins: 1600000
 accum_grad: 4
 max_epoch: 50
 patience: none
@@ -68,3 +68,6 @@ specaug_conf:
     - 0.
     - 0.05
     num_time_mask: 10
+
+# set for DDP training
+unused_parameters: true
