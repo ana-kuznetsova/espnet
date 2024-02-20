@@ -1,10 +1,10 @@
-encoder: empty
-#encoder_conf:
-#    output_size: 256
-#    num_layers: 2
-##    factor: false
- #   residual: false
- #   dropout: 0.2
+encoder: linear
+encoder_conf:
+    output_size: 256
+    num_layers: 2
+    factor: false
+    residual: false
+    dropout: 0.2
 
 decoder: transformer
 decoder_conf:
@@ -75,5 +75,7 @@ specaug_conf:
     - 0.    
     - 0.05
     num_time_mask: 5
+
+unused_parameters: true
 #init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
 #freeze_param: ["decoder"]
