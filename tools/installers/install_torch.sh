@@ -32,7 +32,7 @@ elif [ $# -eq 3 ]; then
 fi
 
 if [ "${cuda_version}" = cpu ] || [ "${cuda_version}" = CPU ]; then
-    cuda_version=
+    cuda_version="12"
 fi
 
 if [ -n "${cuda_version}" ] && [ "${os_type}" = macos ]; then

@@ -7,6 +7,7 @@ from espnet2.asr.frontend.abs_frontend import AbsFrontend
 import logging
 from typing import List
 import numpy as np
+import copy
 
 class CodecFrontend(AbsFrontend):
     '''DAC speech codec frontend.

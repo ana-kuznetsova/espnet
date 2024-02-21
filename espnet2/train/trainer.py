@@ -232,6 +232,7 @@ class Trainer:
                     sharded_optimizer=optimizers,
                 )
             else:
+                #torch.use_deterministic_algorithms(True)
                 dp_model = torch.nn.parallel.DistributedDataParallel(
                     model,
                     device_ids=(
@@ -656,9 +657,101 @@ class Trainer:
                         eta=1.0,
                         scale_factor=0.55,
                     )
+                grad_norm = torch.nn.utils.clip_grad_norm_(
+                    model.parameters(),
+                    max_norm=grad_clip,
+                    norm_type=grad_clip_type,
+                )
+                # PyTorch<=1.4, clip_grad_norm_ returns float value
+                if not isinstance(grad_norm, torch.Tensor):
+                    grad_norm = torch.tensor(grad_norm)
+
+                if not torch.isfinite(grad_norm):
+                    logging.warning(
+                        f"The grad norm is {grad_norm}. Skipping updating the model."
+                    )
+
+                    # Must invoke scaler.update() if unscale_() is used in the iteration
+                    # to avoid the following error:
+                    #   RuntimeError: unscale_() has already been called
+                    #   on this optimizer since the last update().
+                    # Note that if the gradient has inf/nan values,
+                    # scaler.step skips optimizer.step().
+                    if scaler is not None:
+                        for iopt, optimizer in enumerate(optimizers):
+                            if optim_idx is not None and iopt != optim_idx:
+                                continue
+                            scaler.step(optimizer)
+                            scaler.update()
+
+                else:
+                    reporter.register(
+                        {
+                            "grad_norm": grad_norm,
+                            "clip": torch.where(
+                                grad_norm > grad_clip,
+                                grad_norm.new_tensor(100),
+                                grad_norm.new_tensor(0),
+                            ),
+                            "loss_scale": scaler.get_scale() if scaler else 1.0,
+                        }
+                    )
+                    all_steps_are_invalid = False
+                    with reporter.measure_time("optim_step_time"):
+                        for iopt, (optimizer, scheduler) in enumerate(
+                            zip(optimizers, schedulers)
+                        ):
+                            if optim_idx is not None and iopt != optim_idx:
+                                continue
+                            if scaler is not None:
+                                # scaler.step() first unscales the gradients of
+                                # the optimizer's assigned params.
+                                scaler.step(optimizer)
+                                # Updates the scale for next iteration.
+                                scaler.update()
+                            else:
+                                optimizer.step()
+                            if isinstance(scheduler, AbsBatchStepScheduler):
+                                scheduler.step()
+                for iopt, optimizer in enumerate(optimizers):
+                    if optim_idx is not None and iopt != optim_idx:
+                        continue
+                    optimizer.zero_grad()
+
+                # Register lr and train/load time[sec/step],
+                # where step refers to accum_grad * mini-batch
+                reporter.register(
+                    dict(
+                        {
+                            f"optim{i}_lr{j}": pg["lr"]
+                            for i, optimizer in enumerate(optimizers)
+                            for j, pg in enumerate(optimizer.param_groups)
+                            if "lr" in pg
+                        },
+                        train_time=time.perf_counter() - start_time,
+                    ),
+                )
+                start_time = time.perf_counter()
+
+            # NOTE(kamo): Call log_message() after next()
+            reporter.next()
+            if iiter % log_interval == 0:
+                logging.info(reporter.log_message(-log_interval))
+                if summary_writer is not None:
+                    reporter.tensorboard_add_scalar(summary_writer, -log_interval)
+                if use_wandb:
+                    reporter.wandb_log()
+
+        else:
+            if distributed:
+                iterator_stop.fill_(1)
+                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
+
 
                 # compute the gradient norm to check if it is normal or not
                 # [anakuzne]: fixing the incorrect handling of gradient clipping
+                '''
+                [anakuzne]: revert to original implementation
                 try:
                     grad_norm = torch.nn.utils.clip_grad_norm_(
                         model.parameters(),
@@ -667,12 +760,11 @@ class Trainer:
                         error_if_nonfinite=True
                     )
                     reporter.register(
-                        #TODO [anakuzne] this is incorrect reporting, fix later
                         {
                             "grad_norm": grad_norm,
                             "clip": torch.where(
                                 grad_norm > grad_clip,
-                                grad_norm.new_tensor(100),
+                                grad_norm.new_tensor(grad_clip),
                                 grad_norm.new_tensor(0),
                             ),
                             "loss_scale": scaler.get_scale() if scaler else 1.0,
@@ -749,6 +841,8 @@ class Trainer:
             if distributed:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
+        return all_steps_are_invalid
+        '''
         return all_steps_are_invalid
 
     @classmethod

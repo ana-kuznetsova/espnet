@@ -24,7 +24,7 @@ inference_config=conf/decode_asr.yaml
     --max_wav_duration 30 \
     --speed_perturb_factors "0.9 1.0 1.1" \
     --gpu_inference true \
-    --asr_tag codec_frozen_linear_encoder_no_init_sp_lm_trainable_decoder_$(date -I)\
+    --asr_tag codec_frozen_linear_encoder_pretrained_decoder_frozen_$(date -I)\
     --asr_stats_dir asr_stats_codec_en_bpe5000 \
     --asr_config "${asr_config}" \
     --lm_config "${lm_config}" \
