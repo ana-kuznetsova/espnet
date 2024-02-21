@@ -4,7 +4,7 @@ encoder_conf:
     num_layers: 2
     factor: false
     residual: false
-    dropout: 0.2
+    dropout: 0.1
 
 decoder: transformer
 decoder_conf:
@@ -54,11 +54,11 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.002
+    lr: 0.00002
     weight_decay: 0.000001
-scheduler: warmuplr
-scheduler_conf:
-    warmup_steps: 15000
+#scheduler: warmuplr
+#scheduler_conf:
+#    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:
@@ -77,5 +77,5 @@ specaug_conf:
     num_time_mask: 5
 
 unused_parameters: true
-init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
-freeze_param: ["decoder"]
+#init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
+#freeze_param: ["decoder"]

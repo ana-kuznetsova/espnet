@@ -14,15 +14,16 @@ inference_config=conf/decode_asr.yaml
 #dump_dir=/data/anakuzne/espnet/egs2/librispeech_100/asr1/dump_codec_3kbps
 #export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
 
+#    --speed_perturb_factors "0.9 1.0 1.1" \
+
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_linear_sp_with_lm_pretrained_decoder_frozen_$(date -I) \
+    --asr_tag codec_frozen_linear_no_init_flat_lr_2e-5_$(date -I) \
     --stage 11 \
     --ngpu 2 \
     --nj 1 \
     --gpu_inference true \
     --max_wav_duration 30 \
-    --speed_perturb_factors "0.9 1.0 1.1" \
     --inference_nj 1 \
     --nbpe 5000 \
     --use_lm true \
