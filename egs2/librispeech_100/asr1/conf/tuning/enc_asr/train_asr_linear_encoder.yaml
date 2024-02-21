@@ -30,7 +30,7 @@ frontend_conf:
   normalize_codes: False
 
 seed: 2022
-log_interval: 400
+log_interval: 300
 num_att_plot: 0
 num_workers: 2
 sort_in_batch: descending       # how to sort data in making batch

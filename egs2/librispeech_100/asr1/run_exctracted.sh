@@ -16,7 +16,7 @@ inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_linear_sp_with_lm_no_init_trainable_decoder_$(date -I) \
+    --asr_tag codec_frozen_linear_sp_with_lm_pretrained_decoder_frozen_$(date -I) \
     --stage 11 \
     --ngpu 2 \
     --nj 1 \
