@@ -9,7 +9,7 @@ train_set="train_clean_100"
 valid_set="dev"
 test_sets="test_clean test_other"
 
-asr_config=conf/tuning/enc_asr/train_asr_linear_encoder.yaml
+asr_config=conf/tuning/enc_asr/train_asr_linear_enc_vq_loss.yaml
 inference_config=conf/decode_asr.yaml
 #dump_dir=/data/anakuzne/espnet/egs2/librispeech_100/asr1/dump_codec_3kbps
 #export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
@@ -18,10 +18,9 @@ inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_trainable_linear_no_init_flat_lr_2e-6_vq_losses_$(date -I) \
+    --asr_tag codec_trainable_linear_no_init_flat_lr_2e-6_vq_losses_no_sp_$(date -I) \
     --stage 11 \
     --ngpu 2 \
-    --speed_perturb_factors "0.9 1.0 1.1" \
     --nj 1 \
     --gpu_inference true \
     --max_wav_duration 30 \
