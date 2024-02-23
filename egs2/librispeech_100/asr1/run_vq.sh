@@ -18,9 +18,10 @@ inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_linear_no_init_flat_lr_2e-6_2024-02-22 \
+    --asr_tag codec_trainable_linear_no_init_flat_lr_2e-6_vq_losses_$(date -I) \
     --stage 11 \
     --ngpu 2 \
+    --speed_perturb_factors "0.9 1.0 1.1" \
     --nj 1 \
     --gpu_inference true \
     --max_wav_duration 30 \
