@@ -20,26 +20,30 @@ model_conf:
     ctc_weight: 0.3
     lsm_weight: 0.1
     length_normalized_loss: false
+    use_vq_losses: true
+    commitment_weight: 0.01
+    codebook_weight: 0.01
 
 #normalize: none
-freeze_frontend: true
+
 frontend: codec
 frontend_conf:
   n_quantizers: 12
+  trainable: True
   fs: 16000
-  normalize_codes: False
+#  normalize_codes: False
 
 seed: 2022
-log_interval: 300
+log_interval: 100
 num_att_plot: 0
 num_workers: 2
 sort_in_batch: descending       # how to sort data in making batch
 sort_batch: descending          # how to sort created batches
 batch_type: numel
-batch_bins: 1600000
+batch_bins: 16000000
 accum_grad: 4
 max_epoch: 100
-grad_clip: 100
+grad_clip: 20
 patience: none
 init: none
 best_model_criterion:
@@ -75,7 +79,5 @@ specaug_conf:
     - 0.    
     - 0.05
     num_time_mask: 5
-
-unused_parameters: true
-#init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
+#init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_no_spec_augment_1024_enc_out/latest.pth:decoder:decoder:"]
 #freeze_param: ["decoder"]
