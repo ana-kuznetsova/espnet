@@ -263,7 +263,7 @@ class ESPnetASRModel(AbsESPnetModel):
             )
 
             # Collect CTC branch stats
-            stats["loss_ctc"] = loss_ctc.detach() if loss_ctc is not None else None
+            stats["loss_ctc"] = self.ctc_weight * loss_ctc.detach() if loss_ctc is not None else None
             stats["cer_ctc"] = cer_ctc
 
         # Intermediate CTC (optional)
@@ -357,11 +357,11 @@ class ESPnetASRModel(AbsESPnetModel):
                 codebook_loss = codebook_loss.mean()
                 loss = loss + (self.commitment_weight * commitment_loss) +  (self.codebook_weight * codebook_loss)
                 # Collect VQ loss stats
-                stats["commitment"] = commitment_loss.detach()
-                stats["codebook"] = codebook_loss.detach()
+                stats["commitment"] = self.commitment_weight * commitment_loss
+                stats["codebook"] = self.codebook_weight * codebook_loss
 
             # Collect Attn branch stats
-            stats["loss_att"] = loss_att.detach() if loss_att is not None else None
+            stats["loss_att"] =(1 - self.ctc_weight) * loss_att.detach() if loss_att is not None else None
             stats["acc"] = acc_att
             stats["cer"] = cer_att
             stats["wer"] = wer_att
