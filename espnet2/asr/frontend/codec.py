@@ -22,6 +22,7 @@ class CodecFrontend(AbsFrontend):
                        quantizer: bool = True,
                        preprocess_signal: bool = False,
                        layer_norm: bool = True,
+                       trainable: bool =False,
                        encoder_rates: List[int] = [2, 4, 8, 8]) -> None:
         super().__init__()
         self.fs = fs
@@ -32,13 +33,20 @@ class CodecFrontend(AbsFrontend):
         self.preprocess_signal = preprocess_signal
         self.use_quantizer = quantizer
         self.use_layer_norm = layer_norm
+        self.trainable = trainable
 
         codec_path = dac.utils.download(model_type="16khz")
         model = dac.DAC.load(codec_path)
 
         self.encoder = model.encoder
+        
         if self.use_quantizer:
             self.quantizer = model.quantizer
+
+        if not trainable:
+            self.encoder.eval()
+            if self.use_quantizer:
+                self.quantizer.eval()
 
     def output_size(self) -> int:
         return self.feat_dim
@@ -59,14 +67,23 @@ class CodecFrontend(AbsFrontend):
         if self.preprocess_signal:
             input = self.preprocess(input, self.fs)
 
-
-        z = self.encoder(input)
-        bsize, feat_dim, length = z.size()
-        if self.use_layer_norm:
-            z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
-        #z_q, commitment_loss, codebook_loss, indices, z_e
-        if self.use_quantizer:
-            z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
+        if not self.trainable:
+            with torch.no_grad():
+                z = self.encoder(input)
+                bsize, feat_dim, length = z.size()
+                if self.use_layer_norm:
+                    z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
+                #z_q, commitment_loss, codebook_loss, indices, z_e
+                if self.use_quantizer:
+                    z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
+        else:
+            z = self.encoder(input)
+            bsize, feat_dim, length = z.size()
+            if self.use_layer_norm:
+                z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
+            #z_q, commitment_loss, codebook_loss, indices, z_e
+            if self.use_quantizer:
+                z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
 
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
