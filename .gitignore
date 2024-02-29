@@ -28,6 +28,7 @@ test_spm.model
 *.swp
 *.nfs*
 tools/enc_asr/
+tools/encodec
 # recipe related
 egs*/*/*/data*
 egs*/*/*/db

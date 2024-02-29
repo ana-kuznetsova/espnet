@@ -7,7 +7,7 @@ from espnet2.asr.frontend.abs_frontend import AbsFrontend
 import logging
 from typing import List
 import numpy as np
-import copy
+
 
 class CodecFrontend(AbsFrontend):
     '''DAC speech codec frontend.
@@ -19,7 +19,9 @@ class CodecFrontend(AbsFrontend):
     def __init__(self, fs: int = 16000,
                        n_quantizers: int = 6,
                        normalize_codes: bool = False,
+                       quantizer: bool = True,
                        preprocess_signal: bool = False,
+                       layer_norm: bool = True,
                        encoder_rates: List[int] = [2, 4, 8, 8]) -> None:
         super().__init__()
         self.fs = fs
@@ -28,12 +30,15 @@ class CodecFrontend(AbsFrontend):
         self.normalize_codes = normalize_codes
         self.hop_length = np.prod(encoder_rates)
         self.preprocess_signal = preprocess_signal
+        self.use_quantizer = quantizer
+        self.use_layer_norm = layer_norm
 
         codec_path = dac.utils.download(model_type="16khz")
         model = dac.DAC.load(codec_path)
 
         self.encoder = model.encoder
-        self.quantizer = model.quantizer
+        if self.use_quantizer:
+            self.quantizer = model.quantizer
 
     def output_size(self) -> int:
         return self.feat_dim
@@ -57,22 +62,24 @@ class CodecFrontend(AbsFrontend):
 
         z = self.encoder(input)
         bsize, feat_dim, length = z.size()
-        z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
+        if self.use_layer_norm:
+            z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
         #z_q, commitment_loss, codebook_loss, indices, z_e
-        z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
+        if self.use_quantizer:
+            z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
 
         # Convert input to (B, L, Dim)
         bsize, feat_dim, length = z.size()
         z = z.view(bsize, length, feat_dim)
         input_lengths = torch.Tensor([length] * bsize).long().to(z.device)
 
-        bsize, feat_dim, length = commitment_loss.size()
-        commitment_loss = commitment_loss.view(bsize, length, feat_dim).float().mean([1, 2])
-        
-        bsize, feat_dim, length = codebook_loss.size()
-        codebook_loss = codebook_loss.view(bsize, length, feat_dim).float().mean([1, 2])
+        if self.use_quantizer:
+            bsize, feat_dim, length = commitment_loss.size()
+            commitment_loss = commitment_loss.view(bsize, length, feat_dim).float().mean([1, 2])
+            
+            bsize, feat_dim, length = codebook_loss.size()
+            codebook_loss = codebook_loss.view(bsize, length, feat_dim).float().mean([1, 2])
+        else:
+            codebook_loss, commitment_loss = None, None
 
-        if self.normalize_codes:
-            z = F.normalize(z, dim=1)
-        #logging.info("CODEC feats %s %s %s", z.shape, commitment_loss.shape, codebook_loss.shape)
         return z, input_lengths, commitment_loss, codebook_loss

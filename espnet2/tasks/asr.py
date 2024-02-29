@@ -53,6 +53,7 @@ from espnet2.asr.espnet_model import ESPnetASRModel
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
 from espnet2.asr.frontend.default import DefaultFrontend
 from espnet2.asr.frontend.codec import CodecFrontend
+from espnet2.asr.frontend.encodec import EnCodecFrontend
 from espnet2.asr.frontend.fused import FusedFrontends
 from espnet2.asr.frontend.s3prl import S3prlFrontend
 from espnet2.asr.frontend.whisper import WhisperFrontend
@@ -93,6 +94,7 @@ frontend_choices = ClassChoices(
     name="frontend",
     classes=dict(
         codec=CodecFrontend,
+        encodec=EnCodecFrontend,
         default=DefaultFrontend,
         sliding_window=SlidingWindow,
         s3prl=S3prlFrontend,
@@ -510,6 +512,7 @@ class ASRTask(AbsTask):
         if args.input_size is None:
             # Extract features in the model
             frontend_class = frontend_choices.get_class(args.frontend)
+            #logging.info("DDEBUG FRONTENT class")
             frontend = frontend_class(**args.frontend_conf)
             input_size = frontend.output_size()
         else:

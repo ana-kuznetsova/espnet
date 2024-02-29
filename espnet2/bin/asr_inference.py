@@ -448,7 +448,10 @@ class Speech2Text:
         batch = to_device(batch, device=self.device)
 
         # b. Forward Encoder
-        enc, enc_olens = self.asr_model.encode(**batch)
+        if self.use_vq_losses:
+            enc, enc_olens, commitment_loss, codebook_loss = self.asr_model.encode(**batch)
+        else:
+            enc, enc_olens = self.asr_model.encode(**batch)
         if self.multi_asr:
             enc = enc.unbind(dim=1)  # (batch, num_inf, ...) -> num_inf x [batch, ...]
         if self.enh_s2t_task or self.multi_asr:

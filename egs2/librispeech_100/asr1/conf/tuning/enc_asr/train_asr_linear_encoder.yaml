@@ -22,12 +22,13 @@ model_conf:
     length_normalized_loss: false
 
 #normalize: none
-freeze_frontend: true
+
 frontend: codec
 frontend_conf:
   n_quantizers: 12
   fs: 16000
-  normalize_codes: False
+  quantizer: false
+  layer_norm: false
 
 seed: 2022
 log_interval: 300
@@ -38,7 +39,7 @@ sort_batch: descending          # how to sort created batches
 batch_type: numel
 batch_bins: 1600000
 accum_grad: 4
-max_epoch: 100
+max_epoch: 200
 grad_clip: 100
 patience: none
 init: none
@@ -46,7 +47,7 @@ best_model_criterion:
 -   - valid
     - acc
     - max
-keep_nbest_models: 10
+keep_nbest_models: 5
 
 use_amp: true
 cudnn_deterministic: false
@@ -54,7 +55,7 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.000002
+    lr: 0.0002
     weight_decay: 0.000001
 #scheduler: warmuplr
 #scheduler_conf:
@@ -76,6 +77,7 @@ specaug_conf:
     - 0.05
     num_time_mask: 5
 
-unused_parameters: true
+#unused_parameters: true
 #init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:"]
-#freeze_param: ["decoder"]
+#freeze_param: ["frontend", "decoder"]
+freeze_param: ["frontend"]

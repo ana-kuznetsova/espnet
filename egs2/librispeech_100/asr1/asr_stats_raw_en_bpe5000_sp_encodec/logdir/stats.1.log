@@ -1,0 +1,31 @@
+# python3 -m espnet2.bin.asr_train --collect_stats true --ngpu 1 --use_preprocessor true --bpemodel data/en_token_list/bpe_unigram5000/bpe.model --token_type bpe --token_list data/en_token_list/bpe_unigram5000/tokens.txt --non_linguistic_symbols none --cleaner none --g2p none --train_shape_file asr_stats_raw_en_bpe5000_sp_encodec/logdir/train.1.scp --valid_shape_file asr_stats_raw_en_bpe5000_sp_encodec/logdir/valid.1.scp --output_dir asr_stats_raw_en_bpe5000_sp_encodec/logdir/stats.1 --config conf/tuning/enc_asr/train_asr_encodec_frozen_linear_preenc_full_encoder.yaml --frontend_conf fs=16k --train_data_path_and_name_and_type dump_encodec/raw/train_clean_100_sp/wav.scp,speech,kaldi_ark --valid_data_path_and_name_and_type dump_encodec/raw/dev/wav.scp,speech,kaldi_ark --train_data_path_and_name_and_type dump_encodec/raw/train_clean_100_sp/text,text,text --valid_data_path_and_name_and_type dump_encodec/raw/dev/text,text,text 
+# Started at Wed Feb 28 14:26:32 EST 2024
+#
+Traceback (most recent call last):
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/data/anakuzne/espnet/espnet2/bin/asr_train.py", line 2, in <module>
+    from espnet2.tasks.asr import ASRTask
+  File "/data/anakuzne/espnet/espnet2/tasks/asr.py", line 52, in <module>
+    from espnet2.asr.espnet_model import ESPnetASRModel
+  File "/data/anakuzne/espnet/espnet2/asr/espnet_model.py", line 28, in <module>
+    from espnet2.asr.frontend.codec import CodecFrontend
+  File "/data/anakuzne/espnet/espnet2/asr/frontend/codec.py", line 5, in <module>
+    import dac
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/dac/__init__.py", line 6, in <module>
+    import audiotools
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/audiotools/__init__.py", line 2, in <module>
+    from .core import AudioSignal
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/audiotools/core/__init__.py", line 2, in <module>
+    from .audio_signal import AudioSignal
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/audiotools/core/audio_signal.py", line 25, in <module>
+    from .whisper import WhisperMixin
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/audiotools/core/whisper.py", line 4, in <module>
+    class WhisperMixin:
+  File "/home/anakuzne/miniconda3/envs/enc_asr/lib/python3.8/site-packages/audiotools/core/whisper.py", line 10, in WhisperMixin
+    device: str = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+  File "/home/anakuzne/.local/lib/python3.8/site-packages/torch/cuda/__init__.py", line 141, in is_available
+    return torch._C._cuda_getDeviceCount() > 0
+KeyboardInterrupt

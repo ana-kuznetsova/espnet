@@ -1,7 +1,7 @@
 preencoder: linear
 preencoder_conf:
     input_size: 1024
-    output_size: 80
+    output_size: 256
     dropout: 0.1
 
 #normalize: none
@@ -11,7 +11,7 @@ encoder_conf:
     output_size: 256
     attention_heads: 4
     linear_units: 1024
-    num_blocks: 3
+    num_blocks: 1
     dropout_rate: 0.1
     positional_dropout_rate: 0.1
     attention_dropout_rate: 0.1
@@ -40,14 +40,15 @@ model_conf:
     lsm_weight: 0.1
     length_normalized_loss: false
 
-#frontend: codec
-#frontend_conf:
-#  n_quantizers: 6
-#  fs: 16000
-#  normalize_codes: False
+frontend: codec
+frontend_conf:
+  n_quantizers: 12
+  fs: 16000
+  quantizer: true
+  layer_norm: false
 
 seed: 2022
-log_interval: 100
+log_interval: 300
 num_att_plot: 0
 num_workers: 2
 sort_in_batch: descending       # how to sort data in making batch
@@ -63,8 +64,7 @@ best_model_criterion:
 -   - valid
     - acc
     - max
-keep_nbest_models: 10
-freeze_frontend: True
+keep_nbest_models: 5
 
 use_amp: true
 cudnn_deterministic: false
@@ -74,9 +74,9 @@ optim: adam
 optim_conf:
     lr: 0.0002
     weight_decay: 0.000001
-scheduler: warmuplr
-scheduler_conf:
-    warmup_steps: 15000
+#scheduler: warmuplr
+#scheduler_conf:
+#    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:
@@ -93,3 +93,8 @@ specaug_conf:
     - 0.
     - 0.05
     num_time_mask: 5
+
+
+init_param: ["/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:decoder:decoder:", "/data/anakuzne/espnet/egs2/librispeech_100/asr1/exp/asr_base_with_spec_augment/latest.pth:encoder.11:encoder:"]
+#freeze_param: ["frontend", "decoder"]
+freeze_param: ["frontend", "decoder", "encoder"]
