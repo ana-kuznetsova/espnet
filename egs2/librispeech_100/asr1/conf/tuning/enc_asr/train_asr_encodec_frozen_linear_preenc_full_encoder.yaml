@@ -1,7 +1,7 @@
 preencoder: linear
 preencoder_conf:
-    input_size: 128
-    output_size: 1024
+    input_size: 1024
+    output_size: 512
 
 encoder: conformer
 encoder_conf:
@@ -39,12 +39,12 @@ model_conf:
 
 #normalize: none
 
-frontend: encodec
+frontend: codec
 frontend_conf:
-  fs: 16000
+  n_quantizers: 6
+  normalize_codes: false
   quantizer: true
-  model_path: "/data/anakuzne/espnet/tools/encodec/ckpt/multi_encodec_6.amlt"
-  bandwidth: 6
+  layer_norm: false
 
 seed: 2022
 log_interval: 300
