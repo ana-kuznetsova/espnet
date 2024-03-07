@@ -11,17 +11,15 @@ test_sets="test_clean test_other dev_clean dev_other"
 
 asr_config=conf/tuning/enc_asr/train_asr_encodec_frozen_linear_preenc_full_encoder.yaml
 inference_config=conf/decode_asr.yaml
-dump_dir="dump_encodec"
-stats_dir=asr_stats_raw_en_bpe5000_sp_encodec
+#dump_dir="dump"
+#stats_dir=asr_stats_raw_en_bpe5000_sp_encodec
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_linear_encodec_lr_2e-4_sp_quantizer_true_$(date -I) \
+    --asr_tag codec_frozen_no_init_reduced_attn_dim_ctc_weight_0.3_warmup_lr_$(date -I) \
     --stage 11 \
     --ngpu 1 \
     --nj 1 \
-    --dumpdir "${dump_dir}" \
-    --asr_stats_dir "${stats_dir}" \
     --gpu_inference true \
     --inference_nj 1 \
     --nbpe 5000 \

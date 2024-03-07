@@ -18,7 +18,7 @@ inference_config=conf/decode_asr.yaml
 
 ./asr.sh \
     --lang en \
-    --asr_tag codec_frozen_dac_full_conformer_no_init_no_layer_norm_flat_lr_2e-4_sp_$(date -I) \
+    --asr_tag codec_frozen_dac_full_conformer_no_init_no_layer_norm_warmup_lr_sp_$(date -I) \
     --stage 11 \
     --ngpu 2 \
     --nj 1 \

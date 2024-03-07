@@ -15,23 +15,27 @@ inference_config=conf/decode_asr.yaml
 #Add path to sclite for scoring
 #export PATH=$PATH:/data/anakuzne/espnet/kaldi/tools/sctk/src/sclite
 
+stats_dir=asr_stats_raw_en_bpe5000_sp_base
+
 ./asr.sh \
     --lang en \
-    --asr_tag base_no_spec_augment_1024_enc_out \
+    --asr_tag base_reduced_attn_$(date -I) \
     --stage 1 \
     --ngpu 1 \
     --nj 1 \
     --gpu_inference true \
-    --inference_nj 2 \
+    --inference_nj 1 \
     --nbpe 5000 \
     --max_wav_duration 30 \
+    --speed_perturb_factors "0.9 1.0 1.1" \
     --audio_format "flac.ark" \
     --feats_type raw \
-    --use_lm false \
+    --use_lm true \
     --asr_config "${asr_config}" \
     --inference_config "${inference_config}" \
     --train_set "${train_set}" \
     --valid_set "${valid_set}" \
     --test_sets "${test_sets}" \
+    --asr_stats_dir "${stats_dir}"\
     --lm_train_text "data/${train_set}/text" \
     --bpe_train_text "data/${train_set}/text" "$@"

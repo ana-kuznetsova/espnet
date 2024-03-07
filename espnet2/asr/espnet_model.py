@@ -398,7 +398,7 @@ class ESPnetASRModel(AbsESPnetModel):
             if self.use_vq_losses:
                 feats, feats_lengths, commitment_loss, codebook_loss = self._extract_feats(speech, speech_lengths)
             else:
-                feats, feats_lengths = self._extract_feats(speech, speech_lengths)
+                feats, feats_lengths, = self._extract_feats(speech, speech_lengths)
 
             # 2. Data augmentation
             if self.specaug is not None and self.training:

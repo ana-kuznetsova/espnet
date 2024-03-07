@@ -4,6 +4,7 @@ import math
 import torch.nn.functional as F
 import dac
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
+from espnet2.asr.frontend.default import DefaultFrontend
 import logging
 from typing import List
 import numpy as np
@@ -22,11 +23,15 @@ class CodecFrontend(AbsFrontend):
                        quantizer: bool = True,
                        preprocess_signal: bool = False,
                        layer_norm: bool = True,
-                       trainable: bool =False,
+                       trainable: bool = False,
+                       decode: bool =  False,
                        encoder_rates: List[int] = [2, 4, 8, 8]) -> None:
         super().__init__()
         self.fs = fs
-        self.feat_dim = 1024
+        if decode:
+            self.feat_dim = 80
+        else:
+            self.feat_dim = 1024
         self.n_quantizers = n_quantizers
         self.normalize_codes = normalize_codes
         self.hop_length = np.prod(encoder_rates)
@@ -34,9 +39,11 @@ class CodecFrontend(AbsFrontend):
         self.use_quantizer = quantizer
         self.use_layer_norm = layer_norm
         self.trainable = trainable
+        self.decode = decode
 
         codec_path = dac.utils.download(model_type="16khz")
         model = dac.DAC.load(codec_path)
+        self.model =  model
 
         self.encoder = model.encoder
         
@@ -45,8 +52,13 @@ class CodecFrontend(AbsFrontend):
 
         if not trainable:
             self.encoder.eval()
+            self.model.eval()
             if self.use_quantizer:
                 self.quantizer.eval()
+        if decode:
+            self.mel_spec_transform = DefaultFrontend(n_fft = 512, 
+                                                     win_length = 400, 
+                                                     hop_length = 160)
 
     def output_size(self) -> int:
         return self.feat_dim
@@ -66,9 +78,29 @@ class CodecFrontend(AbsFrontend):
         input = input.unsqueeze(1)
         if self.preprocess_signal:
             input = self.preprocess(input, self.fs)
-
-        if not self.trainable:
+        
+        if self.decode:
+            #Only use for DAC debugging purposes.
             with torch.no_grad():
+                z, commitment_loss , codebook_loss, _, _ = self.model.encode(input)
+                y = self.model.decode(z)
+                # y must be (batch, num_samples, channels) torch.Size([1, 1, 223232])
+                bsize, c, num_samples = y.size()
+                y = y.view(bsize, num_samples, c)
+                y_lens = torch.tensor([num_samples] * bsize).to(self.model.device)
+                y_mel_spec, y_mel_lens = self.mel_spec_transform(y, y_lens)
+                return y_mel_spec, y_mel_lens, None, None
+        else:
+            if not self.trainable:
+                with torch.no_grad():
+                    z = self.encoder(input)
+                    bsize, feat_dim, length = z.size()
+                    if self.use_layer_norm:
+                        z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
+                    #z_q, commitment_loss, codebook_loss, indices, z_e
+                    if self.use_quantizer:
+                        z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
+            else:
                 z = self.encoder(input)
                 bsize, feat_dim, length = z.size()
                 if self.use_layer_norm:
@@ -76,27 +108,19 @@ class CodecFrontend(AbsFrontend):
                 #z_q, commitment_loss, codebook_loss, indices, z_e
                 if self.use_quantizer:
                     z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
-        else:
-            z = self.encoder(input)
+
+            # Convert input to (B, L, Dim)
             bsize, feat_dim, length = z.size()
-            if self.use_layer_norm:
-                z = F.layer_norm(z, normalized_shape=[bsize, feat_dim, length])
-            #z_q, commitment_loss, codebook_loss, indices, z_e
+            z = z.view(bsize, length, feat_dim)
+            input_lengths = torch.Tensor([length] * bsize).long().to(z.device)
+
             if self.use_quantizer:
-                z, commitment_loss , codebook_loss, _, _ = self.quantizer(z, self.n_quantizers)
+                bsize, feat_dim, length = commitment_loss.size()
+                commitment_loss = commitment_loss.view(bsize, length, feat_dim).float().mean([1, 2])
+                
+                bsize, feat_dim, length = codebook_loss.size()
+                codebook_loss = codebook_loss.view(bsize, length, feat_dim).float().mean([1, 2])
+            else:
+                codebook_loss, commitment_loss = None, None
 
-        # Convert input to (B, L, Dim)
-        bsize, feat_dim, length = z.size()
-        z = z.view(bsize, length, feat_dim)
-        input_lengths = torch.Tensor([length] * bsize).long().to(z.device)
-
-        if self.use_quantizer:
-            bsize, feat_dim, length = commitment_loss.size()
-            commitment_loss = commitment_loss.view(bsize, length, feat_dim).float().mean([1, 2])
-            
-            bsize, feat_dim, length = codebook_loss.size()
-            codebook_loss = codebook_loss.view(bsize, length, feat_dim).float().mean([1, 2])
-        else:
-            codebook_loss, commitment_loss = None, None
-
-        return z, input_lengths, commitment_loss, codebook_loss
+            return z, input_lengths, commitment_loss, codebook_loss

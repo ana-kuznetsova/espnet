@@ -21,14 +21,17 @@ class LinearProjection(AbsPreEncoder):
         super().__init__()
 
         self.output_dim = output_size
-        self.linear_out = torch.nn.Linear(input_size, output_size)
-        self.dropout = torch.nn.Dropout(dropout)
+        self.ff_1 = torch.nn.Linear(input_size, 512)
+        self.ff_2 = torch.nn.Linear(512, output_size)
+        self.activation = torch.nn.ReLU()
+        #self.dropout = torch.nn.Dropout(dropout)
 
     def forward(
         self, input: torch.Tensor, input_lengths: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Forward."""
-        output = self.linear_out(self.dropout(input))
+        output = self.activation(self.ff_1(input))
+        output = self.activation(self.ff_2(output))
         return output, input_lengths  # no state in this layer
 
     def output_size(self) -> int:

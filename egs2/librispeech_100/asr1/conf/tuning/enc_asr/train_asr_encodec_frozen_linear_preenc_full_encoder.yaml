@@ -1,13 +1,13 @@
-preencoder: linear
-preencoder_conf:
-    input_size: 1024
-    output_size: 512
+#preencoder: linear
+#preencoder_conf:
+#    input_size: 1024
+#    output_size: 80
 
 encoder: conformer
 encoder_conf:
-    output_size: 1024
+    output_size: 256
     attention_heads: 4
-    linear_units: 1024
+    linear_units: 256
     num_blocks: 12
     dropout_rate: 0.1
     positional_dropout_rate: 0.1
@@ -33,7 +33,7 @@ decoder_conf:
     src_attention_dropout_rate: 0.1
 
 model_conf:
-    ctc_weight: 0.7
+    ctc_weight: 0.3
     lsm_weight: 0.1
     length_normalized_loss: false
 
@@ -44,18 +44,19 @@ frontend_conf:
   n_quantizers: 6
   normalize_codes: false
   quantizer: true
-  layer_norm: false
+  layer_norm: true
+  decode: true
 
 seed: 2022
 log_interval: 300
 num_att_plot: 0
-num_workers: 2
+num_workers: 1
 sort_in_batch: descending       # how to sort data in making batch
 sort_batch: descending          # how to sort created batches
 batch_type: numel
-batch_bins: 160000
-accum_grad: 4
-max_epoch: 200
+batch_bins: 16000000
+#accum_grad: 4
+max_epoch: 100
 grad_clip: 100
 patience: none
 init: none
@@ -71,11 +72,11 @@ cudnn_benchmark: false
 
 optim: adam
 optim_conf:
-    lr: 0.0002
+    lr: 0.002
     weight_decay: 0.000001
-#scheduler: warmuplr
-#scheduler_conf:
-#    warmup_steps: 15000
+scheduler: warmuplr
+scheduler_conf:
+    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:
