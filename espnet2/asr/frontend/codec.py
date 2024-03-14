@@ -88,8 +88,8 @@ class CodecFrontend(AbsFrontend):
                 bsize, c, num_samples = y.size()
                 y = y.view(bsize, num_samples, c)
                 y_lens = torch.tensor([num_samples] * bsize).to(self.model.device)
-                y_mel_spec, y_mel_lens = self.mel_spec_transform(y, y_lens)
-                return y_mel_spec, y_mel_lens, None, None
+                y_mel_spec, y_mel_lens, _, _ = self.mel_spec_transform(y, y_lens)
+                return y_mel_spec, y_mel_lens
         else:
             if not self.trainable:
                 with torch.no_grad():

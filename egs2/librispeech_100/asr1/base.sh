@@ -19,8 +19,8 @@ stats_dir=asr_stats_raw_en_bpe5000_sp_base
 
 ./asr.sh \
     --lang en \
-    --asr_tag base_reduced_attn_$(date -I) \
-    --stage 1 \
+    --asr_tag base_reduced_attn_2024-03-07 \
+    --stage 12 \
     --ngpu 1 \
     --nj 1 \
     --gpu_inference true \

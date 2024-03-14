@@ -114,7 +114,7 @@ class DefaultFrontend(AbsFrontend):
         #       -> input_feats: (Batch, Length, Dim)
         input_feats, _ = self.logmel(input_power, feats_lens)
 
-        return input_feats, feats_lens
+        return input_feats, feats_lens, None, None
 
     def _compute_stft(
         self, input: torch.Tensor, input_lengths: torch.Tensor

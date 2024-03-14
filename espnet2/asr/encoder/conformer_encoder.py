@@ -40,6 +40,7 @@ from espnet.nets.pytorch_backend.transformer.subsampling import (
     Conv2dSubsampling2,
     Conv2dSubsampling6,
     Conv2dSubsampling8,
+    Conv1dSubsampling2,
     TooShortUttError,
     check_short_utt,
 )
@@ -179,6 +180,13 @@ class ConformerEncoder(AbsEncoder):
             )
         elif input_layer == "conv2d8":
             self.embed = Conv2dSubsampling8(
+                input_size,
+                output_size,
+                dropout_rate,
+                pos_enc_class(output_size, positional_dropout_rate, max_pos_emb_len),
+            )
+        elif input_layer == "conv1d":
+            self.embed = Conv1dSubsampling2(
                 input_size,
                 output_size,
                 dropout_rate,
@@ -326,6 +334,7 @@ class ConformerEncoder(AbsEncoder):
             or isinstance(self.embed, Conv2dSubsampling2)
             or isinstance(self.embed, Conv2dSubsampling6)
             or isinstance(self.embed, Conv2dSubsampling8)
+            or isinstance(self.embed, Conv1dSubsampling2)
         ):
             short_status, limit_size = check_short_utt(self.embed, xs_pad.size(1))
             if short_status:
