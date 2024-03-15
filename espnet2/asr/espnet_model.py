@@ -471,10 +471,10 @@ class ESPnetASRModel(AbsESPnetModel):
             elif hasattr(self.frontend, "decode"):
                 if self.frontend.decode:
                     feats, feats_lengths = self.frontend(speech, speech_lengths)
-                else:
-                    feats, feats_lengths, _, _ = self.frontend(speech, speech_lengths)
             else:
-                feats, feats_lengths = self.frontend(speech, speech_lengths)
+                feats, feats_lengths, _, _ = self.frontend(speech, speech_lengths)
+            #else:
+            #    feats, feats_lengths = self.frontend(speech, speech_lengths)
 
         else:
             # No frontend and no feature extract
