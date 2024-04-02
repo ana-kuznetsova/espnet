@@ -39,6 +39,7 @@ from espnet2.schedulers.noam_lr import NoamLR
 from espnet2.schedulers.warmup_lr import WarmupLR
 from espnet2.schedulers.warmup_reducelronplateau import WarmupReduceLROnPlateau
 from espnet2.schedulers.warmup_step_lr import WarmupStepLR
+from espnet2.schedulers.manual_half_lr import ManuaHalflLR
 from espnet2.torch_utils.load_pretrained_model import load_pretrained_model
 from espnet2.torch_utils.model_summary import model_summary
 from espnet2.torch_utils.pytorch_version import pytorch_cudnn_version
@@ -152,6 +153,7 @@ scheduler_classes = dict(
     noamlr=NoamLR,
     warmuplr=WarmupLR,
     warmupsteplr=WarmupStepLR,
+    manualhalflr=ManuaHalflLR,
     warmupReducelronplateau=WarmupReduceLROnPlateau,
     cycliclr=torch.optim.lr_scheduler.CyclicLR,
     onecyclelr=torch.optim.lr_scheduler.OneCycleLR,
@@ -464,6 +466,11 @@ class AbsTask(ABC):
         )
 
         group = parser.add_argument_group("Trainer related")
+        group.add_argument("--no_improvement_target", 
+                           type=int,
+                           default=10,
+                           help="epochs to half the LR with no scheduler"
+                           )
         group.add_argument(
             "--max_epoch",
             type=int,
@@ -1235,8 +1242,9 @@ class AbsTask(ABC):
             logging.info(pytorch_cudnn_version())
             logging.info(model_summary(model))
             for i, (o, s) in enumerate(zip(optimizers, schedulers), 1):
+                #logging.info("DEBUG abs taks %s", type(s))
                 suf = "" if i == 1 else str(i)
-                logging.info(f"Optimizer{suf}:\n{o}")
+                #logging.info(f"Optimizer{suf}:\n{o}")
                 logging.info(f"Scheduler{suf}: {s}")
 
         # 5. Dump "args" to config.yaml

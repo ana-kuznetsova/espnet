@@ -17,7 +17,7 @@ stats_dir="asr_codec_base_stats_bpe5000_sp"
 
 ./asr.sh \
     --lang en \
-    --asr_tag conformer_codec_frozen_decode_false_codebooks_12_conv1d_embeds_no_init_$(date -I) \
+    --asr_tag conformer_codec_frozen_decode_false_codebooks_12_conv1d_embeds_no_init_half_lr_no_sched_2024-03-26 \
     --asr_stats_dir "${stats_dir}" \
     --stage 11 \
     --ngpu 1 \

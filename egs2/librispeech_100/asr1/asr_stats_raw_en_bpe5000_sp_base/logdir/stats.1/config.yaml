@@ -1,4 +1,4 @@
-config: conf/tuning/enc_asr/train_asr_conformer_lr2e-3_warmup15k_amp_nondeterministic.yaml
+config: conf/tuning/enc_asr/base.yaml
 print_config: false
 log_level: INFO
 drop_last_iter: false
@@ -68,7 +68,7 @@ freeze_param: []
 num_iters_per_epoch: null
 batch_size: 20
 valid_batch_size: null
-batch_bins: 1600000
+batch_bins: 16000000
 valid_batch_bins: null
 train_shape_file:
 - asr_stats_raw_en_bpe5000_sp_base/logdir/train.1.scp
@@ -86,17 +86,17 @@ chunk_shift_ratio: 0.5
 num_cache_chunks: 1024
 chunk_excluded_key_prefixes: []
 train_data_path_and_name_and_type:
--   - dump/raw/train_clean_100_sp/wav.scp
+-   - dump_base/raw/train_clean_100_sp/wav.scp
     - speech
     - kaldi_ark
--   - dump/raw/train_clean_100_sp/text
+-   - dump_base/raw/train_clean_100_sp/text
     - text
     - text
 valid_data_path_and_name_and_type:
--   - dump/raw/dev/wav.scp
+-   - dump_base/raw/dev/wav.scp
     - speech
     - kaldi_ark
--   - dump/raw/dev/text
+-   - dump_base/raw/dev/text
     - text
     - text
 allow_variable_data_keys: false
@@ -5173,7 +5173,7 @@ encoder: conformer
 encoder_conf:
     output_size: 256
     attention_heads: 4
-    linear_units: 256
+    linear_units: 1024
     num_blocks: 12
     dropout_rate: 0.1
     positional_dropout_rate: 0.1

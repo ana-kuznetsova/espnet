@@ -14,6 +14,7 @@ tmp*
 .idea
 .pytest_cache/
 __pycache__/
+egs2/librispeech_100/asr1/.ipynb_checkpoints*
 check_autopep8
 .coverage
 htmlcov
@@ -46,7 +47,11 @@ egs*/*/*/nltk*
 egs*/*/*/.cache*
 egs*/*/*/pretrained_models*
 egs*/fisher_callhome_spanish/*/local/mapping*
-egs2/librispeech/asr1/asr_stats_codec_en_bpe5000*
+egs*/librispeech/asr1/asr_stats_codec_en_bpe5000*
+egs*/librispeech_100/asr1/asr_stats_raw_en_bpe5000_sp_base/*
+egs*/librispeech_100/asr1/asr_debug_subset_bpe5000_sp/*
+egs*/librispeech_100/asr1/lm_stats_debug_subset_en_bpe5000/*
+
 # tools related
 tools/chainer
 tools/bin

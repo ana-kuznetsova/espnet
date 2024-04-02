@@ -57,6 +57,7 @@ best_model_criterion:
     - acc
     - max
 keep_nbest_models: 10
+no_improvement_target: 5
 
 use_amp: true
 cudnn_deterministic: false
@@ -66,9 +67,9 @@ optim: adam
 optim_conf:
     lr: 0.002
     weight_decay: 0.000001
-scheduler: warmuplr
-scheduler_conf:
-    warmup_steps: 15000
+#scheduler: warmuplr
+#scheduler_conf:
+#    warmup_steps: 15000
 
 specaug: specaug
 specaug_conf:

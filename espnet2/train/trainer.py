@@ -25,6 +25,7 @@ from espnet2.schedulers.abs_scheduler import (
     AbsScheduler,
     AbsValEpochStepScheduler,
 )
+#from espnet2.schedulers.manual_half_lr import ManuaHalflLR
 from espnet2.torch_utils.add_gradient_noise import add_gradient_noise
 from espnet2.torch_utils.device_funcs import to_device
 from espnet2.torch_utils.recursive_op import recursive_average
@@ -91,6 +92,7 @@ class TrainerOptions:
     wandb_model_log_interval: int
     create_graph_in_tensorboard: bool
     freeze_frontend: bool
+    no_improvement_target: int
 
 
 class Trainer:
@@ -274,6 +276,9 @@ class Trainer:
             train_summary_writer = None
 
         start_time = time.perf_counter()
+        # [anakuzne]: Compute epochs with no improvement for LR scheduling
+        no_improvement_num_epochs = 0
+
         for iepoch in range(start_epoch, trainer_options.max_epoch + 1):
             if iepoch != start_epoch:
                 logging.info(
@@ -326,7 +331,6 @@ class Trainer:
                             reporter=sub_reporter,
                             options=trainer_options,
                         )
-
             # 2. LR Scheduler step
             for scheduler in schedulers:
                 if isinstance(scheduler, AbsValEpochStepScheduler):
@@ -387,8 +391,17 @@ class Trainer:
                                 p.unlink()
                             p.symlink_to(f"{iepoch}epoch.pth")
                             _improved.append(f"{_phase}.{k}")
+                #logging.info("No imp target %s curr no improvement %s", trainer_options.no_improvement_target, no_improvement_num_epochs)
+                #logging.info("Improved %s", _improved)
                 if len(_improved) == 0:
-                    logging.info("There are no improvements in this epoch")
+                    no_improvement_num_epochs += 1
+                    logging.info("There are no improvements for %s epochs", no_improvement_num_epochs)
+                    if trainer_options.no_improvement_target and (no_improvement_num_epochs == trainer_options.no_improvement_target):
+                        no_improvement_num_epochs = 0
+                        for optimizer in optimizers:
+                            lr = optimizer.param_groups[0]['lr']/2
+                            logging.info("Setting new LR %s", lr)
+                            optimizer.param_groups[0]['lr'] = lr
                 else:
                     logging.info(
                         "The best model has been updated: " + ", ".join(_improved)
@@ -747,102 +760,6 @@ class Trainer:
                 iterator_stop.fill_(1)
                 torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
 
-
-                # compute the gradient norm to check if it is normal or not
-                # [anakuzne]: fixing the incorrect handling of gradient clipping
-                '''
-                [anakuzne]: revert to original implementation
-                try:
-                    grad_norm = torch.nn.utils.clip_grad_norm_(
-                        model.parameters(),
-                        max_norm=grad_clip,
-                        norm_type=grad_clip_type,
-                        error_if_nonfinite=True
-                    )
-                    reporter.register(
-                        {
-                            "grad_norm": grad_norm,
-                            "clip": torch.where(
-                                grad_norm > grad_clip,
-                                grad_norm.new_tensor(grad_clip),
-                                grad_norm.new_tensor(0),
-                            ),
-                            "loss_scale": scaler.get_scale() if scaler else 1.0,
-                        }
-                    )
-                    all_steps_are_invalid = False
-                    with reporter.measure_time("optim_step_time"):
-                        for iopt, (optimizer, scheduler) in enumerate(
-                            zip(optimizers, schedulers)
-                        ):
-                            if optim_idx is not None and iopt != optim_idx:
-                                continue
-                            if scaler is not None:
-                                # scaler.step() first unscales the gradients of
-                                # the optimizer's assigned params.
-                                scaler.step(optimizer)
-                                # Updates the scale for next iteration.
-                                scaler.update()
-                            else:
-                                optimizer.step()
-                            if isinstance(scheduler, AbsBatchStepScheduler):
-                                scheduler.step()
-
-                except RuntimeError:
-                    #If the grad_norm is not finite, then it cannot be clipped
-                    logging.warning(
-                        f"The grad norm is not finite. Skipping updating the model."
-                    )
-                    logging.info(f"Utt_ID %s", batch["utt_id"])
-
-                    # Must invoke scaler.update() if unscale_() is used in the iteration
-                    # to avoid the following error:
-                    #   RuntimeError: unscale_() has already been called
-                    #   on this optimizer since the last update().
-                    # Note that if the gradient has inf/nan values,
-                    # scaler.step skips optimizer.step().
-                    if scaler is not None:
-                        for iopt, optimizer in enumerate(optimizers):
-                            if optim_idx is not None and iopt != optim_idx:
-                                continue
-                            scaler.step(optimizer)
-                            scaler.update()
-
-                for iopt, optimizer in enumerate(optimizers):
-                    if optim_idx is not None and iopt != optim_idx:
-                        continue
-                    optimizer.zero_grad()
-
-                # Register lr and train/load time[sec/step],
-                # where step refers to accum_grad * mini-batch
-                reporter.register(
-                    dict(
-                        {
-                            f"optim{i}_lr{j}": pg["lr"]
-                            for i, optimizer in enumerate(optimizers)
-                            for j, pg in enumerate(optimizer.param_groups)
-                            if "lr" in pg
-                        },
-                        train_time=time.perf_counter() - start_time,
-                    ),
-                )
-                start_time = time.perf_counter()
-
-            # NOTE(kamo): Call log_message() after next()
-            reporter.next()
-            if iiter % log_interval == 0:
-                logging.info(reporter.log_message(-log_interval))
-                if summary_writer is not None:
-                    reporter.tensorboard_add_scalar(summary_writer, -log_interval)
-                if use_wandb:
-                    reporter.wandb_log()
-
-        else:
-            if distributed:
-                iterator_stop.fill_(1)
-                torch.distributed.all_reduce(iterator_stop, ReduceOp.SUM)
-        return all_steps_are_invalid
-        '''
         return all_steps_are_invalid
 
     @classmethod

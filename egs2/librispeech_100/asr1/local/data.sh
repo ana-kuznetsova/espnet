@@ -16,6 +16,7 @@ stage=1
 stop_stage=100000
 data_url=www.openslr.org/resources/12
 train_dev="dev"
+use_debug_subset=$1
 
 log "$0 $*"
 . utils/parse_options.sh
@@ -25,10 +26,10 @@ log "$0 $*"
 . ./cmd.sh
 
 
-if [ $# -ne 0 ]; then
-    log "Error: No positional arguments are required."
-    exit 2
-fi
+#if [ $# -ne 0 ]; then
+#    log "Error: No positional arguments are required."
+#    exit 2
+#fi
 
 if [ -z "${LIBRISPEECH}" ]; then
     log "Fill the value of 'LIBRISPEECH' of db.sh"
@@ -48,10 +49,18 @@ fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     log "stage 2: Data Preparation"
-    for part in dev-clean test-clean dev-other test-other train-clean-100; do
-        # use underscore-separated names in data directories.
-        local/data_prep.sh ${LIBRISPEECH}/LibriSpeech/${part} data/${part//-/_}
+    if ${use_debug_subset}; then
+        log "Preparing debug subsets"
+        for part in debug_subset_train debug_subset_test debug_subset_dev; do
+            local/data_prep.sh ${LIBRISPEECH}/LibriSpeech/${part} data/${part//-/_}
     done
+    fi
+    if not ${use_debug_subset}; then
+        for part in dev-clean test-clean dev-other test-other train-clean-100; do
+            # use underscore-separated names in data directories.
+            local/data_prep.sh ${LIBRISPEECH}/LibriSpeech/${part} data/${part//-/_}
+        done
+    fi
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
