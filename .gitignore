@@ -51,7 +51,8 @@ egs*/librispeech/asr1/asr_stats_codec_en_bpe5000*
 egs*/librispeech_100/asr1/asr_stats_raw_en_bpe5000_sp_base/*
 egs*/librispeech_100/asr1/asr_debug_subset_bpe5000_sp/*
 egs*/librispeech_100/asr1/lm_stats_debug_subset_en_bpe5000/*
-
+egs2/librispeech_100/asr1/.ipynb_checkpoints/*
+egs2/librispeech_100/asr1/debug_notebook.ipynb
 # tools related
 tools/chainer
 tools/bin
