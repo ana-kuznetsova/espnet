@@ -9,17 +9,18 @@ train_set="train_clean_100"
 valid_set="dev"
 test_sets="test_clean test_other dev_clean dev_other"
 
-asr_config=conf/tuning/enc_asr/base_conformer_codec_frozen_decode_true_codebooks_1.yaml
+asr_config=/data/anakuzne/espnet/egs2/librispeech_100/asr1/conf/tuning/enc_asr/svd_vq_conformer.yaml
 inference_config=conf/decode_asr.yaml
-dump_dir="dump_codec_base"
-stats_dir="asr_codec_base_stats_bpe5000_sp"
+dump_dir="dump_base"
+stats_dir="asr_base_stats_bpe5000_sp"
 #Codec_base tag has dim 256 for attention
 
 ./asr.sh \
     --lang en \
-    --asr_tag conformer_codec_frozen_decode_true_codebooks_1_conv2d_embeds_no_init_$(date -I) \
+    --local_data_opts false \
+    --asr_tag conformer_svd_dev_$(date -I) \
     --asr_stats_dir "${stats_dir}" \
-    --stage 11 \
+    --stage 10 \
     --ngpu 1 \
     --nj 1 \
     --dumpdir "${dump_dir}" \

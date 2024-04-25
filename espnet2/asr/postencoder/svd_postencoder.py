@@ -19,7 +19,7 @@ class SVDPostencoder(AbsPostEncoder):
         super().__init__()
         self.input_size = input_size
         self.svd_dim = svd_dim
-        self.output_size = output_size
+        self.out_size = output_size
     
     def forward(self, input: torch.Tensor, input_lengths: torch.Tensor) -> Tuple[torch.Tensor]:
         U, S, VT = torch.linalg.svd(input)
@@ -28,4 +28,4 @@ class SVDPostencoder(AbsPostEncoder):
         return output, input_lengths
 
     def output_size(self) -> int:
-        return self.output_size
+        return self.out_size

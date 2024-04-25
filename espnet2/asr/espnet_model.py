@@ -473,8 +473,8 @@ class ESPnetASRModel(AbsESPnetModel):
                     feats, feats_lengths = self.frontend(speech, speech_lengths)
                 else:
                     feats, feats_lengths, _, _ = self.frontend(speech, speech_lengths)
-            #else:
-            #    feats, feats_lengths = self.frontend(speech, speech_lengths)
+            else:
+                feats, feats_lengths, _, _ = self.frontend(speech, speech_lengths)
 
         else:
             # No frontend and no feature extract
