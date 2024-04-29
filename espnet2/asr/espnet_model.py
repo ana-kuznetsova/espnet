@@ -12,6 +12,7 @@ from espnet2.asr.encoder.abs_encoder import AbsEncoder
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
 from espnet2.asr.postencoder.abs_postencoder import AbsPostEncoder
 from espnet2.asr.preencoder.abs_preencoder import AbsPreEncoder
+from espnet2.asr.quantizer.abs_quantizer import AbsQuantizer
 from espnet2.asr.specaug.abs_specaug import AbsSpecAug
 from espnet2.asr.transducer.error_calculator import ErrorCalculatorTransducer
 from espnet2.asr_transducer.utils import get_transducer_task_io
@@ -49,6 +50,7 @@ class ESPnetASRModel(AbsESPnetModel):
         preencoder: Optional[AbsPreEncoder],
         encoder: AbsEncoder,
         postencoder: Optional[AbsPostEncoder],
+        quantizer: Optional[AbsQuantizer],
         decoder: Optional[AbsDecoder],
         ctc: CTC,
         joint_network: Optional[torch.nn.Module],
@@ -109,6 +111,7 @@ class ESPnetASRModel(AbsESPnetModel):
         self.preencoder = preencoder
         self.postencoder = postencoder
         self.encoder = encoder
+        self.quantizer = quantizer
 
         if not hasattr(self.encoder, "interctc_use_conditioning"):
             self.encoder.interctc_use_conditioning = False
@@ -242,9 +245,12 @@ class ESPnetASRModel(AbsESPnetModel):
         text = text[:, : text_lengths.max()]
 
         # 1. Encoder
-        if self.use_vq_losses:
+        if self.use_vq_losses and isinstance(self.quantizer, AbsQuantizer):
+            logging.info("Quantizer encode()")
             encoder_out, encoder_out_lens, commitment_loss, codebook_loss = self.encode(speech, speech_lengths)
+            logging.info("Quantizer out %s %s", encoder_out.shape, encoder_out_lens)
         else:
+            logging.info("Went wrong condition")
             encoder_out, encoder_out_lens = self.encode(speech, speech_lengths)
         intermediate_outs = None
         if isinstance(encoder_out, tuple):
@@ -446,8 +452,13 @@ class ESPnetASRModel(AbsESPnetModel):
 
         if intermediate_outs is not None:
             return (encoder_out, intermediate_outs), encoder_out_lens
-        if self.use_vq_losses:
-            return encoder_out, encoder_out_lens, commitment_loss, codebook_loss
+
+        if self.use_vq_losses and self.quantizer:
+            z_q, codes, latents, commitment_loss, codebook_loss = self.quantizer(encoder_out)
+            logging.info("DEBUG quantizer %s %s", z_q.shape, encoder_out_lens)
+            # Possibly compute z out lens
+            z_q_lens = encoder_out_lens
+            return z_q, z_q_lens, commitment_loss, codebook_loss
         else:
             return encoder_out, encoder_out_lens
 

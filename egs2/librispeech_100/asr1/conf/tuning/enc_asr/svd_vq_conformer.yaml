@@ -22,6 +22,15 @@ postencoder_conf:
     svd_dim: 100
     output_size: 256
 
+quantizer: rvq
+quantizer_conf:
+    input_dim: 512
+    n_codebooks: 9
+    codebook_size: 1024
+    codebook_dim: 8
+    quantizer_dropout: 0.5
+use_vq_losses: true
+
 decoder: transformer
 decoder_conf:
     attention_heads: 4

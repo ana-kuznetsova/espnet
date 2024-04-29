@@ -49,6 +49,7 @@ from espnet2.asr.encoder.wav2vec2_encoder import FairSeqWav2Vec2Encoder
 from espnet2.asr.encoder.whisper_encoder import OpenAIWhisperEncoder
 from espnet2.asr.encoder.linear_encoder import LinearEncoder
 from espnet2.asr.encoder.empty_encoder import EmptyEncoder
+from espnet2.asr.quantizer.quantize import ResidualVectorQuantize
 from espnet2.asr.espnet_model import ESPnetASRModel
 from espnet2.asr.frontend.abs_frontend import AbsFrontend
 from espnet2.asr.frontend.default import DefaultFrontend
@@ -168,6 +169,10 @@ encoder_choices = ClassChoices(
     type_check=AbsEncoder,
     default="rnn",
 )
+quantizer_choices = ClassChoices(
+    name="quantizer",
+    classes=dict(rvq=ResidualVectorQuantize)
+)
 postencoder_choices = ClassChoices(
     name="postencoder",
     classes=dict(
@@ -228,6 +233,8 @@ class ASRTask(AbsTask):
         # --encoder and --encoder_conf
         encoder_choices,
         # --postencoder and --postencoder_conf
+        quantizer_choices,
+        # --quantizer and --quantizer_conf
         postencoder_choices,
         # --decoder and --decoder_conf
         decoder_choices,
@@ -562,6 +569,10 @@ class ASRTask(AbsTask):
             encoder_output_size = postencoder.output_size()
         else:
             postencoder = None
+        
+        # 5. a
+        quantizer_class = quantizer_choices.get_class(args.quantizer)
+        quantizer = quantizer_class(**args.quantizer_conf)
 
         # 5. Decoder
         if getattr(args, "decoder", None) is not None:
@@ -608,6 +619,7 @@ class ASRTask(AbsTask):
             normalize=normalize,
             preencoder=preencoder,
             encoder=encoder,
+            quantizer=quantizer,
             postencoder=postencoder,
             decoder=decoder,
             ctc=ctc,

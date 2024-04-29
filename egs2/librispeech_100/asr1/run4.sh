@@ -20,7 +20,7 @@ stats_dir="asr_base_stats_bpe5000_sp"
     --local_data_opts false \
     --asr_tag conformer_svd_dev_$(date -I) \
     --asr_stats_dir "${stats_dir}" \
-    --stage 10 \
+    --stage 11 \
     --ngpu 1 \
     --nj 1 \
     --dumpdir "${dump_dir}" \

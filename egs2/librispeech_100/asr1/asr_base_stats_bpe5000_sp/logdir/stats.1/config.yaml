@@ -5123,7 +5123,7 @@ ctc_conf:
     ignore_nan_grad: null
     zero_infinity: true
 joint_net_conf: null
-use_vq_losses: false
+use_vq_losses: true
 commitment_weight: 1.0
 codebook_weight: 1.0
 use_preprocessor: true
@@ -5188,6 +5188,13 @@ encoder_conf:
     activation_type: swish
     use_cnn_module: true
     cnn_module_kernel: 31
+quantizer: rvq
+quantizer_conf:
+    input_dim: 512
+    n_codebooks: 9
+    codebook_size: 1024
+    codebook_dim: 8
+    quantizer_dropout: 0.5
 postencoder: svd
 postencoder_conf:
     svd_dim: 100
